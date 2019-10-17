@@ -38,7 +38,7 @@ tBinarizacion.append("Standar")
 #tBinarizacion.append("Elitist")
 
 bounds=[(constantes.X_MIN(),constantes.X_MAX())]
-listaArchivos = ['mscp41.txt','mscp55.txt','mscp47.txt']
+listaArchivos = ['mscp41.txt']
 for filename in os.listdir(constantes.CARPETA_INSTANCIAS()):
     if ".txt" in filename and filename in listaArchivos:
         print(filename)

@@ -43,7 +43,9 @@ class GSO():
             
             for j in range(constantes.POP_SIZE()):
                 subpop.append(_particle.Particle(D,constantes.X_MIN(),constantes.X_MAX()))
-                swarm[i].append(subpop[j])                
+                swarm[i].append(subpop[j])        
+#                print(type(swarm[i][j].position_i[0]))
+#                exit()
                 b = _binarization.BinarizationStrategy(swarm[i][j].position_i,tTransferencia,tBinary)
                 #print(b.get_binary(),mcostos,mrestriccion,vrows,vcolumns)
                 swarm[i][j].position_b = self.repara(b.get_binary(),mcostos,mrestriccion,vrows,vcolumns)
@@ -111,6 +113,7 @@ class GSO():
                             swarm[i][j].err_best_i = float(swarm[i][j].err_i)
                             err_best_g=float(swarm[i][j].err_i)
                             
+                            print(f'err_best_g {err_best_g}')
                             if err_best_g < err_global_best_g[i] or err_global_best_g[i] == -1:
                                 #print(str(swarm[i][j].err_i)+'<'+str(err_global_best_g[i]) + '-gi-best: ' + str(err_global_best))
                                 global_best_solution_subswarm[i]=list(swarm[i][j].position_i)
@@ -140,6 +143,9 @@ class GSO():
                 for i in range(0,constantes.SUB_POP()):
                     sswarm[i].update_velocity_level_two(global_best_solution)
                     sswarm[i].update_position_level_two(constantes.X_MIN(),constantes.X_MAX())
+#                    import numpy as np
+#                    print(f'sswarm[i].member_superswarm {np.array(sswarm[i].member_superswarm).shape}')
+#                    exit()
                     b = _binarization.BinarizationStrategy(sswarm[i].member_superswarm,tTransferencia,tBinary)
                     sswarm[i].position_b = self.repara(b.get_binary(),mcostos,mrestriccion,vrows,vcolumns)
                     #sswarm[i].binariza(tTransferencia,tBinary,2)
