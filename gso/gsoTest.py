@@ -20,7 +20,7 @@ problem = Problem("instances/mscp41.txt")
 gso.setEvalEnc(problem.evalEnc)
 gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())
 gso.LEVELS = 2
-gso.numIter = [50,250]
+gso.numIter = [10,30]
 gso.numSubSwarms = [10]
 
 EPOCHS = 3

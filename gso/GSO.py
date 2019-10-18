@@ -23,26 +23,31 @@ class GSO:
         self.bestParticle = None
         self.bestParticleBin = None
         self.LEVELS = 3
-        self.scaler = MinMaxScaler(feature_range=(-5,5))
+        self.scaler = MinMaxScaler(feature_range=(0,1))
         np.random.seed(0)
+        self.accelPer  = 0#2.05 * np.random.uniform()
+        
+        self.accelBest = 0#2.05 * np.random.uniform()
+        self.randPer   = 1#np.random.uniform()
+        self.randBest  = 1#np.random.uniform()
             
     def setEvalEnc(self, evalEnc):
         self.evalEnc = evalEnc
         
     def moveSwarm(self, swarm, velocity, personalBest, bestFound):
         self.NUM_ITER += 1
-        self.accelPer  = 2.05 * np.random.uniform(size=(swarm.shape))
-        self.randPer   = np.random.uniform(size=(swarm.shape))
-        self.accelBest = 2.05 * np.random.uniform(size=(swarm.shape))
-        self.randBest  = np.random.uniform(size=(swarm.shape))
+        accelPer = self.accelPer  * np.ones((swarm.shape))
+        randPer = self.randPer   * np.ones((swarm.shape))
+        accelBest = self.accelBest * np.ones((swarm.shape))
+        randBest = self.randBest  * np.ones((swarm.shape))
         
         personalDif = personalBest - swarm
-        personalAccel = self.accelPer * self.randPer * personalDif
+        personalAccel = accelPer * randPer * personalDif
         bestDif = bestFound - swarm
-        bestAccel = self.accelBest * self.randBest * bestDif
+        bestAccel = accelBest * randBest * bestDif
         acceleration =  personalAccel + bestAccel
 #        iW = 1 - (self.NUM_ITER/(1+self.TOT_ITER))
-        iW = 0.5
+        iW = 10
         nextVel = (iW*velocity) + acceleration
         ret = swarm+nextVel
         ret[ret > 5]  = 5
