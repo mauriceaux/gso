@@ -9,7 +9,7 @@ import numpy as np
 import read_instance as r_instance
 import binarizationstrategy as _binarization
 import reparastrategy as _repara
-import line_profiler
+#import line_profiler
 
 class Problem():
     def __init__(self, instancePath = None):
@@ -70,16 +70,19 @@ class Problem():
         r = self.instance.get_rows()
         c = self.instance.get_columns()
         
-        cumpleTodas, _=repair.cumpleModificado(x,self.instance.get_r(),r,c)
+#        cumpleTodas, _=repair.cumpleModificado(x,self.instance.get_r(),r,c)
+        x = repair.repara_oneModificado(x,self.instance.get_r(),self.instance.get_c(),r,c)    
 #        print(f'sol original\n {x}\n cumple todas {cumpleTodas}')
-        if cumpleTodas==0:
-            x = repair.repara_oneModificado(x,self.instance.get_r(),self.instance.get_c(),r,c)    
-            repairNum += 1
+#        if cumpleTodas==0:
+#            x = repair.repara_oneModificado(x,self.instance.get_r(),self.instance.get_c(),r,c)    
+#            repairNum += 1
 #            print(f'repara_one {x}')
         
-        cumpleTodas, _ = repair.cumpleModificado(x,self.instance.get_r(),r,c)
+        cumpleTodas, inc = repair.cumpleModificado(x,self.instance.get_r(),r,c)
         if repair.cumple(x,self.instance.get_r(),r,c) < cumpleTodas:
+            print(f'solucion {x}')
             print(f'cumple todas {cumpleTodas} cumple todas original {repair.cumple(x,self.instance.get_r(),r,c)}')
+            print(f'inc {inc}')
             exit()
 #        print(f'primera reparacion\n {x}\n cumple todas {cumpleTodas}')
         if cumpleTodas==0:

@@ -10,7 +10,7 @@ import numpy as np
 import multiprocessing as mp
 from scipy.cluster.vq import kmeans,vq
 from sklearn.preprocessing import MinMaxScaler
-import line_profiler
+#import line_profiler
 
 class GSO:
     def __init__(self):

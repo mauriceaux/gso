@@ -11,11 +11,15 @@ import numpy as np
 class ReparaStrategy:
     def repara_oneModificado(self,solucion, m_restriccion,m_costos,r,c):
         _, incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+#        print(np.argmax(np.sum(np.array(incumplidas),axis=0)))
+#        exit()
         solucion = np.array(solucion)
         ultIncumplidas = len(incumplidas)
         np_m_restriccion = np.array(m_restriccion)
         np_mcostos = np.array(m_costos)
         while len(incumplidas) > 0:
+#            print(len(incumplidas))
+            idxReemplazar = np.argmax(np.sum(np.array(incumplidas),axis=0))
 #            print(f'largo de la incumplidas {np.array(incumplidas).shape[0]}')
 #            print(f'incumplidas1 {np.array(incumplidas)}')
 #            print(f'incumplidas1 shape {np.array(incumplidas).shape}')
@@ -23,16 +27,16 @@ class ReparaStrategy:
 #            print(f'incumplidas2 {np.sum(np.array(m_restriccion)[incumplidas], axis=0)}')
 #            print(f'solucion {solucion}')
 #            print(f'np.sum(np_m_restriccion[incumplidas], axis=0) {np.sum(np_m_restriccion[incumplidas], axis=0) > 0}')
-            no_cumplidas = np.zeros(solucion.shape)
-            no_cumplidas[np.where(np.sum(np_m_restriccion[incumplidas], axis=0) > 0)] = 1
+#            no_cumplidas = np.zeros(solucion.shape)
+#            no_cumplidas[np.where(np.sum(np_m_restriccion[incumplidas], axis=0) > 0)] = 1
             
-            print(f'solucion {solucion}')
-            print(f'no_cumplidas {no_cumplidas}')
-            no_cumplidas = np.where(solucion < no_cumplidas)
-            print(f'no_cumplidas {no_cumplidas}')
-            print(f'np_mcostos[no_cumplidas] {np_mcostos[no_cumplidas]}')
+#            print(f'solucion {solucion}')
+#            print(f'no_cumplidas {no_cumplidas}')
+#            no_cumplidas = np.where(solucion < no_cumplidas)
+#            print(f'no_cumplidas {no_cumplidas}')
+#            print(f'np_mcostos[no_cumplidas] {np_mcostos[no_cumplidas]}')
             
-            idxReemplazar = np.argmin(np_mcostos[no_cumplidas])
+#            idxReemplazar = np.argmin(np_mcostos[no_cumplidas])
 #            print(np.argmin(np_mcostos[no_cumplidas]))
 #            exit()
 #            print(solucion > 0 * (np.sum(np_m_restriccion[incumplidas], axis=0) > 0))
@@ -274,7 +278,8 @@ class ReparaStrategy:
 #            print(f'restriccion {m_restriccion[idx,:].shape}')
 #            exit()
 #            print(f'idx {idx}')
-#            print(f'm_restriccion[{idx},:] {m_restriccion[idx,:]}')
+#            print(f'm_restriccion[{idx},:] {m_restriccion[idx,:][np.where(m_restriccion[idx,:] > solucion)]}')
+#            print(f'solucion {solucion[np.where(m_restriccion[idx,:] > solucion)]}')
 #            print(f' m_restriccion[{idx},:]==1 {np.where(m_restriccion[idx,:]==1)}')
 #            print(solucion[np.where(m_restriccion[idx,:]==1)])
 #            print(np.sum(solucion[np.where(m_restriccion[idx,:]==1)]))
@@ -284,12 +289,15 @@ class ReparaStrategy:
 #            print(f'np.where(m_restriccion[idx,:] > solucion) {incumplidas}')
 #            print(f'solucion[{incumplidas}] {solucion[incumplidas]}')
 #            print(f'inc {inc}')
-            
+           
 #            exit()
             res = np.sum(inc)
-            if res < 1:
+            if res > 0:
+#                print(res)
+#                exit()
                 incumplidas.append(inc)
-        if len(incumplidas) > 0: return 0, incumplidas
+#                print(f'len(incumplidas) {len(incumplidas)}')
+        if len(incumplidas) >  0: return 0, incumplidas
         if len(incumplidas) == 0: return 1, incumplidas
     
     

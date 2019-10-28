@@ -7,7 +7,9 @@ Created on Sun Oct 20 12:43:44 2019
 """
 
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.use('TkAgg')
 
 path1 = f'resultados/swarmL0S0.csv'
 df1 = pd.read_csv(path1, header=None)
