@@ -6,8 +6,11 @@ import binarizationstrategy as _binarization
 import reparastrategy as _repara
 import time
 import constant as _cont
+import numpy as np
+import line_profiler
 constantes = _cont.Const();
 class GSO():
+    @profile
     def __init__(self,costFunc, D, bounds, mcostos, mrestriccion,rutefileexecution,rutefinalfile,ejec,vrows,vcolumns,tTransferencia,tBinary):
         time_ejecucion = time.time() #Iniciamos variable para registrar tiempo de la ejecucion
         #%--D--%%----EPmax-----%%----L1-------%%-----L2------%%---N---%%---M--%%        
@@ -96,17 +99,21 @@ class GSO():
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                    
         for ep in range(0,constantes.EPOCH_NUMBER()):
             #BEGION PSO LEVEL 1
+            
             for i in range(0,constantes.SUB_POP()):
+                evaluationsCsv = []
                 star_time = time.time() #Iniciamos variable para registrar tiempo en cada iteración
                 for k in range(0,constantes.ITERATION_1()):                    
+                    evals = []
                     for j in range(0,constantes.POP_SIZE()):
+                        
                         swarm[i][j].update_velocity_level_one(global_best_solution_subswarm[i])
                         swarm[i][j].update_position_level_one(constantes.X_MIN(),constantes.X_MAX())
                         b = _binarization.BinarizationStrategy(swarm[i][j].position_i,tTransferencia,tBinary)
                         swarm[i][j].position_b = self.repara(b.get_binary(),mcostos,mrestriccion,vrows,vcolumns)
                         #swarm[i][j].binariza(tTransferencia,tBinary,1)
                         swarm[i][j].evaluate(costFunc,mcostos,mrestriccion,vrows,vcolumns)
-                        
+                        evals.append(swarm[i][j].err_i)
                         if swarm[i][j].err_i < err_best_g or err_best_g == -1:
                             #print(str(swarm[i][j].err_i)+'<'+str(err_best_g) + '-pb-best: ' + str(err_global_best))
                             swarm[i][j].personal_best_particle = list(swarm[i][j].position_i)
@@ -125,20 +132,24 @@ class GSO():
                                     global_best_solution=list(swarm[i][j].position_i)
                                     glo_best_b=list(swarm[i][j].position_b)
                                     err_global_best=float(swarm[i][j].err_i)
+                    evaluationsCsv.append(evals)
                                     
                 tiempototaliteracion = time.time() - star_time
                 fr = open(rutefileexecution, "a+")
                 fr.write('EPMax,'+str(ep)+',M,'+str(i)+',L1,-,'+str(err_global_best) + ',T,' + str(tiempototaliteracion))
                 fr.write("\n")
                 fr.close()
+                np.savetxt(f"resultados/swarmL{0}S{i}.csv", np.array(evaluationsCsv), delimiter=",")
                 #print('EPMax,'+str(ep)+',M,'+str(i)+',L1,-,'+str(err_global_best) + ',T,' + str(tiempototaliteracion))
                 
             # establish the swarm
             for i in range(0,constantes.SUB_POP()): 
                 sswarm[i].superswarm(global_best_solution_subswarm[i])
             
-            #BEGIN PSO LEVEL 2                        
+            #BEGIN PSO LEVEL 2 
+            evaluationsCsv = []                       
             for k in range(0,constantes.ITERATION_2()):
+                evals = []
                 star_time = time.time() #Iniciamos variable para registrar tiempo en cada iteración
                 for i in range(0,constantes.SUB_POP()):
                     sswarm[i].update_velocity_level_two(global_best_solution)
@@ -150,6 +161,7 @@ class GSO():
                     sswarm[i].position_b = self.repara(b.get_binary(),mcostos,mrestriccion,vrows,vcolumns)
                     #sswarm[i].binariza(tTransferencia,tBinary,2)
                     sswarm[i].evaluate(costFunc,mcostos,mrestriccion,vrows,vcolumns)
+                    evals.append(sswarm[i].err_i)
                     # determine if current particle is the best (globally)
                     if sswarm[i].err_i < err_global_best_g[i]  or err_global_best_g[i] == -1:
                         #print(str(sswarm[i].err_i)+'<'+str(err_global_best_g[i]) + '-gi-best: ' + str(err_global_best))
@@ -162,7 +174,7 @@ class GSO():
                             global_best_solution=list(sswarm[i].member_superswarm)
                             glo_best_b=list(sswarm[i].position_b)
                             err_global_best=float(sswarm[i].err_i)          
-                                
+                evaluationsCsv.append(evals)                
                 tiempototaliteracion = time.time() - star_time
                 fr = open(rutefileexecution, "a+")
                 fr.write('EPMax,'+str(ep)+',M,-,L2,'+str(k)+','+str(err_global_best) + ',T,' + str(tiempototaliteracion))
@@ -170,6 +182,7 @@ class GSO():
                 fr.close()
                 #print ('EPMax,'+str(ep)+',M,-,L2,'+str(k)+','+str(err_global_best) + ',T,' + str(tiempototaliteracion))
             print(str(sswarm[i].err_i)+'<'+str(err_global_best) + '-g-best: ' + str(err_global_best))
+            np.savetxt(f"resultados/swarmL{1}S{0}.csv", np.array(evaluationsCsv), delimiter=",")
 #            exit()
         tt_ejecucion = time.time() - time_ejecucion #tiempo total de la ejecucion
         ff = open(rutefinalfile, "a+")
@@ -178,6 +191,7 @@ class GSO():
         ff.close()
     
     # Verificar Restricciones
+    @profile
     def repara(self,x, matrizCosto, matrizRestriccion,r,c):
         cumpleTodas=0
         repair = _repara.ReparaStrategy()

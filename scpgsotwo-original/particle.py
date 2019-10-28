@@ -4,7 +4,7 @@ import random
 import reparastrategy as _repara
 class Particle:
     def __init__(self,num_dimensions,min, max):
-        random.seed(0)
+#        random.seed(0)
         self.w=0.5       # constant inertia weight (how much to weigh the previous velocity)
         self.c1 = 2.05*random.random()   # cognative constant
         self.c2 = 2.05*random.random()   # social constant

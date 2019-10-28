@@ -25,4 +25,4 @@ class Const():
     def X_MAX(self):
         return 5
     def TOT_EJEC(self):
-        return 3
+        return 1

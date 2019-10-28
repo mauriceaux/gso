@@ -39,6 +39,8 @@ tBinarizacion.append("Standar")
 
 bounds=[(constantes.X_MIN(),constantes.X_MAX())]
 listaArchivos = ['mscp41.txt']
+#listaArchivos = ['mscpnrh5.txt']
+
 for filename in os.listdir(constantes.CARPETA_INSTANCIAS()):
     if ".txt" in filename and filename in listaArchivos:
         print(filename)
