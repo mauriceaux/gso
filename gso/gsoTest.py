@@ -20,16 +20,20 @@ gso = GSO()
 gso.min = -5
 gso.max = 5
 
-gso.minVel = -1
-gso.maxVel= 1
+gso.minVel = -3
+gso.maxVel= 3
 
-gso.accel = 3
+gso.accel = 2
 #gso.min = -500
 #gso.max = 500
 #problem = ProblemTest()
+problem = Problem("instances/mscpnrh5.txt")
+#problem = Problem("instances/mscp41.txt")
+gso.decode = problem.binarizeMod
+gso.repair = problem.repara
+#gso.repair = problem.reparaMod
+gso.evalDecoded = problem.evalInstance
 
-problem = Problem("instances/mscp41.txt")
-#problem = Problem("instances/mscpnrh5.txt")
 gso.setEvalEnc(problem.evalEnc)
 #
 #gso.UNIVERSE = gso.genRandomSwarm(50, problem.get_columns())

@@ -10,6 +10,7 @@ import numpy as np
 import multiprocessing as mp
 from scipy.cluster.vq import kmeans,vq
 from sklearn.preprocessing import MinMaxScaler
+from datetime import datetime
 #import line_profiler
 
 class GSO:
@@ -39,6 +40,9 @@ class GSO:
         self.randBest  = np.random.uniform()
         self.minVel = -1
         self.maxVel = 1
+        self.decode = None
+        self.repair = None
+        self.evalDecoded = None
             
 #    @profile
     def setEvalEnc(self, evalEnc):
@@ -129,6 +133,27 @@ class GSO:
 #                print(f"swarm \n{swarm} \nvelocity {velocity}\nnorm {norm}\nnswarm {nswarm}")
 #                exit()
             args = nswarm
+            start = datetime.now()
+            
+#            pool = mp.Pool(8)
+#            binParticle = pool.map(self.decode, list(args))
+#            pool.close()
+##            print(bins)
+##            print(np.array(bins).shape)
+##            exit()
+#            pool = mp.Pool(5)
+#            binParticle = pool.map(self.repair, list(binParticle))
+#            pool.close()
+##            print(repaired)
+##            print(np.array(repaired).shape)
+##            exit()            
+#            pool = mp.Pool(5)
+#            evals = pool.map(self.evalDecoded, list(binParticle))
+#            pool.close()
+#            evaluations = np.array(evals)
+#            print(evals)
+#            print(np.array(evals).shape)
+#            exit()                        
             
             pool = mp.Pool(4)
 #            evaluations, binParticle = pool.map(self.evalEnc, list(args))
@@ -137,6 +162,8 @@ class GSO:
             returning = np.array(returning)
             binParticle = returning[:,1]
             evaluations = returning[:,0]
+            end = datetime.now()
+#            print(f'tiempo evaluacion {end-start}')
             
 
             evaluations = np.array(np.vstack(evaluations))

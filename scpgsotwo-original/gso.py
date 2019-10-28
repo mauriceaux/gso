@@ -7,10 +7,10 @@ import reparastrategy as _repara
 import time
 import constant as _cont
 import numpy as np
-import line_profiler
+#import line_profiler
 constantes = _cont.Const();
 class GSO():
-    @profile
+#    @profile
     def __init__(self,costFunc, D, bounds, mcostos, mrestriccion,rutefileexecution,rutefinalfile,ejec,vrows,vcolumns,tTransferencia,tBinary):
         time_ejecucion = time.time() #Iniciamos variable para registrar tiempo de la ejecucion
         #%--D--%%----EPmax-----%%----L1-------%%-----L2------%%---N---%%---M--%%        
@@ -191,7 +191,7 @@ class GSO():
         ff.close()
     
     # Verificar Restricciones
-    @profile
+#    @profile
     def repara(self,x, matrizCosto, matrizRestriccion,r,c):
         cumpleTodas=0
         repair = _repara.ReparaStrategy()

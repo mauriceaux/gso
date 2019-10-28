@@ -18,8 +18,22 @@ class ReparaStrategy:
         np_m_restriccion = np.array(m_restriccion)
         np_mcostos = np.array(m_costos)
         while len(incumplidas) > 0:
-#            print(len(incumplidas))
-            idxReemplazar = np.argmax(np.sum(np.array(incumplidas),axis=0))
+#            print(np.array(incumplidas))
+            indices = np.where(np.sum(np.array(incumplidas),axis=0) >= 1)
+            costos = np_mcostos[indices]
+            sumas = np.sum(np.array(incumplidas),axis=0)[indices]
+#            print(f'sumas {sumas.shape}')
+#            print(f'costos {costos.shape}')
+            division = costos/sumas
+#            print(division)
+            n_costos = np.zeros(np_mcostos.shape)
+            n_costos[indices] = division
+#            print(f'n_costos {n_costos}')
+#            np_mcostos[np.where(np.sum(np.array(incumplidas),axis=0) > 1)] = np_mcostos[np.where(np.sum(np.array(incumplidas),axis=0) > 1)] / 
+#            print(np_mcostos[np.where(np.sum(np.array(incumplidas),axis=0) > 1)])
+#            exit()
+            idxReemplazar = np.min(np.where(n_costos>0))
+#            idxReemplazar = np.argmax(np.sum(np.array(incumplidas),axis=0))
 #            print(f'largo de la incumplidas {np.array(incumplidas).shape[0]}')
 #            print(f'incumplidas1 {np.array(incumplidas)}')
 #            print(f'incumplidas1 shape {np.array(incumplidas).shape}')
@@ -112,12 +126,14 @@ class ReparaStrategy:
 #            solucion[rIdx] = 1
 #            solucion[rIdx] = 1
             _, incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+#            print(solucion)
 #            print(f'*incumplidas {incumplidas}')
 #            print(f'*solucion[{incumplidas[0]}] {solucion[incumplidas[0]]}')
             if ultIncumplidas < len(incumplidas):
-                print(f'{ultIncumplidas} > {len(incumplidas)}')
+                print(f'no disminuyen las incumplidas! {ultIncumplidas} > {len(incumplidas)}')
                 exit()
             ultIncumplidas = len(incumplidas)
+#        exit()
         return solucion
         
         
@@ -284,18 +300,37 @@ class ReparaStrategy:
 #            print(solucion[np.where(m_restriccion[idx,:]==1)])
 #            print(np.sum(solucion[np.where(m_restriccion[idx,:]==1)]))
 #            raise Exception('excepcion','')
-            inc = np.zeros(solucion.shape)
-            inc[np.where(m_restriccion[idx,:] > solucion)] = 1
-#            print(f'np.where(m_restriccion[idx,:] > solucion) {incumplidas}')
-#            print(f'solucion[{incumplidas}] {solucion[incumplidas]}')
-#            print(f'inc {inc}')
-           
-#            exit()
-            res = np.sum(inc)
-            if res > 0:
-#                print(res)
-#                exit()
-                incumplidas.append(inc)
+            
+            
+            suma = np.sum(solucion[np.where(m_restriccion[idx,:] == 1)])
+            if suma < 1:
+                incumplidas.append(m_restriccion[idx,:])
+            
+            
+            
+#            cumplidas = np.zeros(solucion.shape)
+#            cumplidas[np.where((m_restriccion[idx,:]==1) & (solucion==1))] = 1
+            
+            
+#            print(f'solucion             {solucion}')
+#            print(f'm_restriccion[idx,:] {m_restriccion[idx,:]}')
+##            print(f'np.where((m_restriccion[idx,:]=1) & (solucion=1)) {cumplidas}')
+#            inc = m_restriccion[idx,:] - cumplidas
+#            if len(np.where(inc == 1)[0]) > 0:
+#                print(np.where(inc == 1)[0][0])
+#                print(f'solucion[{np.where(inc == 1)[0][0]}] = {solucion[np.where(inc == 1)[0][0]]}')
+#                print(f'm_restriccion[{idx},:][{np.where(inc == 1)[0][0]}] = {m_restriccion[idx,:][np.where(inc == 1)[0][0]]}')
+##            exit()
+##            print(f'solucion[{incumplidas}] {solucion[incumplidas]}')
+#            
+#           
+##            exit()
+#            res = np.sum(inc)
+#            if res > 0:
+##                print(res)
+##                exit()
+#                print(f'inc                  {inc}')
+#                incumplidas.append(inc)
 #                print(f'len(incumplidas) {len(incumplidas)}')
         if len(incumplidas) >  0: return 0, incumplidas
         if len(incumplidas) == 0: return 1, incumplidas
