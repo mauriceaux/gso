@@ -279,9 +279,16 @@ class ReparaStrategy:
 #            print(solucion[np.where(m_restriccion[idx,:]==1)])
 #            print(np.sum(solucion[np.where(m_restriccion[idx,:]==1)]))
 #            raise Exception('excepcion','')
-            res = np.sum(solucion[np.where(m_restriccion[idx,:] == 1)])
+            inc = np.zeros(solucion.shape)
+            inc[np.where(m_restriccion[idx,:] > solucion)] = 1
+#            print(f'np.where(m_restriccion[idx,:] > solucion) {incumplidas}')
+#            print(f'solucion[{incumplidas}] {solucion[incumplidas]}')
+#            print(f'inc {inc}')
+            
+#            exit()
+            res = np.sum(inc)
             if res < 1:
-                incumplidas.append(idx)
+                incumplidas.append(inc)
         if len(incumplidas) > 0: return 0, incumplidas
         if len(incumplidas) == 0: return 1, incumplidas
     
