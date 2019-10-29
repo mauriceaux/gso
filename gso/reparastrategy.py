@@ -8,132 +8,108 @@ Created on Tue Apr 23 19:05:37 2019
 import math
 import random
 import numpy as np
+from datetime import datetime
 class ReparaStrategy:
     def repara_oneModificado(self,solucion, m_restriccion,m_costos,r,c):
-        _, incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+        incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+
+        
+
 #        print(np.argmax(np.sum(np.array(incumplidas),axis=0)))
 #        exit()
         solucion = np.array(solucion)
         ultIncumplidas = len(incumplidas)
-        np_m_restriccion = np.array(m_restriccion)
+#        np_m_restriccion = np.array(m_restriccion)
         np_mcostos = np.array(m_costos)
+        i =0
         while len(incumplidas) > 0:
-#            print(np.array(incumplidas))
-            indices = np.where(np.sum(np.array(incumplidas),axis=0) >= 1)
-            costos = np_mcostos[indices]
-            sumas = np.sum(np.array(incumplidas),axis=0)[indices]
-#            print(f'sumas {sumas.shape}')
-#            print(f'costos {costos.shape}')
-            division = costos/sumas
-#            print(division)
-            n_costos = np.zeros(np_mcostos.shape)
-            n_costos[indices] = division
-#            print(f'n_costos {n_costos}')
-#            np_mcostos[np.where(np.sum(np.array(incumplidas),axis=0) > 1)] = np_mcostos[np.where(np.sum(np.array(incumplidas),axis=0) > 1)] / 
-#            print(np_mcostos[np.where(np.sum(np.array(incumplidas),axis=0) > 1)])
-#            exit()
-            idxReemplazar = np.min(np.where(n_costos>0))
-#            idxReemplazar = np.argmax(np.sum(np.array(incumplidas),axis=0))
-#            print(f'largo de la incumplidas {np.array(incumplidas).shape[0]}')
-#            print(f'incumplidas1 {np.array(incumplidas)}')
-#            print(f'incumplidas1 shape {np.array(incumplidas).shape}')
-#            print(f'incumplidas2 {np.sum(np.array(m_restriccion)[incumplidas], axis=0).shape}')
-#            print(f'incumplidas2 {np.sum(np.array(m_restriccion)[incumplidas], axis=0)}')
-#            print(f'solucion {solucion}')
-#            print(f'np.sum(np_m_restriccion[incumplidas], axis=0) {np.sum(np_m_restriccion[incumplidas], axis=0) > 0}')
-#            no_cumplidas = np.zeros(solucion.shape)
-#            no_cumplidas[np.where(np.sum(np_m_restriccion[incumplidas], axis=0) > 0)] = 1
-            
-#            print(f'solucion {solucion}')
-#            print(f'no_cumplidas {no_cumplidas}')
-#            no_cumplidas = np.where(solucion < no_cumplidas)
-#            print(f'no_cumplidas {no_cumplidas}')
-#            print(f'np_mcostos[no_cumplidas] {np_mcostos[no_cumplidas]}')
-            
-#            idxReemplazar = np.argmin(np_mcostos[no_cumplidas])
-#            print(np.argmin(np_mcostos[no_cumplidas]))
-#            exit()
-#            print(solucion > 0 * (np.sum(np_m_restriccion[incumplidas], axis=0) > 0))
-#            print(np.sum(np_m_restriccion[no_cumplidas], axis=0))
-#            print(np.argmax(np.sum(np_m_restriccion[no_cumplidas], axis=0)))
-#            print(solucion[np.argmax(np.sum(np_m_restriccion[no_cumplidas], axis=0))])
-#            exit()
-#            difContr = solucion < 
+            sumaFila = np.sum(incumplidas, axis=1)
+            sumaCols = np.sum(incumplidas, axis=0)
+            #print(sumaFila)
+            #print(np.array(incumplidas))
+            #print((np.array(incumplidas)*sumaFila.reshape((sumaFila.shape[0],1))).shape)
+            #print(sumaCols)
+            #print((np.array(incumplidas).T*sumaCols.reshape((sumaCols.shape[0],1))).T.shape)
+            #exit()
+            iFilas = np.array(incumplidas)*sumaFila.reshape((sumaFila.shape[0],1))
+            iCols  = (np.array(incumplidas).T*sumaCols.reshape((sumaCols.shape[0],1))).T
+            importanciaIncumplidas = iFilas + iCols
+            print(np.where(importanciaIncumplidas>0))
+            exit()
+            #print(sumaFila)
+            #exit()
+            idxFila = np.argmax(sumaFila)
+            #print(idxFila)
+            #exit()
+            indices = np.where(incumplidas[idxFila] > 0)
+            #print(indices)
+            #print(sumaCols[indices])
+            #print(np_mcostos[indices])
+            #print(np.argmax(sumaCols[indices]/np_mcostos[indices]))
+            #print(indices[0][np.argmin(np_mcostos[indices])])
+            #exit()
+            #idxReemplazar = indices[0][np.argmin(np_mcostos[indices])]
+            #print(np_mcostos[indices]/sumaCols[indices])
+            #exit()
+            #idxReemplazar = indices[0][np.argmin(np_mcostos[indices]/sumaCols[indices])]
+            idxReemplazar = indices[0][np.argmax(sumaCols[indices]/np_mcostos[indices])]
+
+
+            #indices = np.argmax(np.sum(np.array(incumplidas),axis=0))
+            #idxReemplazar = indices
+            #print(indices)
+            #exit()
+
+
+#            start = datetime.now()
+            #indices = np.where(np.sum(np.array(incumplidas),axis=0) > 0)
+#            end = datetime.now()
+#            print(f'linea 23 demoro {end-start}')
+#            start = datetime.now()
+            #costos = np_mcostos[indices]
+#            end = datetime.now()
+#            print(f'linea 27 demoro {end-start}')
+#            start = datetime.now()
+            #sumas = np.sum(np.array(incumplidas),axis=0)[indices]
+#            end = datetime.now()
+#            print(f'linea 31 demoro {end-start}')
+#            start = datetime.now()
+            #division = costos/sumas
+#            end = datetime.now()
+#            print(f'linea 35 demoro {end-start}')
+#            start = datetime.now()
+            #n_costos = np.zeros(np_mcostos.shape)
+#            end = datetime.now()
+#            print(f'linea 39 demoro {end-start}')
+#            start = datetime.now()
+            #n_costos[indices] = division
+#            end = datetime.now()
+#            print(f'linea 43 demoro {end-start}')
+#            start = datetime.now()
+            #idxReemplazar = np.min(np.where(n_costos>0))
+#            end = datetime.now()
+#            print(f'linea 47 demoro {end-start}')
+#            start = datetime.now()
             if(solucion[idxReemplazar] >= 1):
                 raise Exception(f'ya reemplazado solucion[{idxReemplazar}] = {solucion[idxReemplazar]}')
             solucion[idxReemplazar] = 1
-#            difContr = np.where(solucion < np.sum(np_m_restriccion[incumplidas], axis=0))
-#            print(f'difContr {difContr}')
-#            print(f'np_m_resticcion[:,difContr] {np.sum(np_m_restriccion[difContr], axis=0).shape}')
-#            print(f'np_m_resticcion[:,difContr] {np.argmax(np.sum(np_m_restriccion[difContr], axis=0))}')
-#            maxRestrIdx = np.argmax(np.sum(np_m_restriccion[difContr], axis=0))
-            
-#            print(f'diferencia en contra {difContr}')
-#            exit()
-#            print(f'costos {np.array(m_costos)[np.where(solucion < np.sum(np.array(m_restriccion)[incumplidas], axis=0))]}')
-#            print(f'costos shape {np.array(m_costos)[np.where(solucion < np.sum(np.array(m_restriccion)[incumplidas], axis=0))].shape}')
-#            print(f'costos sum {np.sum(np.array(m_costos)[np.where(solucion < np.sum(np.array(m_restriccion)[incumplidas], axis=0))])}')
-#            print(f'costos argmin {np.argmin(np.array(m_costos)[np.where(solucion < np.sum(np.array(m_restriccion)[incumplidas], axis=0))])}')
-#            minCostIdx = np.argmin(np_mcostos[difContr])
-#            print(f'pos solucion costos argmin {minCostIdx}')
-#            print(f'columna seleccionada para reparar {difContr[0][minCostIdx]}')
-#            print(f'valor actual solucion en col selec {solucion[difContr[0][minCostIdx]]}')
-#            maxRestrIdx
-#            if solucion[maxRestrIdx] == 1:
-#                raise Exception("ya estaba corregido")
-#            if solucion[difContr[0][minCostIdx]] == 1:
-#                raise Exception("ya estaba corregido")
-                
-#            solucion[difContr[0][minCostIdx]] = 1
-#            print(f'incumplidas3 {np.array(m_restriccion)[incumplidas].shape}')
-#            print(f'incumplidas4 {np.sum(np.array(m_restriccion)[incumplidas], axis=1)}')
-#            print(f'incumplidas5 {np.sum(np.array(m_restriccion)[incumplidas], axis=1).shape}')
-            
-#            maxid = np.argmax(np.sum(np.array(m_restriccion)[incumplidas], axis=1))
-#            print(f'incumplidas6 {maxid}')
-#            print(f'incumplidas7 incumplidas[{np.argmax(np.sum(np.array(m_restriccion)[incumplidas]))}, axis=1)]')
-#            print(f'incumplidas7 {incumplidas[maxid]}')
-#            print(f'incumplidas8 {np_m_restriccion[incumplidas[maxid]]}')
-#            print(f'costos {np.array(m_costos)[np_m_restriccion[incumplidas[maxid]]]}')
-            
-#            print(f'incumplidas9 {np.sum(np.array(m_restriccion)[incumplidas[maxid]],axis=0)}')
-            
-#            print(f'incumplidas10 {np.where(np_m_restriccion[incumplidas[maxid]] == 1)}')
-#            costosIdx = np.where(np_m_restriccion[incumplidas[maxid]] == 1)
-            
-#            costos = np.array(m_costos)[costosIdx]
-#            print(f'{costos}')
-#            mincost = costos[np.argmin(costos)]
-#            print(f'mincost {mincost}')
-#            print(f'esta seleccionado? {solucion[mincost]==1}')
-            
-            
-#            print(f'incumplidas n {np.array(m_restriccion)[incumplidas].shape}')
-#            exit()
-#            print(f'solucion[{incumplidas[0]}] {solucion[incumplidas[0]]}')
-#            print(f'm_restriccion[incumpleidas[0]] {np.array(m_restriccion)[incumplidas[0]]}')
-#            print(f'np.sum(np.array(m_restriccion)[incumplidas],axis=1) {np.sum(np.array(m_restriccion)[incumplidas],axis=1)}')
-#            exit()
-#            rIdx = np.argmax(np.sum(np_m_restriccion[incumplidas], axis=1))
-#            rIdx = np.random.choice(incumplidas)
-#            print(f'rIdx {rIdx}')
-#            print(f'm_restriccion[{rIdx},:] {np.array(np_m_restriccion)[rIdx,:]}')
-#            print(f'np.where(m_restriccion[{rIdx},:] == 1) {np.where(np_m_restriccion[rIdx,:] == 1)}')
-#            sIdx = np.random.choice(np.where(np_m_restriccion[rIdx,:] == 1)[0])
-#            print(incumplidas)
-            
-#            print(f'solucion[{rIdx}] {solucion[rIdx]}')
-#            solucion[rIdx] = 1
-#            solucion[rIdx] = 1
-            _, incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
-#            print(solucion)
-#            print(f'*incumplidas {incumplidas}')
-#            print(f'*solucion[{incumplidas[0]}] {solucion[incumplidas[0]]}')
+#            end = datetime.now()
+#            print(f'linea 51-53 demoro {end-start}')
+#            start = datetime.now()
+            incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+#            end = datetime.now()
+#            print(f'linea 57 demoro {end-start}')
+#            start = datetime.now()
             if ultIncumplidas < len(incumplidas):
                 print(f'no disminuyen las incumplidas! {ultIncumplidas} > {len(incumplidas)}')
                 exit()
             ultIncumplidas = len(incumplidas)
-#        exit()
+#            end = datetime.now()
+#            print(f'linea 61-64 demoro {end-start}')
+            
+            #exit()
+            i+=1
+        print(f'total reparaciones {i}')
         return solucion
         
         
@@ -177,7 +153,7 @@ class ReparaStrategy:
                         aListU.remove(i)
                     break
                 
-        result = np.where(np.array(m_restriccion) == 1)
+        #result = np.where(np.array(m_restriccion) == 1)
 #        print(aListU)
 #        exit()
 #        suma = np.sum(m_restriccion, axis = 0)
@@ -280,64 +256,37 @@ class ReparaStrategy:
             
             cont+=1
         return nFila
+
+    def find(self, target, myList):
+        for i in range(len(myList)):
+            if myList[i] == target:
+                yield i
         
     def cumpleModificado(self, solucion, m_restriccion, r, c):
+        start = datetime.now()
         incumplidas = []
         m_restriccion = np.array(m_restriccion)
         solucion = np.array(solucion)
-        
+#        print(list(self.find(1,m_restriccion[0])))
 #        exit()
-#        print(f'solucion {solucion.shape}')
-#        print(f'restriccion {m_restriccion.shape}')
-#        exit()
-        for idx in range(m_restriccion.shape[0]):
-#            print(f'restriccion {m_restriccion[idx,:].shape}')
-#            exit()
-#            print(f'idx {idx}')
-#            print(f'm_restriccion[{idx},:] {m_restriccion[idx,:][np.where(m_restriccion[idx,:] > solucion)]}')
-#            print(f'solucion {solucion[np.where(m_restriccion[idx,:] > solucion)]}')
-#            print(f' m_restriccion[{idx},:]==1 {np.where(m_restriccion[idx,:]==1)}')
-#            print(solucion[np.where(m_restriccion[idx,:]==1)])
-#            print(np.sum(solucion[np.where(m_restriccion[idx,:]==1)]))
-#            raise Exception('excepcion','')
+        incumplidas = [item for item in m_restriccion if np.sum(solucion[list(self.find(1,item))]) < 1]
+        #incumplidas = [item for item in m_restriccion if np.sum(solucion[np.where(item == 1)]) < 1]
+        #for restr in m_restriccion:
             
-            
-            suma = np.sum(solucion[np.where(m_restriccion[idx,:] == 1)])
-            if suma < 1:
-                incumplidas.append(m_restriccion[idx,:])
-            
-            
-            
-#            cumplidas = np.zeros(solucion.shape)
-#            cumplidas[np.where((m_restriccion[idx,:]==1) & (solucion==1))] = 1
-            
-            
-#            print(f'solucion             {solucion}')
-#            print(f'm_restriccion[idx,:] {m_restriccion[idx,:]}')
-##            print(f'np.where((m_restriccion[idx,:]=1) & (solucion=1)) {cumplidas}')
-#            inc = m_restriccion[idx,:] - cumplidas
-#            if len(np.where(inc == 1)[0]) > 0:
-#                print(np.where(inc == 1)[0][0])
-#                print(f'solucion[{np.where(inc == 1)[0][0]}] = {solucion[np.where(inc == 1)[0][0]]}')
-#                print(f'm_restriccion[{idx},:][{np.where(inc == 1)[0][0]}] = {m_restriccion[idx,:][np.where(inc == 1)[0][0]]}')
-##            exit()
-##            print(f'solucion[{incumplidas}] {solucion[incumplidas]}')
-#            
-#           
-##            exit()
-#            res = np.sum(inc)
-#            if res > 0:
-##                print(res)
-##                exit()
-#                print(f'inc                  {inc}')
-#                incumplidas.append(inc)
-#                print(f'len(incumplidas) {len(incumplidas)}')
-        if len(incumplidas) >  0: return 0, incumplidas
-        if len(incumplidas) == 0: return 1, incumplidas
+        #    suma = np.sum(solucion[np.where(restr == 1)])
+        #    if suma < 1:
+        #        incumplidas.append(restr)
+        #        break
+        end = datetime.now()
+        #print(f'cumplemod demoro {end-start}')
+        return incumplidas    
+#        if len(incumplidas) >  0: return 0, incumplidas
+#        if len(incumplidas) == 0: return 1, incumplidas
     
     
     def cumple(self, solucion, m_restriccion, r, c):
 #        print(f'inicio cumple')
+        start = datetime.now()
         cumpleTodas = 0
         SumaRestriccion = 0
         for i in range(r): 
@@ -362,6 +311,8 @@ class ReparaStrategy:
 #        print(f'cumpleTodas = {cumpleTodas}')
 #        print(f'fin cumple')
 #        exit()
+        end = datetime.now()
+        #print(f'cumple demoro {end-start}')
         return cumpleTodas
     
     def incumplidas(self, solucion, m_restriccion, r, c):

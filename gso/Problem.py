@@ -9,6 +9,7 @@ import numpy as np
 import read_instance as r_instance
 import binarizationstrategy as _binarization
 import reparastrategy as _repara
+from datetime import datetime
 #import line_profiler
 
 class Problem():
@@ -24,6 +25,14 @@ class Problem():
         self.minimize = True
     
 #    @profile
+    def evalEncMod(self, encodedInstance):
+#        print(f'encodedInstance.shape {np.array(encodedInstance).shape}')
+        decoded = self.decodeInstanceMod(encodedInstance)
+#        fitness = self.evalInstance(decoded) * (incumplidas+1)
+        
+        fitness = self.evalInstance(decoded)
+        return fitness, decoded
+
     def evalEnc(self, encodedInstance):
 #        print(f'encodedInstance.shape {np.array(encodedInstance).shape}')
         decoded = self.decodeInstance(encodedInstance)
@@ -39,13 +48,28 @@ class Problem():
 #        exit()
         b = self.binarize(list(encodedInstance))
 #        repair = _repara.ReparaStrategy()
-        
+        start = datetime.now()
         encodedInstance = self.repara(b.get_binary())
+        end = datetime.now()
+        print(f'repara {end-start}')
         return encodedInstance
         
 #        incumplidas = repair.incumplidas(b.get_binary(), self.instance.get_r(),self.instance.get_rows(),self.instance.get_columns())
 #        return b.get_binary(), incumplidas
-    
+    def decodeInstanceMod(self, encodedInstance):
+#        time.sleep(0.1)
+#        print(f'encodedInstance {list(encodedInstance)}')
+#        exit()
+        b = self.binarize(list(encodedInstance))
+#        repair = _repara.ReparaStrategy()
+        start = datetime.now()
+        encodedInstance = self.reparaMod(b.get_binary())
+        end = datetime.now()
+        print(f'repara mod {end-start}')
+        return encodedInstance
+        
+#        incumplidas = repair.incumplidas(b.get_binary(), self.instance.get_r(),self.instance.get_rows(),self.instance.get_columns())
+#        return b.get_binary(), incumplidas
 #    @profile
     def binarize(self, x):
         return _binarization.BinarizationStrategy(x,self.tTransferencia, self.tBinary)
@@ -67,39 +91,25 @@ class Problem():
   
 #    @profile
     def repara(self,x):
+        #start = datetime.now()
         cumpleTodas=0
         repair = _repara.ReparaStrategy()
-        repairNum = 0
+        matrizRestriccion = self.instance.get_r()
+        matrizCosto = self.instance.get_c()
         r = self.instance.get_rows()
         c = self.instance.get_columns()
-        
-#        cumpleTodas, _=repair.cumpleModificado(x,self.instance.get_r(),r,c)
-        x = repair.repara_one(x,self.instance.get_r(),self.instance.get_c(),r,c)    
-#        print(f'sol original\n {x}\n cumple todas {cumpleTodas}')
-#        if cumpleTodas==0:
-#            x = repair.repara_oneModificado(x,self.instance.get_r(),self.instance.get_c(),r,c)    
-#            repairNum += 1
-#            print(f'repara_one {x}')
-        
-        cumpleTodas = repair.cumple(x,self.instance.get_r(),r,c)
-#        if repair.cumple(x,self.instance.get_r(),r,c) < cumpleTodas:
-#            print(f'solucion {x}')
-#            print(f'cumple todas {cumpleTodas} cumple todas original {repair.cumple(x,self.instance.get_r(),r,c)}')
-#            print(f'inc {inc}')
-#            exit()
-#        print(f'primera reparacion\n {x}\n cumple todas {cumpleTodas}')
+        cumpleTodas=repair.cumple(x,matrizRestriccion,r,c)
         if cumpleTodas==0:
-            x = repair.repara_two(x,self.instance.get_r(),r,c)    
-            repairNum += 1
-#            print(f'repara_two {x}')
-            
-        cumpleTodas = repair.cumple(x,self.instance.get_r(),r,c)
-#        print(f'cumple todas {cumpleTodas} cumple todas original {repair.cumple(x,self.instance.get_r(),r,c)}')
-#        print(f'segunda reparacion\n {x}\n cumple todas {cumpleTodas}')
-#        exit()
+            x = repair.repara_one(x,matrizRestriccion,matrizCosto,r,c)    
+        cumpleTodas = repair.cumple(x,matrizRestriccion,r,c)
+        if cumpleTodas==0:
+            x = repair.repara_two(x,matrizRestriccion,r,c)    
+        #end = datetime.now()
+        #print(f'repara demoro {end-start}')
         return x
     
     def reparaMod(self,x):
+        #start = datetime.now()
         cumpleTodas=0
         repair = _repara.ReparaStrategy()
         repairNum = 0
@@ -114,20 +124,22 @@ class Problem():
 #            repairNum += 1
 #            print(f'repara_one {x}')
         
-        cumpleTodas, inc = repair.cumpleModificado(x,self.instance.get_r(),r,c)
-        if repair.cumple(x,self.instance.get_r(),r,c) < cumpleTodas:
-            print(f'solucion {x}')
-            print(f'cumple todas {cumpleTodas} cumple todas original {repair.cumple(x,self.instance.get_r(),r,c)}')
-            print(f'inc {inc}')
-            exit()
+#        cumpleTodas, inc = repair.cumpleModificado(x,self.instance.get_r(),r,c)
+#        if repair.cumple(x,self.instance.get_r(),r,c) < cumpleTodas:
+#            print(f'solucion {x}')
+#            print(f'cumple todas {cumpleTodas} cumple todas original {repair.cumple(x,self.instance.get_r(),r,c)}')
+#            print(f'inc {inc}')
+#            exit()
 #        print(f'primera reparacion\n {x}\n cumple todas {cumpleTodas}')
-        if cumpleTodas==0:
-            x = repair.repara_two(x,self.instance.get_r(),r,c)    
-            repairNum += 1
+#        if cumpleTodas==0:
+#            x = repair.repara_two(x,self.instance.get_r(),r,c)    
+#            repairNum += 1
 #            print(f'repara_two {x}')
             
-        cumpleTodas, _ = repair.cumpleModificado(x,self.instance.get_r(),r,c)
+#        cumpleTodas, _ = repair.cumpleModificado(x,self.instance.get_r(),r,c)
 #        print(f'cumple todas {cumpleTodas} cumple todas original {repair.cumple(x,self.instance.get_r(),r,c)}')
 #        print(f'segunda reparacion\n {x}\n cumple todas {cumpleTodas}')
 #        exit()
+        end = datetime.now()
+        #print(f'reparamod demoro {end-start}')
         return x

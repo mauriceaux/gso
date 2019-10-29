@@ -155,13 +155,16 @@ class GSO:
 #            print(np.array(evals).shape)
 #            exit()                        
             
-            pool = mp.Pool(4)
+            pool = mp.Pool(1)
 #            evaluations, binParticle = pool.map(self.evalEnc, list(args))
             returning = pool.map(self.evalEnc, list(args))
             pool.close()
-            returning = np.array(returning)
-            binParticle = returning[:,1]
-            evaluations = returning[:,0]
+            #print(returning)
+            #returning = np.array(returning)
+            binParticle = [item[1] for item in returning]
+            #binParticle = returning[:,1]
+            #evaluations = returning[:,0]
+            evaluations = [item[0] for item in returning]
             end = datetime.now()
 #            print(f'tiempo evaluacion {end-start}')
             
