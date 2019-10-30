@@ -10,111 +10,81 @@ import random
 import numpy as np
 from datetime import datetime
 class ReparaStrategy:
+    def __init__(self):
+        self.m_restriccion = None
+        self.m_costos = None
+        self.importanciaRestricciones = None
+
+    def genImpRestr(self):
+        if self.m_restriccion is None:
+            raise Exception('matriz restriccion es None')
+        if self.m_costos is None:
+            raise Exception('matriz costos es None')
+        sumaFilas = np.sum(self.m_restriccion, axis=1)
+        sumaCols = np.sum(self.m_restriccion, axis=0)
+        iFilas = np.array(self.m_restriccion)*sumaFilas.reshape((sumaFilas.shape[0],1))
+        iCols  = (np.array(self.m_restriccion).T*sumaCols.reshape((sumaCols.shape[0],1))).T
+        #return iFilas+ iCols
+        importanciaIncumplidas = iCols / (iFilas+1)
+        
+        importanciaIncumplidas = (np.array(importanciaIncumplidas).T/self.m_costos.reshape((self.m_costos.shape[0],1))).T
+        #print(importanciaIncumplidas)
+        #exit()  
+        self.importanciaRestricciones = importanciaIncumplidas
+        return importanciaIncumplidas
+
+
     def repara_oneModificado(self,solucion, m_restriccion,m_costos,r,c):
         incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
-
-        
-
-#        print(np.argmax(np.sum(np.array(incumplidas),axis=0)))
-#        exit()
         solucion = np.array(solucion)
-        ultIncumplidas = len(incumplidas)
-#        np_m_restriccion = np.array(m_restriccion)
-        np_mcostos = np.array(m_costos)
-        i =0
         while len(incumplidas) > 0:
-            sumaFila = np.sum(incumplidas, axis=1)
-            sumaCols = np.sum(incumplidas, axis=0)
-            #print(sumaFila)
-            #print(np.array(incumplidas))
-            #print((np.array(incumplidas)*sumaFila.reshape((sumaFila.shape[0],1))).shape)
-            #print(sumaCols)
-            #print((np.array(incumplidas).T*sumaCols.reshape((sumaCols.shape[0],1))).T.shape)
-            #exit()
-            iFilas = np.array(incumplidas)*sumaFila.reshape((sumaFila.shape[0],1))
-            iCols  = (np.array(incumplidas).T*sumaCols.reshape((sumaCols.shape[0],1))).T
-            importanciaIncumplidas = iFilas + iCols
-            print(np.where(importanciaIncumplidas>0))
-            exit()
-            #print(sumaFila)
-            #exit()
-            idxFila = np.argmax(sumaFila)
-            #print(idxFila)
-            #exit()
-            indices = np.where(incumplidas[idxFila] > 0)
-            #print(indices)
-            #print(sumaCols[indices])
-            #print(np_mcostos[indices])
-            #print(np.argmax(sumaCols[indices]/np_mcostos[indices]))
-            #print(indices[0][np.argmin(np_mcostos[indices])])
-            #exit()
-            #idxReemplazar = indices[0][np.argmin(np_mcostos[indices])]
-            #print(np_mcostos[indices]/sumaCols[indices])
-            #exit()
-            #idxReemplazar = indices[0][np.argmin(np_mcostos[indices]/sumaCols[indices])]
-            idxReemplazar = indices[0][np.argmax(sumaCols[indices]/np_mcostos[indices])]
+            maximo =None
+            idx = None
+            idxIncumplida=None
+            for i in range(len(incumplidas)):
+                #print(f'self.importanciaRestricciones[{incumplidas[i]}] {self.importanciaRestricciones[incumplidas[i]]}')
+                #print(f'maximo {maximo}')
+                #print(f'self.importanciaRestricciones[incumplidas[i]] {self.importanciaRestricciones[incumplidas[i]]}')
+                cumple = np.sum(solucion[np.where(self.m_restriccion[incumplidas[i]] > 0)]) > 0
+                if cumple: continue
+                maximoTmp = np.amax(self.importanciaRestricciones[incumplidas[i]])
+                #print(f'maximoTmp {maximoTmp}')
+                if maximo is None or maximoTmp >= maximo:
+                    maximo = maximoTmp
+                    idx = np.argmax(self.importanciaRestricciones[incumplidas[i]])
+                    idxIncumplida=i
 
-
-            #indices = np.argmax(np.sum(np.array(incumplidas),axis=0))
-            #idxReemplazar = indices
-            #print(indices)
-            #exit()
-
-
-#            start = datetime.now()
-            #indices = np.where(np.sum(np.array(incumplidas),axis=0) > 0)
-#            end = datetime.now()
-#            print(f'linea 23 demoro {end-start}')
-#            start = datetime.now()
-            #costos = np_mcostos[indices]
-#            end = datetime.now()
-#            print(f'linea 27 demoro {end-start}')
-#            start = datetime.now()
-            #sumas = np.sum(np.array(incumplidas),axis=0)[indices]
-#            end = datetime.now()
-#            print(f'linea 31 demoro {end-start}')
-#            start = datetime.now()
-            #division = costos/sumas
-#            end = datetime.now()
-#            print(f'linea 35 demoro {end-start}')
-#            start = datetime.now()
-            #n_costos = np.zeros(np_mcostos.shape)
-#            end = datetime.now()
-#            print(f'linea 39 demoro {end-start}')
-#            start = datetime.now()
-            #n_costos[indices] = division
-#            end = datetime.now()
-#            print(f'linea 43 demoro {end-start}')
-#            start = datetime.now()
-            #idxReemplazar = np.min(np.where(n_costos>0))
-#            end = datetime.now()
-#            print(f'linea 47 demoro {end-start}')
-#            start = datetime.now()
-            if(solucion[idxReemplazar] >= 1):
-                raise Exception(f'ya reemplazado solucion[{idxReemplazar}] = {solucion[idxReemplazar]}')
-            solucion[idxReemplazar] = 1
-#            end = datetime.now()
-#            print(f'linea 51-53 demoro {end-start}')
-#            start = datetime.now()
-            incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
-#            end = datetime.now()
-#            print(f'linea 57 demoro {end-start}')
-#            start = datetime.now()
-            if ultIncumplidas < len(incumplidas):
-                print(f'no disminuyen las incumplidas! {ultIncumplidas} > {len(incumplidas)}')
-                exit()
-            ultIncumplidas = len(incumplidas)
-#            end = datetime.now()
-#            print(f'linea 61-64 demoro {end-start}')
             
-            #exit()
-            i+=1
-        print(f'total reparaciones {i}')
+            #print(f'idx incumplidas {idxIncumplida}')
+            #print(f'incumplidas {incumplidas}')
+            if idxIncumplida is None: break
+            if idx is not None: 
+                #print(incumplidas[idxIncumplida])
+                #print(self.m_restriccion[incumplidas[idxIncumplida]])
+                #print(np.where(self.m_restriccion[incumplidas[idxIncumplida]]>0))
+                #exit()
+                #solucion = np.array(solucion)
+                #solucion[np.where(self.m_restriccion[incumplidas[idxIncumplida]]>0)] = 0
+                solucion[idx] = 1
+            del incumplidas[idxIncumplida]
+            
+            #print(f'idx incumplidas {idxIncumplida}')
+            #print(f'idx corregir {idx}')
+            #print(f'total incumplidas {len(incumplidas)}')
+            #print(f'indice modificar {idx}')
+            #print(f'solucion[{idx}] {solucion[idx]}')
+            
+            #print(f'solucion {solucion}')
+            #incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+            #print(f'total incumplidas despues de reparacion {len(incumplidas)}')
+        
         return solucion
         
         
     def repara_one(self,solucion, m_restriccion,m_costos,r,c):
         #print("***********Solicion no reparada************")		
+        #print(f'repara one')
+        #print(f'solucion no reparada {solucion}')
         aListColRestr = {} #lista de columnas restricciones, con su respectivo índice
         aListFilRestr = {} #lista de filas restricciones, con su respectivo índice
         aListU = [] #lista que contemdrá todas las filas que violan resticcion
@@ -128,6 +98,8 @@ class ReparaStrategy:
                     aListTemp.append(j)					
             aListColRestr[i] = aListTemp #//para la fila i, todas las columnas con 1--> asigna lista de índices de columnas con valor 1 en la restricción i
         
+        #print(f'alistU {aListU}')
+        #print(f'aListColRestr {aListColRestr}')
         
 #        listOfCoordinates= list(zip(result[0], result[1]))
         
@@ -146,13 +118,17 @@ class ReparaStrategy:
                     aListTemp.append(i)
             aListFilRestr[j] = aListTemp #para la columna j, todas las filas con 1 --> asigna lista de índices de filas con valor 1 en la restricción i
             
+        #print(f'aListFilRestr {aListColRestr}')
+
         for i in range(r):
             for j in range(c):
                 if (solucion[j] * m_restriccion[i][j] == 1): #si en la posicion j no viola restricción, se elimina el id de la fila de la lista 
                     if (i in aListU):
                         aListU.remove(i)
+                        #print(f'aListU {aListU}')
                     break
                 
+        
         #result = np.where(np.array(m_restriccion) == 1)
 #        print(aListU)
 #        exit()
@@ -165,6 +141,7 @@ class ReparaStrategy:
         aListU=[]
         aListU = hashSet
         
+        #print(f'aListU {aListU}')
 #        print(f'aListU {len(aListU)}')
 #        print(f'aListFilRestr {aListColRestr}')
 #        exit()
@@ -174,13 +151,19 @@ class ReparaStrategy:
             for fila in aListU:
                 nFila = fila
                 break
+            #print(f'nFila {nFila}')
 				
             nColumnSel = self.columnaMenorCosto(aListColRestr[nFila], m_restriccion, m_costos) #busca la columna de mayor ajuste (la que tenga mas opciones de ser reemplazada)
+
+            #print(f'self.columnaMenorCosto(aListColRestr[{nFila}], m_restriccion, m_costos) {nColumnSel}')
+
             solucion[nColumnSel] = 1
+            #print(f'solucion {solucion}')
 
             for nFilaDel in aListFilRestr[nColumnSel]:
                 if (nFilaDel in aListU):
                     aListU.remove(nFilaDel) #DADO QUE CORREGÍ ARRIBA, QUITO LA FILA DE LA LISTA --> borra la fila completa, pues tiene otra columna que la resuelve
+            #print(f'aListU {aListU}')
         
         #LUEGO DE CORREGIR, VALIDAMOS CUÁNTAS FILAS QUEDAN SIN RESTRICCION POR CADA COLUMNA
         contFila = 0;
@@ -191,6 +174,7 @@ class ReparaStrategy:
                     contFila+=1
             aListW.append(contFila) #se agregan tantos elementos como filas con 1 existan en el nido
 			
+        #print(f'aListW {aListW}')
         aListU = []
         aNumRow = []
         bComp = 0
@@ -199,19 +183,24 @@ class ReparaStrategy:
             aNumRow = []
             if (solucion[j] == 1):
                 for i in range(r):
+                    #print(f'm_restriccion[i] {m_restriccion[i]}')
                     if (m_restriccion[i][j] == 1):
                         if (aListW[i] >= 2): #si la fila tiene más de dos alternativas, se guarda su índice
                             aNumRow.append(i) #agrega el número de la fila al arreglo
+                            #print(f'aNumRow {aNumRow}')
                             bComp = 1
                         else:
                             bComp = 0
                             break
+                        
+                
 
                 if (bComp==1):
                     for i in  aNumRow: #para todas aquellas filas que tenían más de una solución, se les resta una solución
                         #aListW.set(i, aListW.get(i) - 1)
                         aListW[i] = aListW[i] - 1
                     solucion[j] = 0 #y el valor del nido se deja en cero (chanchamente a cero)
+                    #print(f'solucion {solucion}')
                     #print("cambiando el valor en la posicion:"+str(j))
         #print("***********Solicion modificada************")
         return solucion
@@ -269,7 +258,7 @@ class ReparaStrategy:
         solucion = np.array(solucion)
 #        print(list(self.find(1,m_restriccion[0])))
 #        exit()
-        incumplidas = [item for item in m_restriccion if np.sum(solucion[list(self.find(1,item))]) < 1]
+        incumplidas = [i for i in range(m_restriccion.shape[0]) if np.sum(solucion[list(self.find(1,m_restriccion[i]))]) < 1]
         #incumplidas = [item for item in m_restriccion if np.sum(solucion[np.where(item == 1)]) < 1]
         #for restr in m_restriccion:
             
@@ -279,6 +268,8 @@ class ReparaStrategy:
         #        break
         end = datetime.now()
         #print(f'cumplemod demoro {end-start}')
+        #print(f'solucion {solucion}')
+        #print(f'incumplidas {incumplidas}')
         return incumplidas    
 #        if len(incumplidas) >  0: return 0, incumplidas
 #        if len(incumplidas) == 0: return 1, incumplidas

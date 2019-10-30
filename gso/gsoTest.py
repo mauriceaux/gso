@@ -22,8 +22,8 @@ gso.max = 5
 
 gso.minVel = -3
 gso.maxVel= 3
-
-gso.accel = 2
+gso.setScaler(gso.minVel,gso.maxVel)
+gso.accel = 0.2
 #gso.min = -500
 #gso.max = 500
 #problem = ProblemTest()
@@ -31,11 +31,12 @@ gso.accel = 2
 problem = Problem("instances/mscp41.txt")
 gso.decode = problem.binarizeMod
 gso.repair = problem.repara
-gso.repair = problem.reparaMod
+#gso.repair = problem.reparaMod
+gso.encode = problem.encodeInstance
 #gso.evalDecoded = problem.evalInstance
 
-gso.setEvalEnc(problem.evalEncMod)
-#gso.setEvalEnc(problem.evalEnc)
+#gso.setEvalEnc(problem.evalEncMod)
+gso.setEvalEnc(problem.evalEnc)
 #
 #gso.UNIVERSE = gso.genRandomSwarm(50, problem.get_columns())
 gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())

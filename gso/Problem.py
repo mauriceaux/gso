@@ -15,6 +15,10 @@ from datetime import datetime
 class Problem():
     def __init__(self, instancePath = None):
         self.instance = r_instance.Read(instancePath)
+        self.repara = _repara.ReparaStrategy()
+        self.repara.m_restriccion = np.array(self.instance.get_r())
+        self.repara.m_costos = np.array(self.instance.get_c())
+        self.repara.genImpRestr()
 #        print(f'self.instance.get_r() {np.array(self.instance.get_r())[:,0]}')
 #        print(f'self.instance.get_r() {np.sum(np.array(self.instance.get_r()),axis=0)}')
 #        
@@ -41,6 +45,11 @@ class Problem():
         fitness = self.evalInstance(decoded)
         return fitness, decoded
     
+    def encodeInstance(self, decodedInstance, minVal, maxVal):
+        decodedInstance[decodedInstance==1] = maxVal
+        decodedInstance[decodedInstance==0] = minVal
+        return decodedInstance
+
 #    @profile
     def decodeInstance(self, encodedInstance):
 #        time.sleep(0.1)
@@ -49,9 +58,9 @@ class Problem():
         b = self.binarize(list(encodedInstance))
 #        repair = _repara.ReparaStrategy()
         start = datetime.now()
-        encodedInstance = self.repara(b.get_binary())
+        encodedInstance = self.frepara(b.get_binary())
         end = datetime.now()
-        print(f'repara {end-start}')
+        #print(f'repara {end-start}')
         return encodedInstance
         
 #        incumplidas = repair.incumplidas(b.get_binary(), self.instance.get_r(),self.instance.get_rows(),self.instance.get_columns())
@@ -65,7 +74,7 @@ class Problem():
         start = datetime.now()
         encodedInstance = self.reparaMod(b.get_binary())
         end = datetime.now()
-        print(f'repara mod {end-start}')
+        #print(f'repara mod {end-start}')
         return encodedInstance
         
 #        incumplidas = repair.incumplidas(b.get_binary(), self.instance.get_r(),self.instance.get_rows(),self.instance.get_columns())
@@ -90,7 +99,7 @@ class Problem():
         return np.sum(np.array(pos) * np.array(costo))
   
 #    @profile
-    def repara(self,x):
+    def frepara(self,x):
         #start = datetime.now()
         cumpleTodas=0
         repair = _repara.ReparaStrategy()
@@ -111,7 +120,7 @@ class Problem():
     def reparaMod(self,x):
         #start = datetime.now()
         cumpleTodas=0
-        repair = _repara.ReparaStrategy()
+        repair = self.repara
         repairNum = 0
         r = self.instance.get_rows()
         c = self.instance.get_columns()
