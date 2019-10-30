@@ -39,7 +39,10 @@ class Problem():
 
     def evalEnc(self, encodedInstance):
 #        print(f'encodedInstance.shape {np.array(encodedInstance).shape}')
+#        start = datetime.now()
         decoded = self.decodeInstance(encodedInstance)
+#        end = datetime.now()
+#        print(f'decoding time {end-start}')
 #        fitness = self.evalInstance(decoded) * (incumplidas+1)
         
         fitness = self.evalInstance(decoded)

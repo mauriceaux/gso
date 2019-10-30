@@ -84,12 +84,12 @@ class GSO:
         
 #        print(ret)
 #        print(f'nextVel inicio {nextVel}')
-        shape = nextVel.shape
-        nextVel = np.reshape(nextVel, (1,np.prod(nextVel.shape)))
-        nextVel = self.scaler.fit_transform(nextVel)
-        nextVel = np.reshape(nextVel, shape)
-        #nextVel[nextVel > self.maxVel]  = self.maxVel
-        #nextVel[nextVel < self.minVel]  = self.minVel
+#        shape = nextVel.shape
+#        nextVel = np.reshape(nextVel, (1,np.prod(nextVel.shape)))
+#        nextVel = self.scaler.fit_transform(nextVel)
+#        nextVel = np.reshape(nextVel, shape)
+        nextVel[nextVel > self.maxVel]  = self.maxVel
+        nextVel[nextVel < self.minVel]  = self.minVel
         ret = swarm+nextVel
 #        print(f'nextVel fin {nextVel}')
         
@@ -115,25 +115,25 @@ class GSO:
         evals         = np.array(swarmData)[:,3]
         bestFound     = np.vstack(np.array(swarmData)[:,4])
         bestEval      = np.array(swarmData)[0,5]
-        binarySwarm         = np.vstack(np.array(swarmData)[:,6])
+#        binarySwarm         = np.vstack(np.array(swarmData)[:,6])
         binPersonalBest  = np.vstack(np.array(swarmData)[:,7])
 #        print(f'bestEval {bestEval}')
 #        exit()
         evaluationsCsv = []
-        particles = []
-        velocities = []
+#        particles = []
+#        velocities = []
 #        self.accelPer  = np.ones((swarm.shape))
 #        self.accelBest = np.ones((swarm.shape))
-        tendencia = None
+#        tendencia = None
         for i in range(iterations):
-            self.accelPer  = 2.05 * np.random.uniform()
-            self.accelBest = 2.05 * np.random.uniform()
+#            self.accelPer  = 2.05 * np.random.uniform()
+#            self.accelBest = 2.05 * np.random.uniform()
             nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
 #            print(f'nswarm {nswarm}')
 #            print(f'nswarm {nswarm.shape}')
 #            exit()
-            particles.append(swarm[0])
-            velocities.append(velocity[0])
+#            particles.append(swarm[0])
+#            velocities.append(velocity[0])
 #            norm = (nswarm-velocity)
 #            norm[norm>self.max] = self.max
 #            norm[norm<self.min] = self.min
@@ -141,32 +141,11 @@ class GSO:
 #                print(f'velocidad mal aplicada')
 #                print(f"swarm \n{swarm} \nvelocity {velocity}\nnorm {norm}\nnswarm {nswarm}")
 #                exit()
-            args = nswarm
+#            args = nswarm
             start = datetime.now()
-            
-#            pool = mp.Pool(8)
-#            binParticle = pool.map(self.decode, list(args))
-#            pool.close()
-##            print(bins)
-##            print(np.array(bins).shape)
-##            exit()
-#            pool = mp.Pool(5)
-#            binParticle = pool.map(self.repair, list(binParticle))
-#            pool.close()
-##            print(repaired)
-##            print(np.array(repaired).shape)
-##            exit()            
-#            pool = mp.Pool(5)
-#            evals = pool.map(self.evalDecoded, list(binParticle))
-#            pool.close()
-#            evaluations = np.array(evals)
-#            print(evals)
-#            print(np.array(evals).shape)
-#            exit()                        
-            
             pool = mp.Pool(4)
 #            evaluations, binParticle = pool.map(self.evalEnc, list(args))
-            returning = pool.map(self.evalEnc, list(args))
+            returning = pool.map(self.evalEnc, list(nswarm))
             pool.close()
             #print(returning)
             #returning = np.array(returning)
@@ -175,8 +154,8 @@ class GSO:
             #pool = mp.Pool(4)
 #            evaluations, binParticle = pool.map(self.evalEnc, list(args))
             nswarm = np.copy(binParticle)
-            nswarm[nswarm==1] = self.max
-            nswarm[nswarm==0] = self.min
+#            nswarm[nswarm==1] = self.max
+#            nswarm[nswarm==0] = self.min
             #nswarm = pool.map(self.encode, list(binParticle))
             #pool.close()
             
@@ -187,12 +166,12 @@ class GSO:
             #evaluations = returning[:,0]
             evaluations = [item[0] for item in returning]
             end = datetime.now()
-#            print(f'tiempo evaluacion {end-start}')
+            print(f'tiempo evaluacion {end-start}')
             
 
             evaluations = np.array(np.vstack(evaluations))
-            if tendencia is None: tendencia = np.mean(evaluations)
-            tendencia = np.mean(evaluations) - tendencia
+#            if tendencia is None: tendencia = np.mean(evaluations)
+#            tendencia = np.mean(evaluations) - tendencia
             #print(f'tendencia {tendencia}')
             #exit()
             
@@ -262,8 +241,8 @@ class GSO:
             ret.append([swarm[i], velocity[i], personalBest[i], evaluations[i], bestFound[i], bestEval, binParticle[i], binPersonalBest[i]])
 #        print(np.array(particles).shape)
         np.savetxt(f"resultados/swarmL{level}S{swarmIdx}.csv", np.array(evaluationsCsv), delimiter=",")
-        np.savetxt(f"resultados/swarmMovementL{level}S{swarmIdx}.csv", np.array(particles), delimiter=",")
-        np.savetxt(f"resultados/swarmVelocityL{level}S{swarmIdx}.csv", np.array(velocities), delimiter=",")
+#        np.savetxt(f"resultados/swarmMovementL{level}S{swarmIdx}.csv", np.array(particles), delimiter=",")
+#        np.savetxt(f"resultados/swarmVelocityL{level}S{swarmIdx}.csv", np.array(velocities), delimiter=",")
         return np.array(ret)
     
     
@@ -329,8 +308,10 @@ class GSO:
         #print (f'binglobalBest - binSwarm {self.bestParticleBin - binSwarm}')
         #binBests - binSwarm
         #exit()
-        self.accelBest = np.mean(self.bestParticleBin - binSwarm)
-        self.accelPer = np.mean(binBests - binSwarm)
+#        self.accelBest = np.mean(self.bestParticleBin - binSwarm)
+#        self.accelPer = np.mean(binBests - binSwarm)
+        self.accelBest = 0.2#2.05*np.random.uniform() 
+        self.accelPer = 0.5#2.05*np.random.uniform() 
         """if 0 < tendencia < 20: 
                 self.accelBest += 0.1
                 self.accelPer += 0.1

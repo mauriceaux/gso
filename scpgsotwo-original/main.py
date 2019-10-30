@@ -16,6 +16,8 @@ def func1_old(pos,costo):
     return total
 
 def func1(pos,costo):
+#      print(costo)
+#      exit()
       return np.sum(np.array(pos) * np.array(costo))
 
 dim=1000
@@ -38,8 +40,8 @@ tBinarizacion.append("Standar")
 #tBinarizacion.append("Elitist")
 
 bounds=[(constantes.X_MIN(),constantes.X_MAX())]
-listaArchivos = ['mscp41.txt']
-#listaArchivos = ['mscpnrh5.txt']
+#listaArchivos = ['mscp41.txt']
+listaArchivos = ['mscpnrh5.txt']
 
 for filename in os.listdir(constantes.CARPETA_INSTANCIAS()):
     if ".txt" in filename and filename in listaArchivos:
