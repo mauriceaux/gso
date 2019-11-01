@@ -27,8 +27,8 @@ gso.accel = 1
 #gso.min = -500
 #gso.max = 500
 #problem = ProblemTest()
-#problem = Problem("instances/mscpnrh5.txt")
-problem = Problem("instances/off/scpnrh5.txt")
+problem = Problem("instances/mscpnrh5.txt")
+#problem = Problem("instances/off/scpnrh5.txt")
 
 #problem = Problem("instances/mscp41.txt")
 #gso.decode = problem.binarizeMod
@@ -44,7 +44,7 @@ gso.setEvalEnc(problem.evalEnc)
 gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())
 
 gso.LEVELS = 2
-gso.numIter = [50,250]
+gso.numIter = [50,23]
 gso.numSubSwarms = [10]
 
 

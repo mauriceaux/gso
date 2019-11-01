@@ -109,7 +109,7 @@ class GSO:
 
 #    @profile
     def updateSwarmData(self, swarmData, iterations, swarmIdx, level):
-        start = datetime.now()
+        
         swarm         = np.vstack(np.array(swarmData)[:,0])
         velocity      = np.vstack(np.array(swarmData)[:,1])
         personalBest  = np.vstack(np.array(swarmData)[:,2])
@@ -118,6 +118,7 @@ class GSO:
         bestEval      = np.array(swarmData)[0,5]
         evaluationsCsv = []
         for i in range(iterations):
+            start = datetime.now()
             startIter = datetime.now()
             nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
 #            pool = mp.Pool(4)
@@ -126,7 +127,7 @@ class GSO:
             returning = [self.evalEnc(item) for item in list(nswarm)]
             binParticle = [item[1] for item in returning]
             binParticle = np.vstack(binParticle)
-            nswarm = np.copy(binParticle)
+#            nswarm = np.copy(binParticle)
             evaluations = [item[0] for item in returning]
             evaluations = np.array(np.vstack(evaluations))
             evaluations = evaluations.reshape((swarm.shape[0]))
@@ -141,7 +142,8 @@ class GSO:
                 bestFound = np.tile(nswarm[idx], (nswarm.shape[0],1))
                 self.bestParticle = bestFound[0]
                 self.bestParticleBin = binParticle[idx]
-                print(f'best obj {self.globalBest} iter {i}')
+            end = datetime.now()
+            print(f'best obj {self.globalBest} iter {i} tiempo {end-start}')
             evals = evaluations
             swarm = nswarm
             

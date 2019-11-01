@@ -27,12 +27,12 @@ class Problem():
         self.tTransferencia = "sShape1"
         self.tBinary = "Standar"
         self.minimize = True
-        
+#        start = datetime.now()
         self.repair = _repara.ReparaStrategy(self.instance.get_r()
                                             ,self.instance.get_c()
                                             ,self.instance.get_rows()
                                             ,self.instance.get_columns())
-    
+        
 #    @profile
     def evalEncMod(self, encodedInstance):
 #        print(f'encodedInstance.shape {np.array(encodedInstance).shape}')
@@ -127,7 +127,10 @@ class Problem():
         cumpleTodas=self.repair.cumple(x)
 #        print(f'cumpleTodas {cumpleTodas}')
         if cumpleTodas==0:
+            start = datetime.now()
             x = self.repair.repara_one(x)    
+            end = datetime.now()
+#            print(f'reparacion duro {end-start}')
         cumpleTodas = self.repair.cumple(x)
         if cumpleTodas==0:
             x = self.repair.repara_two(x)    
