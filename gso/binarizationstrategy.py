@@ -7,6 +7,7 @@ Created on Tue Apr 23 19:05:37 2019
 """
 import math
 import random
+import multiprocessing as mp
 
 class BinarizationStrategy:
     def __init__(self,x,tecnica,binary):
@@ -14,36 +15,82 @@ class BinarizationStrategy:
         self.x = x  
         self.tecnica = tecnica
         matrizbinaria = []
-        for i in range(len(x)):
-            tb = 0
-            if(self.tecnica=="sShape1"):
-                tb = self.sShape1(x[i])
-            if(self.tecnica=="sShape2"):
-                tb = self.sShape2(x[i])
-            if(self.tecnica=="sShape3"):
-                tb = self.sShape3(x[i])
-            if(self.tecnica=="sShape4"):
-                tb = self.sShape4(x[i])
-            if(self.tecnica=="vShape1"):
-                tb = self.vShape1(x[i])
-            if(self.tecnica=="vShape2"):
-                tb = self.vShape2(x[i])
-            if(self.tecnica=="vShape3"):
-                tb = self.vShape3(x[i])
-            if(self.tecnica=="vShape4"):
-                tb = self.vShape4(x[i])
+        
+        
+        funcShape = None
+        if(self.tecnica=="sShape1"):
+            funcShape = self.sShape1
+        if(self.tecnica=="sShape2"):
+            funcShape = self.sShape2
+        if(self.tecnica=="sShape3"):
+            funcShape = self.sShape3
+        if(self.tecnica=="sShape4"):
+            funcShape = self.sShape4
+        if(self.tecnica=="vShape1"):
+            funcShape = self.vShape1
+        if(self.tecnica=="vShape2"):
+            funcShape = self.vShape2
+        if(self.tecnica=="vShape3"):
+            funcShape = self.vShape3
+        if(self.tecnica=="vShape4"):
+            funcShape = self.vShape4
+        
+        tb = [funcShape(item) for item in x]
+        
+#        pool = mp.Pool(4)
+#        tb = pool.map(funcShape, x)
+#        pool.close()
+        
+        funcBin = None
+        if(binary=="Standar"):
+            funcBin = self.standard
+        
+        if(binary=="Complement"):
+            funcBin = self.complement
+        
+        if (binary=="StaticProbability"):
+            funcBin = self.staticProbability
             
-            if(binary=="Standar"):
-                matrizbinaria.append(self.standard(tb))
-            
-            if(binary=="Complement"):
-                matrizbinaria.append(self.complement(tb))
-            
-            if (binary=="StaticProbability"):
-                matrizbinaria.append(self.staticProbability(tb, 0.4))
-                
-            if(binary=="Elitist"):
-                matrizbinaria.append(self.elitist(tb))
+        if(binary=="Elitist"):
+            funcBin = self.elitist
+        
+        matrizbinaria = [funcBin(item) for item in tb]
+        
+#        pool = mp.Pool(4)
+#        matrizbinaria = pool.map(funcBin, tb)
+#        pool.close()
+        
+        
+#        for i in range(len(x)):
+#            tb = 0
+#            if(self.tecnica=="sShape1"):
+#                tb = self.sShape1(x[i])
+#            if(self.tecnica=="sShape2"):
+#                tb = self.sShape2(x[i])
+#            if(self.tecnica=="sShape3"):
+#                tb = self.sShape3(x[i])
+#            if(self.tecnica=="sShape4"):
+#                tb = self.sShape4(x[i])
+#            if(self.tecnica=="vShape1"):
+#                tb = self.vShape1(x[i])
+#            if(self.tecnica=="vShape2"):
+#                tb = self.vShape2(x[i])
+#            if(self.tecnica=="vShape3"):
+#                tb = self.vShape3(x[i])
+#            if(self.tecnica=="vShape4"):
+#                tb = self.vShape4(x[i])
+#            
+#            if(binary=="Standar"):
+#                matrizbinaria.append(self.standard(tb))
+#            
+#            if(binary=="Complement"):
+#                matrizbinaria.append(self.complement(tb))
+#            
+#            if (binary=="StaticProbability"):
+#                matrizbinaria.append(self.staticProbability(tb, 0.4))
+#                
+#            if(binary=="Elitist"):
+#                matrizbinaria.append(self.elitist(tb))
                 
         self.set_binary(matrizbinaria)
         #print(matrizbinaria)

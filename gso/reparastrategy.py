@@ -5,15 +5,36 @@ Created on Tue Apr 23 19:05:37 2019
 
 @author: cavasquez
 """
-import math
-import random
+#import math
+#import random
+from threading import Lock
+lock = Lock()
 import numpy as np
 from datetime import datetime
 class ReparaStrategy:
-    def __init__(self):
-        self.m_restriccion = None
-        self.m_costos = None
+    def __init__(self, mRestriccion, mCostos, filas, columnas):
+        self.m_restriccion = mRestriccion
+        self.m_costos = mCostos
         self.importanciaRestricciones = None
+        self.r = filas
+        self.c = columnas
+        self.aListColRestr = {}
+        self.aListFilRestr = {}
+        
+        for i in range(self.r): #recorre, por cada fila, todas las columnas, y aquellas que son restrictivas las guarda
+#            aListU.append(i)
+            aListTemp = []
+            for j in range(self.c):
+                if (self.m_restriccion[i][j] == 1):
+                    aListTemp.append(j)					
+            self.aListColRestr[i] = aListTemp #//para la fila i, todas las columnas con 1--> asigna lista de índices de columnas con valor 1 en la restricción i
+            
+        for j in range(self.c): #recorre, por cada columna, todas las filas, y aquellas que son restrictivas las guarda
+            aListTemp = []
+            for i in range(self.r):
+                if (self.m_restriccion[i][j] == 1):
+                    aListTemp.append(i)
+            self.aListFilRestr[j] = aListTemp #para la columna j, todas las filas con 1 --> asigna lista de índices de filas con valor 1 en la restricción i
 
     def genImpRestr(self):
         if self.m_restriccion is None:
@@ -35,6 +56,7 @@ class ReparaStrategy:
 
 
     def repara_oneModificado(self,solucion, m_restriccion,m_costos,r,c):
+#        print('hola')
         incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
         solucion = np.array(solucion)
         while len(incumplidas) > 0:
@@ -81,22 +103,22 @@ class ReparaStrategy:
         return solucion
         
         
-    def repara_one(self,solucion, m_restriccion,m_costos,r,c):
-        #print("***********Solicion no reparada************")		
-        #print(f'repara one')
-        #print(f'solucion no reparada {solucion}')
-        aListColRestr = {} #lista de columnas restricciones, con su respectivo índice
-        aListFilRestr = {} #lista de filas restricciones, con su respectivo índice
-        aListU = [] #lista que contemdrá todas las filas que violan resticcion
+    def repara_one(self,solucion):
+#        print("***********Solicion no reparada************")		
+#        print(f'repara one')
+#        print(f'solucion no reparada {solucion}')
+#        aListColRestr = {} #lista de columnas restricciones, con su respectivo índice
+#        aListFilRestr = {} #lista de filas restricciones, con su respectivo índice
+        aListU = [i for i in range(self.r)] #lista que contemdrá todas las filas que violan resticcion
         aListW = []
         
-        for i in range(r): #recorre, por cada fila, todas las columnas, y aquellas que son restrictivas las guarda
-            aListU.append(i)
-            aListTemp = []
-            for j in range(c):
-                if (m_restriccion[i][j] == 1):
-                    aListTemp.append(j)					
-            aListColRestr[i] = aListTemp #//para la fila i, todas las columnas con 1--> asigna lista de índices de columnas con valor 1 en la restricción i
+#        for i in range(self.r): #recorre, por cada fila, todas las columnas, y aquellas que son restrictivas las guarda
+#            aListU.append(i)
+#            aListTemp = []
+#            for j in range(self.c):
+#                if (self.m_restriccion[i][j] == 1):
+#                    aListTemp.append(j)					
+#            self.aListColRestr[i] = aListTemp #//para la fila i, todas las columnas con 1--> asigna lista de índices de columnas con valor 1 en la restricción i
         
         #print(f'alistU {aListU}')
         #print(f'aListColRestr {aListColRestr}')
@@ -111,22 +133,59 @@ class ReparaStrategy:
 #        print(f'result {result}')
 #        exit()
         
-        for j in range(c): #recorre, por cada columna, todas las filas, y aquellas que son restrictivas las guarda
-            aListTemp = []
-            for i in range(r):
-                if (m_restriccion[i][j] == 1):
-                    aListTemp.append(i)
-            aListFilRestr[j] = aListTemp #para la columna j, todas las filas con 1 --> asigna lista de índices de filas con valor 1 en la restricción i
+#        for j in range(c): #recorre, por cada columna, todas las filas, y aquellas que son restrictivas las guarda
+#            aListTemp = []
+#            for i in range(r):
+#                if (m_restriccion[i][j] == 1):
+#                    aListTemp.append(i)
+#            aListFilRestr[j] = aListTemp #para la columna j, todas las filas con 1 --> asigna lista de índices de filas con valor 1 en la restricción i
             
         #print(f'aListFilRestr {aListColRestr}')
-
-        for i in range(r):
-            for j in range(c):
-                if (solucion[j] * m_restriccion[i][j] == 1): #si en la posicion j no viola restricción, se elimina el id de la fila de la lista 
-                    if (i in aListU):
-                        aListU.remove(i)
-                        #print(f'aListU {aListU}')
-                    break
+        start = datetime.now()
+        
+#        aListUNuevo = aListU.copy()
+        
+#        bar = [solucion * fila  for fila in self.m_restriccion]
+        bar = []
+        
+        try:
+            solucion = np.array(solucion)
+            bar = [solucion * fila  for fila in self.m_restriccion]
+#            for fila in self.m_restriccion:
+#                print(f'fila {type(fila)}')
+#                print(f'solucion {type(solucion)}')
+#                bar.append(solucion*fila)
+#            solucion = np.array(solucion)
+#            print(f'self.m_restriccion {np.array(self.m_restriccion).dtype}')
+#            print(f'solucion {np.array(solucion).dtype}')
+#            lock.acquire()
+            _suma = np.sum(bar, axis=1)
+#            print(f'suma {_suma}')
+            indices = list(np.where(_suma>0)[0])
+#            lock.release()
+            
+        except Exception as e:
+            print(f'self.m_restriccion {np.array(self.m_restriccion).dtype}')
+            print(f'solucion {np.array(solucion).dtype}')
+            print(e)
+            exit()
+#        print(indices)
+        [aListU.remove(item) for item in indices if item in aListU]
+#        print(indices)
+#        exit()
+#        [aListUNuevo.remove(item) for item in indices if item in aListUNuevo]
+#        for i in range(self.r):
+#            for j in range(self.c):
+#                if (solucion[j] * self.m_restriccion[i][j] == 1): #si en la posicion j no viola restricción, se elimina el id de la fila de la lista 
+#                    if (i in aListU):
+#                        aListU.remove(i)
+#                        #print(f'aListU {aListU}')
+#                    break
+#        print(f'iguales? {(aListU == aListUNuevo)}')
+#        exit()
+        end = datetime.now()
+#        print(f'duracion ciclo qlo 1 {end-start}')
+#        print(f'aListU {aListU}')
                 
         
         #result = np.where(np.array(m_restriccion) == 1)
@@ -145,46 +204,66 @@ class ReparaStrategy:
 #        print(f'aListU {len(aListU)}')
 #        print(f'aListFilRestr {aListColRestr}')
 #        exit()
+        start = datetime.now()
+        
+        
+        
         
         while len(aListU) > 0: #MIENTRAS QUEDEN COLUMNAS POR CORREGIR
             nFila = 0
+            
             for fila in aListU:
                 nFila = fila
                 break
             #print(f'nFila {nFila}')
-				
-            nColumnSel = self.columnaMenorCosto(aListColRestr[nFila], m_restriccion, m_costos) #busca la columna de mayor ajuste (la que tenga mas opciones de ser reemplazada)
+            
+            nColumnSel = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos) #busca la columna de mayor ajuste (la que tenga mas opciones de ser reemplazada)
 
             #print(f'self.columnaMenorCosto(aListColRestr[{nFila}], m_restriccion, m_costos) {nColumnSel}')
 
             solucion[nColumnSel] = 1
             #print(f'solucion {solucion}')
-
-            for nFilaDel in aListFilRestr[nColumnSel]:
-                if (nFilaDel in aListU):
-                    aListU.remove(nFilaDel) #DADO QUE CORREGÍ ARRIBA, QUITO LA FILA DE LA LISTA --> borra la fila completa, pues tiene otra columna que la resuelve
-            #print(f'aListU {aListU}')
-        
+#            aListUNuevo = aListU.copy()
+            lock.acquire()
+            [aListU.remove(nFilaDel) for nFilaDel in self.aListFilRestr[nColumnSel] if nFilaDel in aListU]
+            lock.release()
+#            for nFilaDel in self.aListFilRestr[nColumnSel]:
+#                if (nFilaDel in aListU):
+#                    aListU.remove(nFilaDel) #DADO QUE CORREGÍ ARRIBA, QUITO LA FILA DE LA LISTA --> borra la fila completa, pues tiene otra columna que la resuelve
+#            print(f'iguales? {aListU == aListUNuevo}')
+        end = datetime.now()
+#        print(f'duracion ciclo qlo 2 {end-start}')
         #LUEGO DE CORREGIR, VALIDAMOS CUÁNTAS FILAS QUEDAN SIN RESTRICCION POR CADA COLUMNA
         contFila = 0;
-        for i in range(r):
-            contFila = 0;
-            for j in range(c):
-                if (solucion[j] * m_restriccion[i][j] == 1):
-                    contFila+=1
-            aListW.append(contFila) #se agregan tantos elementos como filas con 1 existan en el nido
-			
+        start = datetime.now()
+#        print(f'{self.m_restriccion}')
+        aListW = np.sum([fila * solucion for fila in self.m_restriccion], axis=1)
+#        var = np.sum(self.m_restriccion, axis=0)*solucion
+        
+#        for i in range(self.r):
+#            contFila = 0;
+#            for j in range(self.c):
+#                if (solucion[j] * self.m_restriccion[i][j] == 1):
+#                    contFila+=1
+#            aListW.append(contFila) #se agregan tantos elementos como filas con 1 existan en el nido
+#        print((list(var)))
+#        print((aListW))
+#        print((list(var)==aListW))
+        end = datetime.now()
+#        print(f'duracion ciclo qlo 3 {end-start}')	
+#        exit()
         #print(f'aListW {aListW}')
         aListU = []
         aNumRow = []
         bComp = 0
+        start = datetime.now()
         for j in range(len(solucion)-1,-1,-1):
             bComp = 0
             aNumRow = []
             if (solucion[j] == 1):
-                for i in range(r):
+                for i in range(self.r):
                     #print(f'm_restriccion[i] {m_restriccion[i]}')
-                    if (m_restriccion[i][j] == 1):
+                    if (self.m_restriccion[i][j] == 1):
                         if (aListW[i] >= 2): #si la fila tiene más de dos alternativas, se guarda su índice
                             aNumRow.append(i) #agrega el número de la fila al arreglo
                             #print(f'aNumRow {aNumRow}')
@@ -202,14 +281,17 @@ class ReparaStrategy:
                     solucion[j] = 0 #y el valor del nido se deja en cero (chanchamente a cero)
                     #print(f'solucion {solucion}')
                     #print("cambiando el valor en la posicion:"+str(j))
-        #print("***********Solicion modificada************")
+        end = datetime.now()
+#        print(f'duracion ciclo qlo 4 {end-start}')
+#        print(f"***********Solicion modificada************\n{solucion}")
+#        print("***********Solicion modificada************")
         return solucion
 		
-    def repara_two(self,solucion,m_restriccion,r,c):
-        for i in range(r):
+    def repara_two(self,solucion):
+        for i in range(self.r):
             nRC=-1
-            for j in range(c):
-                if (m_restriccion[i][j] == 1):
+            for j in range(self.c):
+                if (self.m_restriccion[i][j] == 1):
                     if (solucion[j] == 0):
                         if (nRC == -1):
                             nRC = j
@@ -227,17 +309,21 @@ class ReparaStrategy:
         cont = 0
 
         for nColumna in arrayList:
-            sum = 0
-            for i in range(0,len(restricciones)):
-                if (restricciones[i][nColumna] == 1):
-                    sum+=1
+#            sum = 0
+#            sum2 = 0
+            suma=sum([1 for i in range(0,len(restricciones)) if (restricciones[i][nColumna] == 1)])
+#            for i in range(0,len(restricciones)):
+#                if (restricciones[i][nColumna] == 1):
+#                    sum+=1
+#            print(f'iguales? {sum==sum2}')
+#            print(f'sum {sum} sum2 {sum2}')
 
             if (cont == 0):
-                nValor = costos[nColumna] / sum
-                nValorTemp = costos[nColumna] / sum
+                nValor = costos[nColumna] / suma
+                nValorTemp = costos[nColumna] / suma
                 nFila = nColumna
             else:
-                nValorTemp = costos[nColumna] / sum
+                nValorTemp = costos[nColumna] / suma
 			
             if (nValorTemp < nValor):
                 nValor = nValorTemp
@@ -252,7 +338,7 @@ class ReparaStrategy:
                 yield i
         
     def cumpleModificado(self, solucion, m_restriccion, r, c):
-        start = datetime.now()
+#        start = datetime.now()
         incumplidas = []
         m_restriccion = np.array(m_restriccion)
         solucion = np.array(solucion)
@@ -266,7 +352,7 @@ class ReparaStrategy:
         #    if suma < 1:
         #        incumplidas.append(restr)
         #        break
-        end = datetime.now()
+#        end = datetime.now()
         #print(f'cumplemod demoro {end-start}')
         #print(f'solucion {solucion}')
         #print(f'incumplidas {incumplidas}')
@@ -275,18 +361,18 @@ class ReparaStrategy:
 #        if len(incumplidas) == 0: return 1, incumplidas
     
     
-    def cumple(self, solucion, m_restriccion, r, c):
+    def cumple(self, solucion):
 #        print(f'inicio cumple')
-        start = datetime.now()
+#        start = datetime.now()
         cumpleTodas = 0
         SumaRestriccion = 0
-        for i in range(r): 
+        for i in range(self.r): 
 #            print(f'i = {i}')
-            for j in range(c):
+            for j in range(self.c):
 #                print(f'j = {j}')
 #                if j == 0:
 #                print(f'm_restriccion[{i}][{j}] = {m_restriccion[i][j]} and solucion[{j}] = {solucion[j]} ')
-                if m_restriccion[i][j] == 1 and solucion[j] == 1:
+                if self.m_restriccion[i][j] == 1 and solucion[j] == 1:
                     SumaRestriccion+=1
 #                    print(f'SumaRestriccion = {SumaRestriccion}')
                     break
@@ -295,14 +381,14 @@ class ReparaStrategy:
                 break
             #else:
                 #print('cumple')
-#        print(f'SumaRestriccion = {SumaRestriccion} r = {r}')
+#        print(f'SumaRestriccion = {SumaRestriccion} r = {self.r}')
         
-        if SumaRestriccion == r:
+        if SumaRestriccion == self.r:
             cumpleTodas = 1 
 #        print(f'cumpleTodas = {cumpleTodas}')
 #        print(f'fin cumple')
 #        exit()
-        end = datetime.now()
+#        end = datetime.now()
         #print(f'cumple demoro {end-start}')
         return cumpleTodas
     
