@@ -27,10 +27,10 @@ gso.accel = 1
 #gso.min = -500
 #gso.max = 500
 #problem = ProblemTest()
-problem = Problem("instances/mscpnrh5.txt")
+#problem = Problem("instances/mscpnrh5.txt")
 #problem = Problem("instances/off/scpnrh5.txt")
 
-#problem = Problem("instances/mscp41.txt")
+problem = Problem("instances/mscp41.txt")
 #gso.decode = problem.binarizeMod
 #gso.repair = problem.repara
 #gso.repair = problem.reparaMod
