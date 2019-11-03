@@ -11,6 +11,9 @@ import multiprocessing as mp
 from scipy.cluster.vq import kmeans,vq
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
+from sklearn.preprocessing import normalize
+from matplotlib import pyplot
+from statsmodels.tsa.seasonal import seasonal_decompose
 #import line_profiler
 from threading import Lock
 lock = Lock()
@@ -34,8 +37,8 @@ class GSO:
         np.random.seed(0)
 #        self.accelPer  = 2.05 * np.random.uniform()
 #        self.accelBest = 2.05 * np.random.uniform()
-        self.accelPer  = 0.1
-        self.accelBest = 0.1
+        self.accelPer  = 0.3
+        self.accelBest = 0.5
         
         self.randPer   = 2.05 * np.random.uniform()
         self.randBest  = np.random.uniform()
@@ -118,19 +121,77 @@ class GSO:
         evals         = np.array(swarmData)[:,3]
         bestFound     = np.vstack(np.array(swarmData)[:,4])
         bestEval      = np.array(swarmData)[0,5]
+        bestParticleBin = np.vstack(np.array(swarmData)[:,6])
         evaluationsCsv = []
 #        print(f'updateSwarmData bestFound.shape {np.array(bestFound).shape}')
 #        print(f'updateSwarmData personalBest.shape {np.array(personalBest)}')
+#        bestParticleBin = None
         for i in range(iterations):
+            
+            if i >0 and i % 10 == 0:
+                intervalo = evaluationsCsv[-10:]
+                grupo1 = intervalo[:5]
+                grupo2 = intervalo[-5:]
+                mediaGrupo1=np.mean(grupo1)
+                mediaGrupo2=np.mean(grupo2)
+                dif = mediaGrupo2-mediaGrupo1
+                std = np.std(intervalo)
+                
+                
+                
+#                intervalo2 = self.scaler.fit_transform(evaluationsCsv)
+                intervalo2 = self.scaler.fit_transform(intervalo)
+#                pyplot.plot(intervalo2)
+                
+                result = seasonal_decompose(intervalo2, model='multiplicative', freq=3)
+#                print(f'dev std seasonal {np.std(result.seasonal)} self.accel {self.accel} dif {dif} self.accelPer {self.accelPer} self.accelBest {self.accelBest}')
+#                if dif < -100:
+#                    self.accel = 1.2
+#                    self.accelPer  = 0.3
+#                    self.accelBest = 0.6
+#                if -100 < dif < 100:
+#                    self.accel += 0.02
+#                    self.accelPer  += 0.03
+#                self.accel+=0.1
+#                exit()
+#                result.plot()
+#                pyplot.show()
+#                exit()
+#                self.accelBest = std
+#                self.accelPer = std
+#                norm2 = normalize(x[:,np.newaxis], axis=0).ravel()
+#                if dif < 0: 
+#                    print(f'voy bajando {dif} {bestEval}')
+#                    self.accel = 1
+#                    
+#                if dif > 100: 
+#                    print(f'voy subiendo {dif} {bestEval}')
+#                    self.accel = -1
+#                    
+#                if 0 <= dif < 100: 
+#                    print(f'estancado {bestEval}')
+#                    self.accel = -2
+#                if std > 200: print(f'confundido {std}')
+#                if std <= 200: print('estable')
+#                print(f'diferencia de medias {dif}')
+#                print(f'desviacion estandar {std}')
+#                exit()
+            
+            
             startIter = datetime.now()
             nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
+#            print(len(nswarm))
+#            exit()
 #            pool = mp.Pool(4)
 #            returning = pool.map(self.evalEnc, list(nswarm))
 #            pool.close()
+#            print(nswarm.dtype)
             returning = [self.evalEnc(item) for item in list(nswarm)]
             binParticle = [item[1] for item in returning]
             binParticle = np.vstack(binParticle)
 #            nswarm = np.copy(binParticle)
+#            nswarm[nswarm == 1] = 5
+#            nswarm[nswarm == 0] = -5
             evaluations = [item[0] for item in returning]
             evaluations = np.array(np.vstack(evaluations))
             evaluations = evaluations.reshape((swarm.shape[0]))
@@ -138,23 +199,26 @@ class GSO:
             bestidx = evaluations > evals
             
             personalBest[bestidx] = nswarm[bestidx]
-            lock.acquire()
-            bestEval = self.globalBest
-            lock.release()
+#            lock.acquire()
+#            bestEval = self.globalBest
+#            lock.release()
             idx = np.argmax(evaluations)
-            with lock:
-                if self.globalBest is None or evaluations[idx] > self.globalBest:
-                
-                    bestEval =  evaluations[idx]
-                    self.globalBest = evaluations[idx]
-                    bestFound = np.tile(nswarm[idx], (nswarm.shape[0],1))
-                    self.bestParticle = bestFound[0]
-                    self.bestParticleBin = binParticle[idx]
-                    print(f'best obj {bestEval} iter {i}')
+            
+            if bestEval is None or (evaluations[idx] > bestEval):
+#                if self.globalBest is None or (evaluations[idx] > self.globalBest or evaluations[idx] > globalBest):
+            
+                bestEval =  evaluations[idx]
+#                    self.globalBest = evaluations[idx]
+                bestFound = np.tile(nswarm[idx], (nswarm.shape[0],1))
+#                    self.bestParticle = bestFound[0]
+                bestParticleBin = binParticle[idx]
+#                print(f'best obj {bestEval} iter {i}')
 #                lock.release()
             evals = evaluations
             swarm = nswarm
-            
+            endIter = datetime.now()
+            print(f'best obj {bestEval} duracion iteracion {i} {endIter-startIter}')
+#            
         ret = []
         
         for i in range(swarm.shape[0]):
@@ -165,7 +229,7 @@ class GSO:
 #        np.savetxt(f"resultados/swarmVelocityL{level}S{swarmIdx}.csv", np.array(velocities), delimiter=",")
         end = datetime.now()
         print(f'tiempo actualizacion enjambre {end-start}')
-        return np.array(ret), evaluationsCsv, self.bestParticleBin
+        return np.array(ret), evaluationsCsv, bestParticleBin
     
     
 #    @profile
@@ -175,12 +239,12 @@ class GSO:
         if currLevel < len(swarmsPerLevel) and len(universe[0]) > swarmsPerLevel[currLevel]:
             
 #            try:
-#            print(f'np.array(universe[0]).shape {np.array(universe[0]).shape} level {currLevel}')
-            centroids,_ = kmeans(universe[0],swarmsPerLevel[currLevel])
+#            print(f'np.array(universe[0]).shape {np.array(universe[0]).dtype} swarmsPerLevel[{currLevel}] {swarmsPerLevel[currLevel]}')
+            centroids,_ = kmeans(np.array(universe[0], dtype=np.float),swarmsPerLevel[currLevel])
             
             idx,_ = vq(universe[0],centroids)
         ret = {}
-        print(f'universe.shape {np.array(universe).shape}')
+#        print(f'universe.shape {np.array(universe).shape}')
         for i in range(len(universe[0])):
             if currLevel >= len(swarmsPerLevel) or len(universe[0]) <= swarmsPerLevel[currLevel]:
                 if 0 not in ret.keys(): ret[0] = []
@@ -189,7 +253,8 @@ class GSO:
                     , universe[2][i]
                     , universe[3][i]
                     , universe[4]
-                    , universe[5]])
+                    , universe[5]
+                    , universe[6]])
                 
             else:
                 if idx[i] not in ret.keys(): ret[idx[i]] = []
@@ -198,88 +263,50 @@ class GSO:
                     , universe[2][idx[i]]
                     , universe[3][idx[i]]
                     , universe[4]
-                    , universe[5]])
+                    , universe[5]
+                    , universe[6]])
         return ret
     
 #    @profile
     def updateAccelParams(self):
-
-
-
-#        print(evals-evaluations.reshape(np.prod(evaluations.shape)))
-#        evaluations = evaluations.reshape(np.prod(evaluations.shape))
-##        print(evals)
-##        print(evaluations)
-#        
-#        self.accelPer[evals<evaluations]  -= 1.5
-#        self.accelPer[evals>=evaluations]   += 1.5
-#        
-#        self.accelBest[evals<evaluations] -= 1.5
-#        self.accelBest[evals>=evaluations]  += 1.5
-#        self.accelPer[evals>evaluations.reshape(np.prod(evaluations.shape))] += 1
-#        print(self.accelPer)
-#        print(evals<evaluations.reshape(np.prod(evaluations.shape)))
-#        exit()
-        #binBest - binSwarm
-        #print (f'binswarm {binSwarm}')
-        #print (f'binBests {binBests}')
-        #print (f'binBest - binSwarm {binBests - binSwarm}')
-        #print (f'binglobalBest - binSwarm {self.bestParticleBin - binSwarm}')
-        #binBests - binSwarm
-        #exit()
-#        self.accelBest = np.mean(self.bestParticleBin - binSwarm)
-#        self.accelPer = np.mean(binBests - binSwarm)
-        self.accelBest = 0.3#2.05*np.random.uniform() 
-        self.accelPer = 0.5#2.05*np.random.uniform() 
-        """if 0 < tendencia < 20: 
-                self.accelBest += 0.1
-                self.accelPer += 0.1
-                self.accel += 0.1
-        if 0 > tendencia:
-                self.accelBest += -0.1
-                self.accelPer += -0.1
-                self.accel +=-0.1
-        if 20 < tendencia:
-                #self.accel -= 0.1
-        #        self.accelBest += -1
-                self.accelPer += -1
-        return [self.accelPer
-            ,self.accelBest
-            ,self.randPer
-            ,self.randBest]"""
+        self.accelBest = 0.6#2.05*np.random.uniform() 
+        self.accelPer = 0.3#2.05*np.random.uniform() 
     
 #    @profile
     def genRandomSwarm(self, swarmSize = 50, featureSize = 2000):    
         swarm =        np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
         velocity =     np.random.uniform(size=(swarmSize, featureSize))
-#        personalBest = np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
-        personalBest = np.zeros((swarmSize, featureSize))
-#        bestFound =    np.random.uniform(low=self.min, high=self.max, size=(featureSize))
-        bestFound =    np.zeros((featureSize))
+        personalBest = np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
+#        personalBest = np.zeros((swarmSize, featureSize))
+        bestFound =    np.random.uniform(low=self.min, high=self.max, size=(featureSize))
+#        bestFound =    np.zeros((featureSize))
         evals =        np.ones((swarmSize)) * -math.pow(10,6)
 #        np.random.uniform(size=(swarmSize))
         bestEval =     -math.pow(10,6)
+        personalBestBin = np.zeros((swarmSize, featureSize))
         #bins = np.random.uniform(size=(swarmSize, featureSize))
 #        bins = np.ones((swarmSize, featureSize))
 #        bestBins = np.zeros((swarmSize, featureSize))
-        return [swarm, velocity, personalBest, evals, bestFound, bestEval]
+        return [swarm, velocity, personalBest, evals, bestFound, bestEval, personalBestBin]
     
 #    @profile
     def getNextLvlSwarms(self, swarms, globalBest, globalBestEval):
         bestParticles = []
         bestEvals = []
+#        velocities = []
 #        swarmsL = swarms.values()
-        print(f'getNextLvlSwarms np.array(swarms).shape {np.array(swarms).shape}')
+#        print(f'getNextLvlSwarms np.array(swarms).shape {np.array(swarms).shape}')
         for i in range(len(swarms)):
-            print(f'getNextLvlSwarms np.array(swarms[i]).shape {np.array(swarms[i]).shape}')
+#            print(f'getNextLvlSwarms np.array(swarms[i]).shape {np.array(swarms[i]).shape}')
             bestParticles.append(swarms[i][0][4])
             bestEvals.append(swarms[i][0][5])
         nxtSwarm = self.genRandomSwarm(len(bestParticles), swarms[0][0][4].shape[0])
         nxtSwarm[0] = bestParticles
+#        nxtSwarm[2] = bestParticles
         nxtSwarm[3] = bestEvals
         nxtSwarm[4] = globalBest
         nxtSwarm[5] = globalBestEval
-        print(f'getNextLvlSwarms np.array(nxtSwarm[2][0]).shape {np.array(nxtSwarm[2][0]).shape}')
+#        print(f'getNextLvlSwarms np.array(nxtSwarm[2][0]).shape {np.array(nxtSwarm[2][0]).shape}')
         return nxtSwarm
             
 #    @profile
@@ -288,23 +315,35 @@ class GSO:
         swarms = []
         universes = []
         universes.append(self.genSubSwarms(self.UNIVERSE, 0, self.LEVELS, self.numSubSwarms))
-        
+        for level in range (self.LEVELS):
+            if level >= len(self.numSubSwarms):
+                np.savetxt(f"resultados/swarmL{level}S{0}.csv", np.array([]), delimiter=",")
+            else:
+                for i in range (self.numSubSwarms[level]):
+                    np.savetxt(f"resultados/swarmL{level}S{i}.csv", np.array([]), delimiter=",")
         for epoch in range(epochs):
             print(f'epoch {epoch}')
             for level in range(self.LEVELS):
                 swarms = universes[level]
                 print(f'LEVEL {level}')        
-                i=0
+#                i=0
                 
-                pool = mp.Pool(3)
+                
                 swarmsList = [item for item in swarms.values()]  
 #                print(f'swarmsList[0][5] {np.array(swarmsList[0][0][5])}')
 #                exit()
                 args = [list((swarm, self.numIter[level], swarm[0][5])) for swarm in swarmsList]
 #                keys = swarms.keys()
 #                print(f'args {np.array(args).shape}')
+                startSwarm = datetime.now()
+                pool = mp.Pool(4)
                 ret = pool.starmap(self.updateSwarmData, args)
                 pool.close()
+#                ret = [self.updateSwarmData(swarm, self.numIter[level], swarm[0][5]) for swarm in swarmsList]
+                endSwarm = datetime.now()
+                print(f'Optimization for level {level} completed in: {endSwarm - startSwarm}')
+                
+#                ret = [self.updateSwarmData(swarm, self.numIter[level], swarm[0][5]) for swarm in swarmsList]
                 swarms = [data[0] for data in ret]
                 evals = [data[1] for data in ret]
                 
@@ -314,12 +353,13 @@ class GSO:
 #                print(f'global best!! {np.array(ret[0][2])}')
 #                exit()
                 for i in range(len(swarms)):
-#                    print(f'global best!! {np.array(swarms[i][0][4]).shape}')
+                    print(f'global best {np.array(swarms[i][0][5])} swarm {i} level {level}')
                     if self.globalBest is None or swarms[i][0][5] > self.globalBest:
                         self.globalBest = swarms[i][0][5]
                         self.bestParticle = swarms[i][0][4]
                         self.bestParticleBin = ret[i][2]
-                    np.savetxt(f"resultados/swarmL{level}S{i}.csv", np.array(evals[i]), delimiter=",")
+                    with open(f"resultados/swarmL{level}S{i}.csv", "ab") as f:
+                        np.savetxt(f, np.array(evals[i]), delimiter=",")
 #                exit()
                 
                 

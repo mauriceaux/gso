@@ -41,23 +41,26 @@ class ReparaStrategy:
             raise Exception('matriz restriccion es None')
         if self.m_costos is None:
             raise Exception('matriz costos es None')
-        sumaFilas = np.sum(self.m_restriccion, axis=1)
-        sumaCols = np.sum(self.m_restriccion, axis=0)
-        iFilas = np.array(self.m_restriccion)*sumaFilas.reshape((sumaFilas.shape[0],1))
-        iCols  = (np.array(self.m_restriccion).T*sumaCols.reshape((sumaCols.shape[0],1))).T
+        np_mr = np.array(self.m_restriccion)
+        np_mc = np.array(self.m_costos)
+        sumaFilas = np.sum(np_mr, axis=1)
+        sumaCols = np.sum(np_mr, axis=0)
+        iFilas = np_mr*sumaFilas.reshape((sumaFilas.shape[0],1))
+        iCols  = np_mr.T*sumaCols.reshape((sumaCols.shape[0],1)).T
         #return iFilas+ iCols
         importanciaIncumplidas = iCols / (iFilas+1)
         
-        importanciaIncumplidas = (np.array(importanciaIncumplidas).T/self.m_costos.reshape((self.m_costos.shape[0],1))).T
+        importanciaIncumplidas = (importanciaIncumplidas.T/np_mc.reshape((np_mc.shape[0],1))).T
         #print(importanciaIncumplidas)
         #exit()  
         self.importanciaRestricciones = importanciaIncumplidas
         return importanciaIncumplidas
 
 
-    def repara_oneModificado(self,solucion, m_restriccion,m_costos,r,c):
+    def repara_oneModificado(self,solucion):
 #        print('hola')
-        incumplidas = self.cumpleModificado(solucion, m_restriccion, r, c)
+        self.genImpRestr()
+        incumplidas = self.cumpleModificado(solucion, self.m_restriccion, self.r, self.c)
         solucion = np.array(solucion)
         while len(incumplidas) > 0:
             maximo =None
@@ -196,9 +199,9 @@ class ReparaStrategy:
 #        print(np.array(m_restriccion)[:,0])
 #        exit()
         
-        hashSet = set(aListU)
-        aListU=[]
-        aListU = hashSet
+#        hashSet = set(aListU)
+#        aListU=[]
+#        aListU = hashSet
         
         #print(f'aListU {aListU}')
 #        print(f'aListU {len(aListU)}')
@@ -210,23 +213,39 @@ class ReparaStrategy:
         
         
         while len(aListU) > 0: #MIENTRAS QUEDEN COLUMNAS POR CORREGIR
-            nFila = 0
+            nFila = aListU[0]
             
-            for fila in aListU:
-                nFila = fila
-                break
+#            for fila in aListU:
+#                nFila = fila
+#                break
             #print(f'nFila {nFila}')
             
             nColumnSel = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos) #busca la columna de mayor ajuste (la que tenga mas opciones de ser reemplazada)
+#            print(np.array(self.m_restriccion[nFila]).shape)
+#            print(nColumnSel)
 
+#            print(costos.shape)
+#            exit()
+
+#            print(np.argmin(costos[idxRestr]))
+#            exit()
+#            costos = np.array(self.m_restriccion[nFila])*np.array(self.m_costos)
+#            idxRestr = np.where(costos>0)
+#            menor = np.argmin(costos[idxRestr])
+#            nColumnSel = idxRestr[0][menor]
+#            print(nColumnSelNueva)
+            
+#            print(np.argmin(np.array(self.m_restriccion[nFila])*np.array(self.m_costos)))
+#            exit()
+#            nColSelNueva = [nCol for nCol in np.array(self.m_costos)[self.aListColRestr[nFila]] if ]
             #print(f'self.columnaMenorCosto(aListColRestr[{nFila}], m_restriccion, m_costos) {nColumnSel}')
 
             solucion[nColumnSel] = 1
             #print(f'solucion {solucion}')
 #            aListUNuevo = aListU.copy()
-            lock.acquire()
+#            lock.acquire()
             [aListU.remove(nFilaDel) for nFilaDel in self.aListFilRestr[nColumnSel] if nFilaDel in aListU]
-            lock.release()
+#            lock.release()
 #            for nFilaDel in self.aListFilRestr[nColumnSel]:
 #                if (nFilaDel in aListU):
 #                    aListU.remove(nFilaDel) #DADO QUE CORREGÍ ARRIBA, QUITO LA FILA DE LA LISTA --> borra la fila completa, pues tiene otra columna que la resuelve
@@ -234,7 +253,7 @@ class ReparaStrategy:
         end = datetime.now()
 #        print(f'duracion ciclo qlo 2 {end-start}')
         #LUEGO DE CORREGIR, VALIDAMOS CUÁNTAS FILAS QUEDAN SIN RESTRICCION POR CADA COLUMNA
-        contFila = 0;
+#        contFila = 0;
         start = datetime.now()
 #        print(f'{self.m_restriccion}')
         aListW = np.sum([fila * solucion for fila in self.m_restriccion], axis=1)
@@ -288,6 +307,7 @@ class ReparaStrategy:
         return solucion
 		
     def repara_two(self,solucion):
+        start = datetime.now()
         for i in range(self.r):
             nRC=-1
             for j in range(self.c):
@@ -300,14 +320,17 @@ class ReparaStrategy:
                             break
                 if (nRC != -1):
                     solucion[nRC] = 1      
+        end = datetime.now()
+        print(f'duracion repara two {end-start}')
         return solucion
         
     def columnaMenorCosto(self,arrayList,restricciones,costos):
+        start = datetime.now()
         nValor = 0
         nValorTemp = 0
         nFila = 0
         cont = 0
-
+        
         for nColumna in arrayList:
 #            sum = 0
 #            sum2 = 0
@@ -330,6 +353,8 @@ class ReparaStrategy:
                 nFila = nColumna
             
             cont+=1
+        end = datetime.now()
+        print(f'duracion columnaMenorCosto {end-start}')
         return nFila
 
     def find(self, target, myList):

@@ -11,7 +11,7 @@ import read_instance as r_instance
 from datetime import datetime
 import numpy as np
 
-instance = r_instance.Read("instances/mscpnrh5.txt")
+instance = r_instance.Read("instances/off/scpnrh5.txt")
 
 repair = _repara.ReparaStrategy(instance.get_r()
                                     ,instance.get_c()
@@ -19,10 +19,11 @@ repair = _repara.ReparaStrategy(instance.get_r()
                                     ,instance.get_columns())
 
 solucion = np.zeros(instance.get_columns())
-solucion[0] = 1
+#solucion[0] = 1
 
 start = datetime.now()
 reparada = solucion.copy()
+#reparada = repair.repara_oneModificado(reparada)
 reparada = repair.repara_one(reparada)
 end = datetime.now()
 print(solucion)

@@ -22,8 +22,10 @@ gso.max = 5
 
 gso.minVel = -3
 gso.maxVel= 3
-gso.setScaler(gso.minVel,gso.maxVel)
+gso.setScaler(1,10)
 gso.accel = 1
+gso.accelPer  = 0.1
+gso.accelBest = 0.5
 #gso.min = -500
 #gso.max = 500
 #problem = ProblemTest()
@@ -45,6 +47,7 @@ gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())
 
 gso.LEVELS = 2
 gso.numIter = [50,250]
+#gso.numIter = [1,1]
 gso.numSubSwarms = [10]
 
 

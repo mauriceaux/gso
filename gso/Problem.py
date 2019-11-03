@@ -40,6 +40,8 @@ class Problem():
 #        fitness = self.evalInstance(decoded) * (incumplidas+1)
         
         fitness = self.evalInstance(decoded)
+##        if self.repair.cumple(x) != 1:
+#            fitness *= -1
         return fitness, decoded
 
     def evalEnc(self, encodedInstance):
@@ -52,6 +54,8 @@ class Problem():
 #        fitness = self.evalInstance(decoded) * (incumplidas+1)
 #        start = datetime.now()
         fitness = self.evalInstance(decoded)
+#        if self.repair.cumple(decoded) != 1:
+#            fitness *= fitness
 #        end = datetime.now()
 #        fitTime = end-start
 #        print(f'decoding time {decTime} fitness time {fitTime}')
@@ -71,13 +75,14 @@ class Problem():
         b = self.binarize(list(encodedInstance))
         end = datetime.now()
         binTime = end-start
+#        return b.get_binary()
 #        repair = _repara.ReparaStrategy()
-        start = datetime.now()
+#        start = datetime.now()
         encodedInstance = self.frepara(b.get_binary())
-        end = datetime.now()
-        repairTime = end-start
-#        print(f'binarization time {binTime} repair time {repairTime}')
-        #print(f'repara {end-start}')
+#        end = datetime.now()
+#        repairTime = end-start
+##        print(f'binarization time {binTime} repair time {repairTime}')
+#        #print(f'repara {end-start}')
         return encodedInstance
         
 #        incumplidas = repair.incumplidas(b.get_binary(), self.instance.get_r(),self.instance.get_rows(),self.instance.get_columns())
@@ -117,7 +122,7 @@ class Problem():
   
 #    @profile
     def frepara(self,x):
-        #start = datetime.now()
+        start = datetime.now()
         cumpleTodas=0
 #        repair = _repara.ReparaStrategy()
 #        matrizRestriccion = self.instance.get_r()
@@ -125,14 +130,15 @@ class Problem():
 #        r = self.instance.get_rows()
 #        c = self.instance.get_columns()
         cumpleTodas=self.repair.cumple(x)
-#        print(f'cumpleTodas {cumpleTodas}')
-        if cumpleTodas==0:
-            x = self.repair.repara_one(x)    
+        if cumpleTodas == 1: return x
+        x = self.repair.repara_one(x)    
+        end = datetime.now()
+        print(f'repara one {end-start}')
         cumpleTodas = self.repair.cumple(x)
-        if cumpleTodas==0:
-            x = self.repair.repara_two(x)    
-#        end = datetime.now()
-        #print(f'repara demoro {end-start}')
+        if cumpleTodas == 1: return x
+        x = self.repair.repara_two(x)    
+        end = datetime.now()
+        print(f'repara two {end-start}')
         return x
     
     def reparaMod(self,x):
