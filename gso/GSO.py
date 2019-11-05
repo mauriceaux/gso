@@ -8,6 +8,7 @@ Created on Tue Oct  1 20:41:52 2019
 import math
 import numpy as np
 import multiprocessing as mp
+from multiprocessing import Value
 from scipy.cluster.vq import kmeans,vq
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
@@ -18,7 +19,11 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from threading import Lock
 lock = Lock()
 class GSO:
-    def __init__(self):
+    def __init__(self, globalBest=None):
+        if globalBest is not None:
+            global gBest
+            gBest = globalBest
+        self.evalEnc = None
         self.accel=1
         self.min = -5
         self.max = 5
@@ -26,7 +31,7 @@ class GSO:
         self.NUM_ITER = 0
         self.swarmSize = 50
         self.featureSize = 2000
-        self.UNIVERSE = self.genRandomSwarm(self.swarmSize, self.featureSize)
+#        self.UNIVERSE = self.genRandomSwarm(self.swarmSize, self.featureSize)
         self.numIter = [10,20,30]
         self.numSubSwarms = [10,5]
         self.globalBest = None
@@ -34,7 +39,7 @@ class GSO:
         self.bestParticleBin = None
         self.LEVELS = 3
         
-        np.random.seed(0)
+#        np.random.seed(0)
 #        self.accelPer  = 2.05 * np.random.uniform()
 #        self.accelBest = 2.05 * np.random.uniform()
         self.accelPer  = 0.3
@@ -113,6 +118,9 @@ class GSO:
 
 #    @profile
     def updateSwarmData(self, swarmData, iterations, globalBest):
+        global gBest
+        exitCount = 0
+#        print(f'ID DE SELF {self.__repr__()}')
         start = datetime.now()
 #        print(f'swarmData {swarmData} iterations {iterations}')
         swarm         = np.vstack(np.array(swarmData)[:,0])
@@ -128,7 +136,10 @@ class GSO:
 #        bestParticleBin = None
         for i in range(iterations):
             
+            
             if i >0 and i % 10 == 0:
+#                self.accel /= i
+                
                 intervalo = evaluationsCsv[-10:]
                 grupo1 = intervalo[:5]
                 grupo2 = intervalo[-5:]
@@ -136,7 +147,7 @@ class GSO:
                 mediaGrupo2=np.mean(grupo2)
                 dif = mediaGrupo2-mediaGrupo1
                 std = np.std(intervalo)
-                
+                print(f"tendencia {dif}")
                 
                 
 #                intervalo2 = self.scaler.fit_transform(evaluationsCsv)
@@ -179,7 +190,10 @@ class GSO:
             
             
             startIter = datetime.now()
-            nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
+            if len(swarm) == 1:
+                nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, gBest.value)
+            else:
+                nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
 #            print(len(nswarm))
 #            exit()
 #            pool = mp.Pool(4)
@@ -208,16 +222,21 @@ class GSO:
 #                if self.globalBest is None or (evaluations[idx] > self.globalBest or evaluations[idx] > globalBest):
             
                 bestEval =  evaluations[idx]
-#                    self.globalBest = evaluations[idx]
+                with gBest.get_lock():
+                    gBest.value = evaluations[idx]
                 bestFound = np.tile(nswarm[idx], (nswarm.shape[0],1))
 #                    self.bestParticle = bestFound[0]
                 bestParticleBin = binParticle[idx]
 #                print(f'best obj {bestEval} iter {i}')
 #                lock.release()
+            else:
+                exitCount += 1
             evals = evaluations
             swarm = nswarm
             endIter = datetime.now()
             print(f'best obj {bestEval} duracion iteracion {i} {endIter-startIter}')
+            if exitCount >= 5:
+                break
 #            
         ret = []
         
@@ -247,8 +266,8 @@ class GSO:
 #        print(f'universe.shape {np.array(universe).shape}')
         for i in range(len(universe[0])):
             if currLevel >= len(swarmsPerLevel) or len(universe[0]) <= swarmsPerLevel[currLevel]:
-                if 0 not in ret.keys(): ret[0] = []
-                ret[0].append([universe[0][i]
+                if i not in ret.keys(): ret[i] = []
+                ret[i].append([universe[0][i]
                     , universe[1][i]
                     , universe[2][i]
                     , universe[3][i]
@@ -276,13 +295,25 @@ class GSO:
     def genRandomSwarm(self, swarmSize = 50, featureSize = 2000):    
         swarm =        np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
         velocity =     np.random.uniform(size=(swarmSize, featureSize))
-        personalBest = np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
-#        personalBest = np.zeros((swarmSize, featureSize))
-        bestFound =    np.random.uniform(low=self.min, high=self.max, size=(featureSize))
+#        personalBest = np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
+        personalBest = np.zeros((swarmSize, featureSize))
+#        print(self.evalEnc)
+#        exit()
+        returning = [self.evalEnc(item) for item in list(personalBest)]
+        personalBest = [item[1] for item in returning]
+        
+        personalBest = np.vstack(personalBest)
+#        personalBest[personalBest == 1] = 5
+#        personalBest[personalBest == 0] = -5
+#        bestFound =    np.random.uniform(low=self.min, high=self.max, size=(featureSize))
 #        bestFound =    np.zeros((featureSize))
-        evals =        np.ones((swarmSize)) * -math.pow(10,6)
+        bestFound = personalBest[0]
+        
+#        evals =        np.ones((swarmSize)) * -math.pow(10,6)
+        evals =[item[0] for item in returning]
 #        np.random.uniform(size=(swarmSize))
-        bestEval =     -math.pow(10,6)
+#        bestEval =     -math.pow(10,6)
+        bestEval = returning[0][0]
         personalBestBin = np.zeros((swarmSize, featureSize))
         #bins = np.random.uniform(size=(swarmSize, featureSize))
 #        bins = np.ones((swarmSize, featureSize))
@@ -311,7 +342,8 @@ class GSO:
             
 #    @profile
     def optimize(self, maximize, epochs):
-        
+#        print(self.evalEnc)
+#        exit()
         swarms = []
         universes = []
         universes.append(self.genSubSwarms(self.UNIVERSE, 0, self.LEVELS, self.numSubSwarms))
@@ -321,6 +353,7 @@ class GSO:
             else:
                 for i in range (self.numSubSwarms[level]):
                     np.savetxt(f"resultados/swarmL{level}S{i}.csv", np.array([]), delimiter=",")
+        gBest = Value('f', -math.pow(10,6))
         for epoch in range(epochs):
             print(f'epoch {epoch}')
             for level in range(self.LEVELS):
@@ -332,11 +365,13 @@ class GSO:
                 swarmsList = [item for item in swarms.values()]  
 #                print(f'swarmsList[0][5] {np.array(swarmsList[0][0][5])}')
 #                exit()
-                args = [list((swarm, self.numIter[level], swarm[0][5])) for swarm in swarmsList]
+                
 #                keys = swarms.keys()
 #                print(f'args {np.array(args).shape}')
                 startSwarm = datetime.now()
-                pool = mp.Pool(4)
+                args = [list((swarm, self.numIter[level], swarm[0][5])) for swarm in swarmsList]
+                
+                pool = mp.Pool(8, initializer = self.__init__,  initargs = (gBest, ))
                 ret = pool.starmap(self.updateSwarmData, args)
                 pool.close()
 #                ret = [self.updateSwarmData(swarm, self.numIter[level], swarm[0][5]) for swarm in swarmsList]

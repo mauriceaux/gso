@@ -209,47 +209,59 @@ class ReparaStrategy:
 #        exit()
         start = datetime.now()
         
-        
-        
-        
-        while len(aListU) > 0: #MIENTRAS QUEDEN COLUMNAS POR CORREGIR
-            nFila = aListU[0]
-            
-#            for fila in aListU:
-#                nFila = fila
-#                break
-            #print(f'nFila {nFila}')
-            
-            nColumnSel = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos) #busca la columna de mayor ajuste (la que tenga mas opciones de ser reemplazada)
-#            print(np.array(self.m_restriccion[nFila]).shape)
-#            print(nColumnSel)
-
-#            print(costos.shape)
-#            exit()
-
-#            print(np.argmin(costos[idxRestr]))
-#            exit()
-#            costos = np.array(self.m_restriccion[nFila])*np.array(self.m_costos)
-#            idxRestr = np.where(costos>0)
-#            menor = np.argmin(costos[idxRestr])
-#            nColumnSel = idxRestr[0][menor]
-#            print(nColumnSelNueva)
-            
-#            print(np.argmin(np.array(self.m_restriccion[nFila])*np.array(self.m_costos)))
-#            exit()
-#            nColSelNueva = [nCol for nCol in np.array(self.m_costos)[self.aListColRestr[nFila]] if ]
-            #print(f'self.columnaMenorCosto(aListColRestr[{nFila}], m_restriccion, m_costos) {nColumnSel}')
-
-            solucion[nColumnSel] = 1
-            #print(f'solucion {solucion}')
-#            aListUNuevo = aListU.copy()
-#            lock.acquire()
-            [aListU.remove(nFilaDel) for nFilaDel in self.aListFilRestr[nColumnSel] if nFilaDel in aListU]
-#            lock.release()
-#            for nFilaDel in self.aListFilRestr[nColumnSel]:
-#                if (nFilaDel in aListU):
-#                    aListU.remove(nFilaDel) #DADO QUE CORREGÍ ARRIBA, QUITO LA FILA DE LA LISTA --> borra la fila completa, pues tiene otra columna que la resuelve
-#            print(f'iguales? {aListU == aListUNuevo}')
+#        cols = [self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos)
+#                 for nFila in aListU
+#                 if np.sum(self.m_restriccion[nFila]*solucion) == 0]
+#        cols = []
+        for nFila in aListU:
+            if np.sum(self.m_restriccion[nFila]*solucion) == 0:
+                idx = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos)
+                solucion[idx] = 1
+#                cols.append(idx)
+                
+#        colsOriginal = []
+#        while len(aListU) > 0: #MIENTRAS QUEDEN COLUMNAS POR CORREGIR
+#            nFila = aListU[0]
+#            
+##            for fila in aListU:
+##                nFila = fila
+##                break
+#            #print(f'nFila {nFila}')
+#            
+#            nColumnSel = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos) #busca la columna de mayor ajuste (la que tenga mas opciones de ser reemplazada)
+#            colsOriginal.append(nColumnSel)
+##            print(np.array(self.m_restriccion[nFila]).shape)
+##            print(nColumnSel)
+#
+##            print(costos.shape)
+##            exit()
+#
+##            print(np.argmin(costos[idxRestr]))
+##            exit()
+##            costos = np.array(self.m_restriccion[nFila])*np.array(self.m_costos)
+##            idxRestr = np.where(costos>0)
+##            menor = np.argmin(costos[idxRestr])
+##            nColumnSel = idxRestr[0][menor]
+##            print(nColumnSelNueva)
+#            
+##            print(np.argmin(np.array(self.m_restriccion[nFila])*np.array(self.m_costos)))
+##            exit()
+##            nColSelNueva = [nCol for nCol in np.array(self.m_costos)[self.aListColRestr[nFila]] if ]
+#            #print(f'self.columnaMenorCosto(aListColRestr[{nFila}], m_restriccion, m_costos) {nColumnSel}')
+#
+#            solucion[nColumnSel] = 1
+#            #print(f'solucion {solucion}')
+##            aListUNuevo = aListU.copy()
+##            lock.acquire()
+#            [aListU.remove(nFilaDel) for nFilaDel in self.aListFilRestr[nColumnSel] if nFilaDel in aListU]
+##            lock.release()
+##            for nFilaDel in self.aListFilRestr[nColumnSel]:
+##                if (nFilaDel in aListU):
+##                    aListU.remove(nFilaDel) #DADO QUE CORREGÍ ARRIBA, QUITO LA FILA DE LA LISTA --> borra la fila completa, pues tiene otra columna que la resuelve
+##            print(f'iguales? {aListU == aListUNuevo}')
+#        print(cols)
+#        print(colsOriginal)
+#        exit()
         end = datetime.now()
 #        print(f'duracion ciclo qlo 2 {end-start}')
         #LUEGO DE CORREGIR, VALIDAMOS CUÁNTAS FILAS QUEDAN SIN RESTRICCION POR CADA COLUMNA
@@ -354,7 +366,7 @@ class ReparaStrategy:
             
             cont+=1
         end = datetime.now()
-        print(f'duracion columnaMenorCosto {end-start}')
+#        print(f'duracion columnaMenorCosto {end-start}')
         return nFila
 
     def find(self, target, myList):

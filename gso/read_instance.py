@@ -59,6 +59,7 @@ class Read():
         ContVariables      = 1
         Fila               = 0
         while Registro != "":
+#            if Registro != '\n': 
             CantidadValoresUno = int(Registro)
             ContadorValoresUno = 0
             Registro = Archivo.readline()

@@ -15,6 +15,8 @@ from datetime import datetime
 class Problem():
     def __init__(self, instancePath = None):
         self.instance = r_instance.Read(instancePath)
+        if(self.instance.columns != np.array(self.instance.get_c()).shape[0]):
+            raise Exception(f'self.instance.columns {self.instance.columns} != np.array(self.instance.get_c()).shape[1] {np.array(self.instance.get_c()).shape[1]})')
 #        self.repara = _repara.ReparaStrategy(self.instance.get_r())
 #        self.repara.m_restriccion = np.array(self.instance.get_r())
 #        self.repara.m_costos = np.array(self.instance.get_c())
@@ -133,12 +135,12 @@ class Problem():
         if cumpleTodas == 1: return x
         x = self.repair.repara_one(x)    
         end = datetime.now()
-        print(f'repara one {end-start}')
+#        print(f'repara one {end-start}')
         cumpleTodas = self.repair.cumple(x)
         if cumpleTodas == 1: return x
         x = self.repair.repara_two(x)    
         end = datetime.now()
-        print(f'repara two {end-start}')
+#        print(f'repara two {end-start}')
         return x
     
     def reparaMod(self,x):
