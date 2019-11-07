@@ -14,7 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 from sklearn.preprocessing import normalize
 from matplotlib import pyplot
-from statsmodels.tsa.seasonal import seasonal_decompose
+#from statsmodels.tsa.seasonal import seasonal_decompose
 #import line_profiler
 from threading import Lock
 lock = Lock()

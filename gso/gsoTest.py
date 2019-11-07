@@ -37,7 +37,7 @@ for f in path:
         problem = Problem(f)
         
         gso = GSO()
-        gso.onlineAdjust = True
+        #gso.onlineAdjust = True
         gso.min = -5
         gso.max = 5
         
