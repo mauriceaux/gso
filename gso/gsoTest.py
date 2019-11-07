@@ -17,7 +17,7 @@ from datetime import datetime
 import sys
 
 
-path = []
+path = []  
 
 import os
 #directory = 'instances/delProfe/'
