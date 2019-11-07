@@ -54,7 +54,7 @@ class Read():
         # Preparar Matriz de Restricciones.
         
         print(f'ciclo qlo 2 {datetime.now()}')
-        Restricciones = np.zeros((self.rows,self.columns), dtype=np.int32)
+        Restricciones = np.zeros((self.rows,self.columns), dtype=np.int32).tolist()
 #        for Fila in range(self.rows):
 #            Restricciones.append([])
 #            for Columna in range(self.columns):
