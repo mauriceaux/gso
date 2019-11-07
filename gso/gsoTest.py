@@ -17,35 +17,27 @@ from datetime import datetime
 import sys
 
 
-#gso.min = -500
-#gso.max = 500
-#problem = ProblemTest()
-#path = ["instances/mscpnrh5.txt"]
-#path = "instances/off/scpnrh1.txt"
-#path = "instances/off/scpnrh2.txt"
-#path = ["instances/off/scpnrh3.txt"]
-#path = ["instances/off/scpnrh4.txt", "instances/off/scpnrh1.txt", "instances/off/scpnrh2.txt", "instances/off/scpnrh3.txt"]
-#path = "instances/off/scpnrh5.txt"
-#path = ["instances/mscp41.txt"]
 path = []
 
 import os
-#directory = 'instances/off/'
-directory = 'instances/'
-#directory = 'instances/off/'
+#directory = 'instances/delProfe/'
+#directory = 'instances/'
+directory = 'instancesFinal/'
 for filename in os.listdir(directory):
     if not filename.endswith(".txt"): continue
 #    print(filename)
 #    exit()
     path.append(filename)
-
-
+generalStart = datetime.now()
+#path.append('rail2536.txt')
 for f in path:
     f = f'{directory}{f}'
     try:
         print(f'PROCESANDO {f}')
         problem = Problem(f)
+        
         gso = GSO()
+        gso.onlineAdjust = True
         gso.min = -5
         gso.max = 5
         
@@ -75,7 +67,7 @@ for f in path:
         gso.numIter = [50,50]
         #gso.numIter = [50,250]
         #gso.numIter = [1,1]
-        gso.numSubSwarms = [10]
+        gso.numSubSwarms = [12]
         
         
         #gso.LEVELS = 3
@@ -104,7 +96,7 @@ for f in path:
     print(f'best obj {gso.globalBest}')
     np.set_printoptions(threshold=sys.maxsize)
 #    np.savetxt(f"resultadosFinal/globalBest{f.replace('/','.')}.csv", np.array([gso.bestParticleBin,end-start,EPOCHS,gso.LEVELS,gso.numIter]), delimiter=",")
-    with open(f"resultadosInstances/globalBest{f.replace('/','.')}.csv", "a") as myfile:
+    with open(f"resultadosFinal/globalBest{f.replace('/','.')}.csv", "a") as myfile:
         bestBinStr = np.array2string(gso.bestParticleBin, max_line_width=1000000000000000, precision=1, separator=',', suppress_small=False)
         numIterStr = np.array2string(np.array(gso.numIter), max_line_width=1000000000000000, precision=1, separator=",", suppress_small=False)
         myfile.write(f'{gso.globalBest},{bestBinStr},{start},{end},{end-start},{EPOCHS},{gso.LEVELS},{numIterStr}\n')
@@ -119,3 +111,6 @@ for f in path:
     #
     print(f'END   {end.strftime("%H:%M:%S")}')
     print(f'TOTAL {(end-start)}')
+    
+generalStop = datetime.now()
+print(f'FIN, DEMORO {generalStop - generalStart}')

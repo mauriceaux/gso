@@ -14,7 +14,9 @@ from datetime import datetime
 
 class Problem():
     def __init__(self, instancePath = None):
+        print(f'LEYENDO INSTANCIA')
         self.instance = r_instance.Read(instancePath)
+        print(f'FIN LEYENDO INSTANCIA')
         if(self.instance.columns != np.array(self.instance.get_c()).shape[0]):
             raise Exception(f'self.instance.columns {self.instance.columns} != np.array(self.instance.get_c()).shape[1] {np.array(self.instance.get_c()).shape[1]})')
 #        self.repara = _repara.ReparaStrategy(self.instance.get_r())
