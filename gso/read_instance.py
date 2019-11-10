@@ -31,9 +31,9 @@ class Read():
         return self.columns 
     
     def LeerInstancia(self,Instancia):
-        print(f'abriendo archivo {datetime.now()}')
+#        print(f'abriendo archivo {datetime.now()}')
         Archivo = open(Instancia, "r")
-        print(f'fin abriendo archivo {datetime.now()}')    
+#        print(f'fin abriendo archivo {datetime.now()}')    
         # Leer Dimensión
         Registro = Archivo.readline().split()
         self.rows = int(Registro[0])
@@ -43,28 +43,28 @@ class Read():
         Costos        = []
         Registro      = Archivo.readline()
         ContVariables = 1
-        print(f'ciclo qlo 1 {datetime.now()}')
+#        print(f'ciclo qlo 1 {datetime.now()}')
         while Registro != "" and ContVariables <= self.columns :
             Valores = Registro.split()
             for Contador in range(len(Valores)):
                 Costos.append(int(Valores[Contador]))
                 ContVariables = ContVariables + 1
             Registro = Archivo.readline()
-        print(f'fin ciclo qlo 1 {datetime.now()}')
+#        print(f'fin ciclo qlo 1 {datetime.now()}')
         # Preparar Matriz de Restricciones.
         
-        print(f'ciclo qlo 2 {datetime.now()}')
+#        print(f'ciclo qlo 2 {datetime.now()}')
         Restricciones = np.zeros((self.rows,self.columns), dtype=np.int32).tolist()
 #        for Fila in range(self.rows):
 #            Restricciones.append([])
 #            for Columna in range(self.columns):
 #                Restricciones[Fila].append(0)
-        print(f'fin ciclo qlo 2 {datetime.now()}')
+#        print(f'fin ciclo qlo 2 {datetime.now()}')
         # Leer Restricciones    
         ContVariables      = 1
         Fila               = 0
         cont = 0
-        print(f'ciclo qlo 3 {datetime.now()}')
+#        print(f'ciclo qlo 3 {datetime.now()}')
         while Registro != "":
 #            if Registro != '\n': 
 #            Registro = Registro.strip()
@@ -75,9 +75,9 @@ class Read():
             CantidadValoresUno = int(Registro)
             ContadorValoresUno = 0
             Registro = Archivo.readline()
-            print(Registro)
+#            print(Registro)
             Registro = Registro.replace('\n','').replace("\\n'",'')
-            print(Registro)
+#            print(Registro)
             while Registro != "" and ContadorValoresUno < CantidadValoresUno: 
                 Columnas = Registro.split() 
                 for Contador in range(len(Columnas)):
@@ -86,7 +86,7 @@ class Read():
                     ContadorValoresUno = ContadorValoresUno + 1
                 Registro = Archivo.readline()
             Fila = Fila + 1
-        print(f'fin ciclo qlo 3 {datetime.now()}')
+#        print(f'fin ciclo qlo 3 {datetime.now()}')
         Archivo.close()
         self.set_c(Costos)
         self.set_r(Restricciones)        

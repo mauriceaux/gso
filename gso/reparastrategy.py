@@ -20,6 +20,15 @@ class ReparaStrategy:
         self.c = columnas
         self.aListColRestr = {}
         self.aListFilRestr = {}
+        self.sumaFilasRestriccion = np.sum(mRestriccion, axis=0)
+#        print(self.sumaFilasRestriccion.shape)
+#        print(columnas)
+#        exit()
+        
+        self.sumaColumnasRestriccion = np.sum(mRestriccion, axis=1)
+#        self.genImpRestr()
+        
+        self.importanciaColumnas = [self.sumaFilasRestriccion[index]/mCostos[index] for index in range(columnas)]
         
         for i in range(self.r): #recorre, por cada fila, todas las columnas, y aquellas que son restrictivas las guarda
 #            aListU.append(i)
@@ -35,6 +44,9 @@ class ReparaStrategy:
                 if (self.m_restriccion[i][j] == 1):
                     aListTemp.append(i)
             self.aListFilRestr[j] = aListTemp #para la columna j, todas las filas con 1 --> asigna lista de índices de filas con valor 1 en la restricción i
+        
+    def numFilasAfectadas(self, numFila):
+        return np.sum(np.array(self.m_restriccion[numFila]))
 
     def genImpRestr(self):
         if self.m_restriccion is None:
@@ -213,9 +225,17 @@ class ReparaStrategy:
 #                 for nFila in aListU
 #                 if np.sum(self.m_restriccion[nFila]*solucion) == 0]
 #        cols = []
+#        print(f'original {aListU}')
+        aListU.sort(reverse=True, key=self.numFilasAfectadas)
+#        print(f'modificado {aListU}')
+#        exit()
         for nFila in aListU:
             if np.sum(self.m_restriccion[nFila]*solucion) == 0:
-                idx = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos)
+                temp = self.importanciaColumnas * np.array(self.m_restriccion[nFila])
+                idx = np.argmax(temp)
+#                print(np.argmax(temp))
+#                exit()
+#                idx = self.columnaMenorCosto(self.aListColRestr[nFila], self.m_restriccion, self.m_costos)
                 solucion[idx] = 1
 #                cols.append(idx)
                 

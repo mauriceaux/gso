@@ -14,9 +14,9 @@ from datetime import datetime
 
 class Problem():
     def __init__(self, instancePath = None):
-        print(f'LEYENDO INSTANCIA')
+#        print(f'LEYENDO INSTANCIA')
         self.instance = r_instance.Read(instancePath)
-        print(f'FIN LEYENDO INSTANCIA')
+#        print(f'FIN LEYENDO INSTANCIA')
         if(self.instance.columns != np.array(self.instance.get_c()).shape[0]):
             raise Exception(f'self.instance.columns {self.instance.columns} != np.array(self.instance.get_c()).shape[1] {np.array(self.instance.get_c()).shape[1]})')
 #        self.repara = _repara.ReparaStrategy(self.instance.get_r())
@@ -49,9 +49,13 @@ class Problem():
         return fitness, decoded
 
     def evalEnc(self, encodedInstance):
-#        print(f'encodedInstance.shape {np.array(encodedInstance).shape}')
+#        print(f'encodedInstance.shape {np.array(encodedInstance)}')
+#        exit()
 #        start = datetime.now()
         decoded = self.decodeInstance(encodedInstance)
+        
+#        print(f'decodedInstance.shape {np.array(decoded)}')
+#        exit()
 #        end = datetime.now()
 #        decTime = end-start
         
@@ -76,7 +80,9 @@ class Problem():
 #        print(f'encodedInstance {list(encodedInstance)}')
 #        exit()
         start = datetime.now()
+        
         b = self.binarize(list(encodedInstance))
+#        print(f'b {list(b.get_binary())}')
         end = datetime.now()
         binTime = end-start
 #        return b.get_binary()
@@ -126,6 +132,7 @@ class Problem():
   
 #    @profile
     def frepara(self,x):
+#        print(f'frepara {x}')
         start = datetime.now()
         cumpleTodas=0
 #        repair = _repara.ReparaStrategy()
