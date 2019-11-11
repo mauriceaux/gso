@@ -288,6 +288,16 @@ class GSO:
             
 #    @profile
     def optimize(self, maximize, epochs):
+        universes = []
+        
+        gBest = Value('f', -math.pow(10,6))
+        gBestP = mp.Array('f', self.UNIVERSE[4])
+        for epoch in range(epochs):
+            explore = self.agent.decideExploration()
+        universes.append(self.exploration(iterations=self.numIterExpl))
+        
+        
+        
         swarms = []
         universes = []
         universes.append(self.genSubSwarms(self.UNIVERSE, 0, self.LEVELS, self.numSubSwarms))
