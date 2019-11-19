@@ -30,7 +30,7 @@ for filename in os.listdir(directory):
     path.append(filename)
 generalStart = datetime.now()
 #path.append('scp41.txt')
-for iteracion in range(10):
+for iteracion in range(3):
     for f in path:
         f = f'{directory}{f}'
         try:
