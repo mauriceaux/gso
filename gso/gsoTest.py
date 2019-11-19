@@ -27,67 +27,69 @@ for filename in os.listdir(directory):
     if not filename.endswith(".txt"): continue
 #    print(filename)
 #    exit()
-    path.append(filename)
+#    path.append(filename)
 generalStart = datetime.now()
 #path.append('scp41.txt')
-for iteracion in range(3):
+path.append('scpc1.txt')
+
+for iteracion in range(1):
     for f in path:
         f = f'{directory}{f}'
         try:
-            print(f'PROCESANDO {f}')
-            problem = Problem(f)
-            
-            gso = GSO()
-    #        gso.onlineAdjust = True
-            gso.min = -5
-            gso.max = 5
-            
-            gso.minVel = -3
-            gso.maxVel= 3
-            gso.setScaler(1,10)
-            gso.accel = 1
-            gso.accelPer  = 2.05 * np.random.uniform()
-            gso.accelBest = 2.05 * np.random.uniform()
-    #        gso.accelPer  = 0.5
-    #        gso.accelBest = 0.3
-            #problem = Problem("instances/off/scpnrh5.txt")
-            
-            #problem = Problem("instances/mscp41.txt")
-            #gso.decode = problem.binarizeMod
-            #gso.repair = problem.repara
-            #gso.repair = problem.reparaMod
-            #gso.encode = problem.encodeInstance
-            #gso.evalDecoded = problem.evalInstance
-            
-            #gso.setEvalEnc(problem.evalEncMod)
-            gso.setEvalEnc(problem.evalEnc)
-            #print(gso.evalEnc)
-            #exit()
-            #gso.UNIVERSE = gso.genRandomSwarm(50, problem.get_columns())
-            gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())
-            
-            gso.LEVELS = 2
-            gso.numIter = [50,250]
-    #        gso.numIter = [150,150]
-            #gso.numIter = [1,1]
-            gso.numSubSwarms = [12]
-            
-            
-            #gso.LEVELS = 3
-            #gso.numIter = [50,250,50]
-            #gso.numSubSwarms = [10,3]
-            
-            
-            #gso.UNIVERSE = gso.genRandomSwarm(500, problem.instance.get_columns())
-            #gso.LEVELS = 3
-            #gso.numIter = [10,30, 40]
-            #gso.numSubSwarms = [100,10]
-            
-            EPOCHS = 1
-            start = datetime.now()
-            print(f'START {start.strftime("%H:%M:%S")}')
-        
-            gso.optimize(maximize=False, epochs = EPOCHS)
+                print(f'PROCESANDO {f}')
+                problem = Problem(f)
+                
+                gso = GSO()
+        #        gso.onlineAdjust = True
+                gso.min = -5
+                gso.max = 5
+                
+                gso.minVel = -3
+                gso.maxVel= 3
+                gso.setScaler(1,10)
+                gso.accel = 1
+                gso.accelPer  = 2.05 * np.random.uniform()
+                gso.accelBest = 2.05 * np.random.uniform()
+        #        gso.accelPer  = 0.5
+        #        gso.accelBest = 0.3
+                #problem = Problem("instances/off/scpnrh5.txt")
+                
+                #problem = Problem("instances/mscp41.txt")
+                #gso.decode = problem.binarizeMod
+                #gso.repair = problem.repara
+                #gso.repair = problem.reparaMod
+                #gso.encode = problem.encodeInstance
+                #gso.evalDecoded = problem.evalInstance
+                
+                #gso.setEvalEnc(problem.evalEncMod)
+                gso.setEvalEnc(problem.evalEnc)
+                #print(gso.evalEnc)
+                #exit()
+                #gso.UNIVERSE = gso.genRandomSwarm(50, problem.get_columns())
+                gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())
+                
+                gso.LEVELS = 2
+                gso.numIter = [50,250]
+        #        gso.numIter = [150,150]
+                #gso.numIter = [1,1]
+                gso.numSubSwarms = [12]
+                
+                
+                #gso.LEVELS = 3
+                #gso.numIter = [50,250,50]
+                #gso.numSubSwarms = [10,3]
+                
+                
+                #gso.UNIVERSE = gso.genRandomSwarm(500, problem.instance.get_columns())
+                #gso.LEVELS = 3
+                #gso.numIter = [10,30, 40]
+                #gso.numSubSwarms = [100,10]
+                
+                EPOCHS = 1
+                start = datetime.now()
+                print(f'START {start.strftime("%H:%M:%S")}')
+
+                gso.optimize(maximize=False, epochs = EPOCHS)
         except Exception as e:
             print(f'Error al procesar archivo {f}: {e.args}')
     #        raise e

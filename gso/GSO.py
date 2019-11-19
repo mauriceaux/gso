@@ -14,6 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 from sklearn.preprocessing import normalize
 from matplotlib import pyplot
+import ctypes
 #from statsmodels.tsa.seasonal import seasonal_decompose
 #import line_profiler
 from threading import Lock
@@ -63,10 +64,14 @@ class GSO:
         
 #    @profile
     def moveSwarm(self, swarm, velocity, personalBest, bestFound):        
-        self.accelPer = 2.05*np.random.uniform()
+        """self.accelPer = 2.05*np.random.uniform()
         self.accelBest = 2.05*np.random.uniform()
         self.randPer = np.random.uniform(low=-1, high=1)
-        self.randBest = np.random.uniform(low=-1, high=1)
+        self.randBest = np.random.uniform(low=-1, high=1)"""
+        self.accelPer = 0.1
+        self.accelBest = 0.1
+        self.randPer = 1
+        self.randBest = 1
         personalDif = personalBest - swarm
         personalAccel = self.accelPer * self.randPer * personalDif
         bestDif = bestFound - swarm
@@ -106,8 +111,9 @@ class GSO:
 #            exit()
             self.accel = 1 - (i/(iterations + 1))
             if len(swarm) == 1:
-#                print(f'out {np.ctypeslib.as_array([gBestP.get_obj()]).shape}')
-                nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, np.ctypeslib.as_array([gBestP.get_obj()]))
+                #print(f'out {np.frombuffer(gBestP.get_obj(), float).shape}')
+                #exit()
+                nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, np.array([np.frombuffer(gBestP.get_obj(), dtype=ctypes.c_float)]))
             else:
                 nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
             returning = [self.evalEnc(item) for item in list(nswarm)]
@@ -133,7 +139,7 @@ class GSO:
                 with gBest.get_lock():
                     gBest.value = evaluations[idx]
                 with gBestP.get_lock():
-#                    print(f'in {nswarm[idx].shape}')
+                    
                     gBestP[:]=nswarm[idx][:].copy()
 #                if exitCount > 0: exitCount -= 1
 #            else:
@@ -145,11 +151,11 @@ class GSO:
 #                print(f'binParticle[idx] {binParticle[idx]}')
                 bestParticleBin = binParticle[idx]
             intervalo = evaluationsCsv[-4:]
-            if self.alza(intervalo):
-                if exitCount > 0: exitCount -= 1
-            else:
+            #if self.alza(intervalo):
+            #    if exitCount > 0: exitCount -= 1
+            #else:
 #                self.updateAccelParams()
-                exitCount += 1
+            #    exitCount += 1
             evals = evaluations
             swarm = nswarm
             endIter = datetime.now()
@@ -163,6 +169,7 @@ class GSO:
             ret.append([swarm[i], velocity[i], personalBest[i], evaluations[i], bestFound[i], bestEval])
         end = datetime.now()
         print(f'tiempo actualizacion enjambre {end-start}')
+        
         return np.array(ret), evaluationsCsv, bestParticleBin
     
     
@@ -291,17 +298,23 @@ class GSO:
         swarms = []
         universes = []
         universes.append(self.genSubSwarms(self.UNIVERSE, 0, self.LEVELS, self.numSubSwarms))
+        """
         for level in range (self.LEVELS):
             if level >= len(self.numSubSwarms):
                 np.savetxt(f"resultados/swarmL{level}S{0}.csv", np.array([]), delimiter=",")
             else:
                 for i in range (self.numSubSwarms[level]):
                     np.savetxt(f"resultados/swarmL{level}S{i}.csv", np.array([]), delimiter=",")
+        """
         gBest = Value('f', -math.pow(10,6))
-#        print(len(universes[0][0][0][0]))
-#        exit()
-#        print(f'inicio in {self.UNIVERSE[0][0].shape}')
-        gBestP = mp.Array('f', self.UNIVERSE[4])
+        
+        #print(f'inicio in {self.UNIVERSE[4].dtype}')
+        #print(f'inicio in {self.UNIVERSE[4].shape}')
+        #print(f'inicio in {self.UNIVERSE[4]}')
+        gBestP = mp.Array(ctypes.c_float, self.UNIVERSE[4])
+        #print(np.frombuffer(gBestP.get_obj(), dtype=ctypes.c_int).shape)
+        #print(np.frombuffer(gBestP.get_obj(), dtype=ctypes.c_int))
+        #exit()
         for epoch in range(epochs):
             print(f'epoch {epoch}')
             for level in range(self.LEVELS):
@@ -319,6 +332,9 @@ class GSO:
                 swarms = [data[0].tolist() for data in ret]
                 evals = [data[1] for data in ret]
                 for i in range(len(swarms)):
+                    #print(evals)
+                    #exit()
+                    np.savetxt(f"resultados/swarmL{level}S{i}.csv", np.array(evals[i]), delimiter=",")
                     print(f'global best {np.array(swarms[i][0][5])} swarm {i} level {level} gBest.value {gBest.value}')
 #                    start = datetime.now()
                     if self.globalBest is None or swarms[i][0][5] > self.globalBest:
