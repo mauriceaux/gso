@@ -118,7 +118,7 @@ class Problem():
         if cumpleTodas == 1: return x
         x = self.repair.repara_one(x)    
         end = datetime.now()
-#        print(f'repara one {end-start}')
+        print(f'repara one {end-start}')
 #        cumpleTodas = self.repair.cumple(x)
 #        if cumpleTodas == 1: return x
 #        x = self.repair.repara_two(x)    
