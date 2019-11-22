@@ -64,14 +64,14 @@ class GSO:
         
 #    @profile
     def moveSwarm(self, swarm, velocity, personalBest, bestFound):        
-#        self.accelPer = 2.05*np.random.uniform()
-#        self.accelBest = 2.05*np.random.uniform()
-#        self.randPer = np.random.uniform(low=-1, high=1)
-#        self.randBest = np.random.uniform(low=-1, high=1)
-        self.accelPer = 0.1
-        self.accelBest = 0.1
-        self.randPer = 1
-        self.randBest = 1
+        self.accelPer = 2.05*np.random.uniform()
+        self.accelBest = 2.05*np.random.uniform()
+        self.randPer = np.random.uniform(low=-1, high=1)
+        self.randBest = np.random.uniform(low=-1, high=1)
+#        self.accelPer = 0.1
+#        self.accelBest = 0.1
+#        self.randPer = 1
+#        self.randBest = 1
         personalDif = personalBest - swarm
         personalAccel = self.accelPer * self.randPer * personalDif
         bestDif = bestFound - swarm
