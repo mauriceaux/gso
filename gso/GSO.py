@@ -64,10 +64,10 @@ class GSO:
         
 #    @profile
     def moveSwarm(self, swarm, velocity, personalBest, bestFound):        
-        """self.accelPer = 2.05*np.random.uniform()
-        self.accelBest = 2.05*np.random.uniform()
-        self.randPer = np.random.uniform(low=-1, high=1)
-        self.randBest = np.random.uniform(low=-1, high=1)"""
+#        self.accelPer = 2.05*np.random.uniform()
+#        self.accelBest = 2.05*np.random.uniform()
+#        self.randPer = np.random.uniform(low=-1, high=1)
+#        self.randBest = np.random.uniform(low=-1, high=1)
         self.accelPer = 0.1
         self.accelBest = 0.1
         self.randPer = 1
@@ -150,12 +150,12 @@ class GSO:
                 bestFound = np.tile(nswarm[idx], (nswarm.shape[0],1))
 #                print(f'binParticle[idx] {binParticle[idx]}')
                 bestParticleBin = binParticle[idx]
-            intervalo = evaluationsCsv[-4:]
-            #if self.alza(intervalo):
-            #    if exitCount > 0: exitCount -= 1
-            #else:
+#            intervalo = evaluationsCsv[-4:]
+#            if self.alza(intervalo):
+#                if exitCount > 0: exitCount -= 1
+#            else:
 #                self.updateAccelParams()
-            #    exitCount += 1
+#                exitCount += 1
             evals = evaluations
             swarm = nswarm
             endIter = datetime.now()
@@ -244,12 +244,15 @@ class GSO:
     
 #    @profile
     def genRandomSwarm(self, swarmSize = 50, featureSize = 2000):    
-        swarm =        np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
-        swarm[0] = np.ones((featureSize)) * self.min
+#        swarm =        np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
+        swarm =        np.ones((swarmSize, featureSize)) * self.min
+#        print(len(swarm.tolist()))
+#        exit()
+#        swarm[0] = np.ones((featureSize)) * self.min
 #        swarm[1] = np.ones((featureSize)) * self.max
         velocity =     np.random.uniform(size=(swarmSize, featureSize))
-#        personalBest = np.ones((featureSize)) * self.min
-        personalBest = np.zeros((featureSize)) 
+        personalBest = np.ones((featureSize)) * self.min
+#        personalBest = np.zeros((featureSize)) 
 #        personalBest = np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize)) 
 #        pool = mp.Pool()
         pool = mp.Pool(4)

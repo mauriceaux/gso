@@ -30,7 +30,18 @@ for filename in os.listdir(directory):
 #    path.append(filename)
 generalStart = datetime.now()
 #path.append('scp41.txt')
-path.append('scpc1.txt')
+#path.append('scpnre1.txt')
+path.append('scpnrg1.txt')
+path.append('scpnrg2.txt')
+path.append('scpnrg3.txt')
+path.append('scpnrg4.txt')
+path.append('scpnrg5.txt')
+path.append('scpnrh1.txt')
+path.append('scpnrh2.txt')
+path.append('scpnrh3.txt')
+path.append('scpnrh4.txt')
+path.append('scpnrh5.txt')
+
 
 for iteracion in range(1):
     for f in path:
@@ -67,6 +78,8 @@ for iteracion in range(1):
                 #exit()
                 #gso.UNIVERSE = gso.genRandomSwarm(50, problem.get_columns())
                 gso.UNIVERSE = gso.genRandomSwarm(50, problem.instance.get_columns())
+#                print(gso.UNIVERSE[0])
+#                exit()
                 
                 gso.LEVELS = 2
                 gso.numIter = [50,250]
@@ -92,7 +105,7 @@ for iteracion in range(1):
                 gso.optimize(maximize=False, epochs = EPOCHS)
         except Exception as e:
             print(f'Error al procesar archivo {f}: {e.args}')
-    #        raise e
+            raise e
         end = datetime.now()
         
         
