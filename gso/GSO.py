@@ -54,7 +54,7 @@ class GSO:
         self.repair = None
         self.evalDecoded = None
         self.onlineAdjust = False
-        
+        self.mejoresResultados = ""
     def setScaler(self, minVal, maxVal):
         self.scaler = MinMaxScaler(feature_range=(minVal,maxVal))
         
@@ -101,8 +101,13 @@ class GSO:
         bestFound     = np.vstack(np.array(swarmData)[:,4])
         bestEval      = np.array(swarmData)[0,5]
         
-        bestParticleBin = np.vstack(np.array(swarmData)[:,6])
+        
+        
+        bestParticleBin = np.vstack(np.array(swarmData)[:,6])[0]
+#        print(bestParticleBin.shape)
+#        exit()
         evaluationsCsv = []
+        mejoresResultados = ""
         for i in range(iterations):
 #            if self.onlineAdjust:
 #                self.updateAccelParams(evaluationsCsv[-4:])
@@ -138,39 +143,60 @@ class GSO:
             if gBest.value is None or evaluations[idx] > gBest.value:
                 with gBest.get_lock():
                     gBest.value = evaluations[idx]
+                    
                 with gBestP.get_lock():
                     
                     gBestP[:]=nswarm[idx][:].copy()
 #                if exitCount > 0: exitCount -= 1
 #            else:
 #                exitCount += 1
+            mejoresResultados+=f'{datetime.timestamp(datetime.now()),gBest.value}\n'
             if bestEval is None or (evaluations[idx] > bestEval):
                 bestEval =  evaluations[idx]
                 
                 bestFound = np.tile(nswarm[idx], (nswarm.shape[0],1))
 #                print(f'binParticle[idx] {binParticle[idx]}')
                 bestParticleBin = binParticle[idx]
-#            intervalo = evaluationsCsv[-4:]
-#            if self.alza(intervalo):
-#                if exitCount > 0: exitCount -= 1
-#            else:
-#                self.updateAccelParams()
-#                exitCount += 1
+            intervalo = evaluationsCsv[-4:]
+            if self.alza(intervalo):
+                if exitCount > 0: exitCount -= 1
+            else:
+                self.updateAccelParams()
+                exitCount += 1
+            
             evals = evaluations
             swarm = nswarm
             endIter = datetime.now()
+            
             print(f'best obj {bestEval} {gBest.value} duracion iteracion {i} {endIter-startIter}')
             if exitCount >= 5:
-                break
+                newBestFound = bestFound[0]
+                indices0 = np.where(newBestFound > 0)
+                if len(indices0[0]) > 0:
+                    newBestFound[np.random.choice(indices0[0])] = self.min
+                else:
+                    newBestFound[np.argmax(newBestFound)] = self.min
+                bestFound = np.tile(newBestFound, (nswarm.shape[0],1))
+                
+#                break
 #            
+              
+#        print(bestFound)
+#        exit()
+        
+#        print(np.random.choice(indices0[0]))
+        
+#        print(np.random.choice(np.where(bestFound[0] == 0)))
+#        exit()
         ret = []
         
         for i in range(swarm.shape[0]):
             ret.append([swarm[i], velocity[i], personalBest[i], evaluations[i], bestFound[i], bestEval])
         end = datetime.now()
         print(f'tiempo actualizacion enjambre {end-start}')
-        
-        return np.array(ret), evaluationsCsv, bestParticleBin
+#        print(np.array(mejoresResultados))
+#        exit()
+        return np.array(ret), evaluationsCsv, bestParticleBin, mejoresResultados
     
     
 #    @profile
@@ -253,7 +279,7 @@ class GSO:
         velocity =     np.random.uniform(size=(swarmSize, featureSize))
         personalBest = np.ones((featureSize)) * self.min
 #        personalBest = np.zeros((featureSize)) 
-#        personalBest = np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize)) 
+#        personalBest = np.random.uniform(low=self.min, high=self.max, size=(featureSize)) 
 #        pool = mp.Pool()
         pool = mp.Pool(4)
         r = pool.map(self.evalEnc, swarm.tolist())
@@ -334,6 +360,13 @@ class GSO:
                 print(f'Optimization for level {level} completed in: {endSwarm - startSwarm}')
                 swarms = [data[0].tolist() for data in ret]
                 evals = [data[1] for data in ret]
+                mr = ""
+                for item in ret:
+                    mr += item[3].replace("(","").replace(")","")
+#                mr = [np.array(item[3]) for item in ret]
+#                print(mr)
+#                exit()
+                self.mejoresResultados += mr
                 for i in range(len(swarms)):
                     #print(evals)
                     #exit()
