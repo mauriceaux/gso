@@ -27,7 +27,7 @@ for filename in os.listdir(directory):
     if not filename.endswith(".txt"): continue
 #    print(filename)
 #    exit()
-    path.append(filename)
+#    path.append(filename)
 generalStart = datetime.now()
 #path.append('scp41.txt')
 #path.append('scpnre1.txt')
@@ -36,11 +36,11 @@ generalStart = datetime.now()
 #path.append('scpnrg3.txt')
 #path.append('scpnrg4.txt')
 #path.append('scpnrg5.txt')
-#path.append('scpnrh1.txt')
-#path.append('scpnrh2.txt')
-#path.append('scpnrh3.txt')
-#path.append('scpnrh4.txt')
-#path.append('scpnrh5.txt')
+path.append('scpnrh1.txt')
+path.append('scpnrh2.txt')
+path.append('scpnrh3.txt')
+path.append('scpnrh4.txt')
+path.append('scpnrh5.txt')
 
 
 for iteracion in range(1):
@@ -106,7 +106,7 @@ for iteracion in range(1):
             gso.optimize(maximize=False, epochs = EPOCHS)
         except Exception as e:
             print(f'Error al procesar archivo {f}: {e.args}')
-            raise e
+#            raise e
         end = datetime.now()
         
         
