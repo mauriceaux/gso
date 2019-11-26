@@ -29,12 +29,12 @@ for filename in os.listdir(directory):
 #    exit()
 #    path.append(filename)
 generalStart = datetime.now()
-#path.append('scp41.txt')
-path.append('scpc1.txt')
-path.append('scpc2.txt')
-path.append('scpc3.txt')
-path.append('scpc4.txt')
-path.append('scpc5.txt')
+path.append('scp41.txt')
+#path.append('scpc1.txt')
+#path.append('scpc2.txt')
+#path.append('scpc3.txt')
+#path.append('scpc4.txt')
+#path.append('scpc5.txt')
 #path.append('scpd1.txt')
 #path.append('scpd2.txt')
 #path.append('scpd3.txt')
@@ -76,8 +76,8 @@ for iteracion in range(1):
             gso.min = -5
             gso.max = 5
             
-            gso.minVel = -3
-            gso.maxVel= 3
+            gso.minVel = -1
+            gso.maxVel= 1
             gso.setScaler(1,10)
             gso.accel = 1
             gso.accelPer  = 2.05 * np.random.uniform()
@@ -119,7 +119,7 @@ for iteracion in range(1):
             #gso.numIter = [10,30, 40]
             #gso.numSubSwarms = [100,10]
             
-            EPOCHS = 1
+            EPOCHS = 4
             start = datetime.now()
             print(f'START {start.strftime("%H:%M:%S")}')
 
