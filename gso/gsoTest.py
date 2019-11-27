@@ -22,14 +22,14 @@ path = []
 import os
 #directory = 'instances/delProfe/'
 #directory = 'instances/'
-directory = 'instancesFinal/'
+directory = 'instanciasReducidas/'
 for filename in os.listdir(directory):
     if not filename.endswith(".txt"): continue
 #    print(filename)
 #    exit()
-#    path.append(filename)
+    path.append(filename)
 generalStart = datetime.now()
-path.append('scp41.txt')
+#path.append('scp41.txt')
 #path.append('scpc1.txt')
 #path.append('scpc2.txt')
 #path.append('scpc3.txt')
@@ -73,11 +73,11 @@ for iteracion in range(1):
             
             gso = GSO()
     #        gso.onlineAdjust = True
-            gso.min = -5
-            gso.max = 5
+            gso.min = -10
+            gso.max = 10
             
-            gso.minVel = -1
-            gso.maxVel= 1
+            gso.minVel = -5
+            gso.maxVel= 5
             gso.setScaler(1,10)
             gso.accel = 1
             gso.accelPer  = 2.05 * np.random.uniform()
@@ -119,7 +119,7 @@ for iteracion in range(1):
             #gso.numIter = [10,30, 40]
             #gso.numSubSwarms = [100,10]
             
-            EPOCHS = 4
+            EPOCHS = 1
             start = datetime.now()
             print(f'START {start.strftime("%H:%M:%S")}')
 
