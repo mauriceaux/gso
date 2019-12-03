@@ -148,12 +148,14 @@ def generaSolucion(lSolution,matrix,pesos,rHeuristic,dictcHeuristics,dict,cHeuri
 #    exit()
 #    lSolution = list(lSolution)
     estado = 0
+    contReparaciones = 0
 #    tInicio = tU.obtieneTime()
     while estado == 0:
         #lSolution, estado = obtienenNuevoElemento1(lSolution,matrix,pesos,rHeuristic,dictcHeuristics,dict, cHeuristic)
         #lSolution, estado = obtienenNuevoElemento(lSolution,matrix,pesos,rHeuristic,dictcHeuristics,dict, cHeuristic)
         #lSolution, estado = obtieneElemento(lSolution,matrix,pesos,rHeuristic,dictcHeuristics,dict, cHeuristic)
         lSolution, estado = obtieneElemento2(lSolution,matrix,pesos,rHeuristic,dictcHeuristics,dict,cHeuristic,dictCol)
+        contReparaciones += 1
 
 #    tFin = tU.obtieneTime()
     #print tInicio, tFin
@@ -161,4 +163,4 @@ def generaSolucion(lSolution,matrix,pesos,rHeuristic,dictcHeuristics,dict,cHeuri
     #tFin = tU.obtieneTime()
     #print 'Solucion nueva', tInicio,tFin
 
-    return lSolution
+    return lSolution, contReparaciones

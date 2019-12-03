@@ -22,7 +22,8 @@ path = []
 import os
 #directory = 'instances/delProfe/'
 #directory = 'instances/'
-directory = 'instanciasReducidas/'
+directory = 'instancesFinal/'
+#directory = 'instanciasReducidas/'
 for filename in os.listdir(directory):
     if not filename.endswith(".txt"): continue
 #    print(filename)
@@ -126,7 +127,7 @@ for iteracion in range(1):
             gso.optimize(maximize=False, epochs = EPOCHS)
         except Exception as e:
             print(f'Error al procesar archivo {f}: {e.args}')
-#            raise e
+            raise e
         end = datetime.now()
         
         

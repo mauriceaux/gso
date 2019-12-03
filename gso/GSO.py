@@ -43,8 +43,8 @@ class GSO:
         self.bestParticle = None
         self.bestParticleBin = None
         self.LEVELS = 3
-        self.accelPer  = 0.3
-        self.accelBest = 0.5
+        self.accelPer = 2.05*np.random.uniform()
+        self.accelBest = 2.05*np.random.uniform()
         self.randPer   = 1
         self.randBest  = 1
         self.minVel = -1
@@ -64,8 +64,7 @@ class GSO:
         
 #    @profile
     def moveSwarm(self, swarm, velocity, personalBest, bestFound):        
-        self.accelPer = 2.05*np.random.uniform()
-        self.accelBest = 2.05*np.random.uniform()
+        
         self.randPer = np.random.uniform(low=-1, high=1)
         self.randBest = np.random.uniform(low=-1, high=1)
 #        self.accelPer = 0.1
@@ -115,14 +114,15 @@ class GSO:
             startIter = datetime.now()
 #            print(np.array(swarm).shape)
 #            exit()
-            if exitCount >= 5:
-                velocity = np.ones((swarm.shape))*self.minVel
+#            if exitCount >= 5:
+#                velocity = np.ones((swarm.shape))*self.minVel
             self.inertia = 1 - (i/(iterations + 1))
 #            print(velocity)
+            bests = np.tile(np.frombuffer(gBestP.get_obj(), dtype=ctypes.c_float), (swarm.shape[0], 1))
             if len(swarm) == 1:
                 #print(f'out {np.frombuffer(gBestP.get_obj(), float).shape}')
                 #exit()
-                bests = np.tile(np.frombuffer(gBestP.get_obj(), dtype=ctypes.c_float), (swarm.shape[0], 1))
+                
                 nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bests)
             else:
                 nswarm, velocity = self.moveSwarm(swarm, velocity, personalBest, bestFound)
@@ -138,13 +138,22 @@ class GSO:
             evaluations = np.array(np.vstack(evaluations))
             
             evaluations = evaluations.reshape((swarm.shape[0]))
+            reparaciones = [item[2] for item in returning]
+            velIdx = [numRep > 0 for numRep in reparaciones]
+#            if len(swarm) == 1:
+            velocity[velIdx] = bestFound[velIdx] - nswarm[velIdx]
+#            velocity[velIdx] = bests[velIdx] - nswarm[velIdx]
+#            velocity[velIdx] = (personalBest[velIdx] - nswarm[velIdx]) + (bests[velIdx] - nswarm[velIdx])
+#            else:
+#                velocity[velIdx] = (personalBest[velIdx] - nswarm[velIdx]) + (bestFound[velIdx] - nswarm[velIdx])
+#            print(swarm.shape)
+            print(reparaciones)
+#            exit()
 #            print(evaluations)
 #            exit()
             evaluationsCsv.append(evaluations)
             bestidx = evaluations > evals
-            
-            
-            
+                        
             if bestidx.any(): personalBest[bestidx] = nswarm[bestidx]
             idx = np.argmax(evaluations)
             
@@ -171,8 +180,10 @@ class GSO:
             if self.alza(intervalo):
                 if exitCount > 0: exitCount -= 1
             else:
-                self.updateAccelParams()
+#                self.updateAccelParams()
                 exitCount += 1
+            
+            
             
             evals = evaluations
             swarm = np.copy(nswarm)

@@ -43,7 +43,7 @@ class Problem():
 #        print(f'encodedInstance.shape {np.array(encodedInstance)}')
 #        exit()
 #        start = datetime.now()
-        decoded = self.decodeInstance(encodedInstance)
+        decoded, numReparaciones = self.decodeInstance(encodedInstance)
         
 #        print(f'decodedInstance.shape {np.array(decoded)}')
 #        exit()
@@ -58,7 +58,7 @@ class Problem():
 #        end = datetime.now()
 #        fitTime = end-start
 #        print(f'decoding time {decTime} fitness time {fitTime}')
-        return fitness, decoded
+        return fitness, decoded, numReparaciones
     
     def encodeInstance(self, decodedInstance, minVal, maxVal):
         decodedInstance[decodedInstance==1] = maxVal
@@ -79,12 +79,12 @@ class Problem():
 #        return b.get_binary()
 #        repair = _repara.ReparaStrategy()
 #        start = datetime.now()
-        encodedInstance = self.frepara(b.get_binary())
+        encodedInstance, numReparaciones = self.frepara(b.get_binary())
 #        end = datetime.now()
 #        repairTime = end-start
 ##        print(f'binarization time {binTime} repair time {repairTime}')
 #        #print(f'repara {end-start}')
-        return encodedInstance
+        return encodedInstance, numReparaciones
         
 #        incumplidas = repair.incumplidas(b.get_binary(), self.instance.get_r(),self.instance.get_rows(),self.instance.get_columns())
 #        return b.get_binary(), incumplidas
@@ -115,8 +115,8 @@ class Problem():
 #        r = self.instance.get_rows()
 #        c = self.instance.get_columns()
         cumpleTodas=self.repair.cumple(x)
-        if cumpleTodas == 1: return x
-        x = self.repair.repara_one(x)    
+        if cumpleTodas == 1: return x, 0
+        x, numReparaciones = self.repair.repara_one(x)    
         end = datetime.now()
 #        print(f'repara one {end-start}')
 #        cumpleTodas = self.repair.cumple(x)
@@ -124,5 +124,5 @@ class Problem():
 #        x = self.repair.repara_two(x)    
 #        end = datetime.now()
 #        print(f'repara two {end-start}')
-        return x
+        return x, numReparaciones
     
