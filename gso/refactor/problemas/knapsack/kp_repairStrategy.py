@@ -41,7 +41,7 @@ class ReparaStrategy:
         cont = 0
         while not self.cumple(solucion):
             idxEliminar = np.random.choice(np.argpartition((solucion*self.ponderacionItems), -5)[-5:])
-            solucion[idxEliminar] = 0
+            solucion[idxEliminar] = 0.0
             cont += 1
         return solucion, cont
 #        print(f'idx eliminar {idxEliminar}')

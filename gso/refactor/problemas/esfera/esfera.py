@@ -13,7 +13,7 @@ import multiprocessing as mp
 
 class Esfera():
     def __init__(self):
-        self.centro = [5,5]
+        self.centro = [-5,5]
         self.radio = 200
 #        self.instancia = instancePath
 #        self.instance = instance_reader.Read(instancePath)
@@ -31,7 +31,9 @@ class Esfera():
     
     def getNumDim(self):
         return 2
-    
+    def getRangoSolucion(self):
+        return {'max': 100, 'min':-100}
+
     def evalEnc(self, encodedInstance):
         repaired, numReparaciones = self.repara(encodedInstance)
         fitness = self.evalInstance(repaired)
@@ -45,14 +47,14 @@ class Esfera():
         valido = self.evalInstance(solution) <= self.radio
         numReparaciones = 0
         while not valido:
-            solution = np.random.uniform(low=-100, high=100, size=(1, self.getNumDim()))
+            solution = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(1, self.getNumDim()))
             valido = self.evalInstance(solution) <= self.radio
             numReparaciones += 1
         return solution, numReparaciones
     
     def generarSolsAlAzar(self, numSols):
 #        args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
-        args = np.random.uniform(low=-300, high=300, size=(numSols, self.getNumDim()))
+        args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(numSols, self.getNumDim()))
         pool = mp.Pool(4)
         ret = pool.map(self.evalEnc, args)
         pool.close()

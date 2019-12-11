@@ -49,6 +49,9 @@ class SCPProblem():
     def getNumDim(self):
         return self.instance.columns
 
+    def getRangoSolucion(self):
+        return {'max': 5, 'min':-5}
+
     def evalEnc(self, encodedInstance):
 #        print(f'encodedInstance.shape {np.array(encodedInstance)}')
 #        exit()
@@ -68,17 +71,18 @@ class SCPProblem():
 #        end = datetime.now()
 #        fitTime = end-start
 #        print(f'decoding time {decTime} fitness time {fitTime}')
+        #encoded = self.encodeInstance(decoded)
         return fitness, decoded, numReparaciones
     
-    def encodeInstance(self, decodedInstance, minVal, maxVal):
-        decodedInstance[decodedInstance==1] = maxVal
-        decodedInstance[decodedInstance==0] = minVal
+    def encodeInstance(self, decodedInstance):
+        decodedInstance[decodedInstance==1] = self.getRangoSolucion()['max']
+        decodedInstance[decodedInstance==0] = self.getRangoSolucion()['min']
         return decodedInstance
 
 #    @profile
     def decodeInstance(self, encodedInstance):
 #        time.sleep(0.1)
-#        print(f'encodedInstance {list(encodedInstance)}')
+        #print(f'encodedInstance {encodedInstance}')
 #        exit()
         start = datetime.now()
 #        print(f'binarizacion')
@@ -138,19 +142,22 @@ class SCPProblem():
         return x, numReparaciones
     
     def generarSolsAlAzar(self, numSols):
-#        args = np.ones((numSols, self.getNumDim()), dtype=np.float) * -1.0
+        args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
         
-        args = np.random.uniform(low=-2, high=-1, size=(numSols, self.getNumDim()))
-#        print(args)
+        #args = np.random.uniform(low=-2, high=-1, size=(numSols, self.getNumDim()))
+        #print(args)
 #        exit()
-        pool = mp.Pool(4)
-        ret = pool.map(self.evalEnc, args)
-        pool.close()
-        sol = np.array([item[1] for item in ret])
-#        sol_ = []
-#        for arg in args:
+        #pool = mp.Pool(4)
+        #ret = pool.map(self.evalEnc, args.tolist())
+        #pool.close()
+        #sol = np.array([(item[1] * self.getRangoSolucion()['min']) for item in ret])
+        sol = []
+        for arg in args:
 ##            print(len(arg))
-#            sol_.append(self.evalEnc(arg)[1])
+            sol_ = self.evalEnc(arg)[1]
+            sol_[sol_ ==0] = self.getRangoSolucion()['min']
+            sol_[sol_ ==1] = self.getRangoSolucion()['max']
+            sol.append(sol_)
         
 #        print(f'fin doluciones al azar')
 #        exit()

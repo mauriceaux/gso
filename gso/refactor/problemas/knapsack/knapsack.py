@@ -10,6 +10,7 @@ import numpy as np
 from . import read_instance_kp as instance_reader
 from . import binarizationstrategy as _binarization
 from .kp_repairStrategy import ReparaStrategy as repairStrategy
+import multiprocessing as mp
 
 class KP():
     def __init__(self, instancePath):
@@ -30,6 +31,9 @@ class KP():
     
     def getNumDim(self):
         return self.instance.numItems
+
+    def getRangoSolucion(self):
+        return {'max': 5.0, 'min':-5.0}
     
     def evalEnc(self, encodedInstance):
         decoded = self.decodeInstance(encodedInstance)
@@ -53,6 +57,7 @@ class KP():
     def generarSolsAlAzar(self, numSols):
 #        args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
         args = np.random.uniform(size=(numSols, self.getNumDim()))
+        args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['max']
         pool = mp.Pool(4)
         ret = pool.map(self.evalEnc, args)
         pool.close()
