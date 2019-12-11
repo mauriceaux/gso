@@ -147,7 +147,7 @@ class GSO:
 #            else:
 #                velocity[velIdx] = (personalBest[velIdx] - nswarm[velIdx]) + (bestFound[velIdx] - nswarm[velIdx])
 #            print(swarm.shape)
-            print(reparaciones)
+#            print(reparaciones)
 #            exit()
 #            print(evaluations)
 #            exit()
@@ -291,8 +291,8 @@ class GSO:
     
 #    @profile
     def genRandomSwarm(self, swarmSize = 50, featureSize = 2000):    
-#        swarm =        np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
-        swarm =        np.ones((swarmSize, featureSize)) * self.min
+        swarm =        np.random.uniform(low=self.min, high=self.max, size=(swarmSize, featureSize))
+#        swarm =        np.ones((swarmSize, featureSize)) * self.min
 #        print(len(swarm.tolist()))
 #        exit()
 #        swarm[0] = np.ones((featureSize)) * self.min
@@ -385,9 +385,11 @@ class GSO:
                 endSwarm = datetime.now()
                 print(f'Optimization for level {level} completed in: {endSwarm - startSwarm}')
                 swarms = {i:ret[i][0] for i in range(len(ret))}
+                
 #                swarms = [data[0].tolist() for data in ret]
                 evals = [data[1] for data in ret]
                 universes[level] = swarms.copy()
+                print(universes[level])
                 mr = ""
                 for item in ret:
                     mr += item[3].replace("(","").replace(")","")
