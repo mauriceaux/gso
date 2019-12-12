@@ -15,16 +15,6 @@ class Esfera():
     def __init__(self):
         self.centro = [-5,5]
         self.radio = 200
-#        self.instancia = instancePath
-#        self.instance = instance_reader.Read(instancePath)
-#        print(f'self.instance.numItems {self.instance.numItems} ')
-#        if(self.instance.numItems != self.instance.itemWeights.shape[0]):
-#            raise Exception(f'El número de items {self.instance.numItems} es distinto al número de pesos {self.instance.itemWeights.shape[0]}')
-#        self.tTransferencia = "sShape1"
-#        self.tBinary = "Standar"
-#        self.minimize = False
-#        self.repairStrategy = repairStrategy(self.instance.numItems, self.instance.capacidad, self.instance.itemValues, self.instance.itemWeights)
-#        self.binarizationStrategy = _binarization.BinarizationStrategy(self.tTransferencia, self.tBinary)
 
     def getNombre(self):
         return 'esfera'
@@ -53,7 +43,6 @@ class Esfera():
         return solution, numReparaciones
     
     def generarSolsAlAzar(self, numSols):
-#        args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
         args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(numSols, self.getNumDim()))
         pool = mp.Pool(4)
         ret = pool.map(self.evalEnc, args)

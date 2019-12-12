@@ -22,7 +22,7 @@ class Read():
                     self.capacidad = int(data[1])
                     continue
                 if cont > self.numItems+1: break 
-                itemWeights.append(int(data[0]))
-                itemValues.append(int(data[1]))
+                itemWeights.append(int(data[1]))
+                itemValues.append(int(data[0]))
         self.itemWeights = np.array(itemWeights)
         self.itemValues = np.array(itemValues)

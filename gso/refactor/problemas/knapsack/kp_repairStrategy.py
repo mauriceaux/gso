@@ -38,7 +38,7 @@ class ReparaStrategy:
         
     def cumple(self, solucion):
         pesoSolucion = np.sum(np.array(solucion)*self.pesos)
-#        print(f'pesoSolucion {pesoSolucion} capacidad {self.capacidad} cumple {pesoSolucion <= self.capacidad}')
+        #print(f'pesoSolucion {pesoSolucion} capacidad {self.capacidad} cumple {pesoSolucion <= self.capacidad}')
 #        print(f'capacidad {self.capacidad}')
         if pesoSolucion <= self.capacidad: return True
         return False
@@ -80,8 +80,8 @@ class ReparaStrategy:
 #            exit()
 #            idxEliminar = np.random.choice(np.argpartition((solucion*self.ponderacionItems), -5)[-5:])
             
-#            idxEliminar = np.random.choice((solucion*self.ponderacionItems).argsort()[-5:][::-1])
-            idxEliminar = np.random.choice(np.where(solucion==1)[0])
+            idxEliminar = np.random.choice((solucion*self.ponderacionItems).argsort()[-5:][::-1])
+#            idxEliminar = np.random.choice(np.where(solucion==1)[0])
 #            idxEliminar = np.random.choice((solucion*(self.pesos/self.valores)).argsort()[-5:][::-1])
 #            print(idxEliminar)
             solucion[idxEliminar] = 0.0

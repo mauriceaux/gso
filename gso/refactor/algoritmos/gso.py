@@ -158,17 +158,12 @@ class GSO():
             datosNivel = self.contenedorParametros['datosNivel'][nivel]
             
             for iteracion in range(self.contenedorParametros['iterPorNivel'][nivel]):
-                print(f'mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]}')
+                print(f'nivel {nivel} iteracion {iteracion} mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]}')
                 resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['iterPorNivel'][nivel])
                 datosNivel['soluciones']     = resultadoMovimiento['soluciones']
-#                datosNivel['soluciones'][datosNivel['soluciones'] == 1] = self.contenedorParametros['rangoSolucion']['max']
-#                datosNivel['soluciones'][datosNivel['soluciones'] == 0] = self.contenedorParametros['rangoSolucion']['min']
-#                print(datosNivel['soluciones'])
-#                exit()
                 datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
                 datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
                 datosNivel['velocidades']    = resultadoMovimiento['velocidades']
-#                self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
                 self.contenedorParametros['datosNivel'][nivel] = self.agruparNivel(datosNivel, nivel)
         self.fin = datetime.now()
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
@@ -183,9 +178,7 @@ class GSO():
         
                         
     def generarNivel(self, nivel):
-        #velocidades = np.random.uniform(size=(self.contenedorParametros['iterPorNivel'][nivel], self.problema.getNumDim()))
         if nivel == 1:
-#            print(self.problema.getNumDim())
             soluciones = np.array(self.generarSolucionAlAzar(self.contenedorParametros['numParticulas']))
             mejoresSoluciones = np.array(self.generarSolucionAlAzar(self.contenedorParametros['numParticulas']))
             velocidades = np.random.uniform(low=self.contenedorParametros['minVel'], high=self.contenedorParametros['maxVel'], size=(self.contenedorParametros['numParticulas'], self.problema.getNumDim()))
@@ -193,9 +186,6 @@ class GSO():
             mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
             idxMejores = evaluaciones>mejoresEvaluaciones
             mejoresEvaluaciones[idxMejores] = evaluaciones[idxMejores]
-#            print(f'evaluaciones {evaluaciones}')
-#            print(mejoresEvaluaciones)
-#            exit()
             mejoresSoluciones[idxMejores] = soluciones[idxMejores]
             mejoresSolucionesBin[idxMejores] = solucionesBin[idxMejores]
             datosNivel = {}
@@ -210,9 +200,6 @@ class GSO():
             datosNivel = self.agruparNivel(datosNivel, nivel)
         else:
             nivelAnterior = self.contenedorParametros['datosNivel'][nivel-1]
-#            print(len(nivelAnterior['mejorSolGrupo']))
-#            exit()
-            
             soluciones = np.array([nivelAnterior['mejorSolGrupo'][key] for key in nivelAnterior['mejorSolGrupo']])
             velocidades = np.random.uniform(size=(len(soluciones), self.problema.getNumDim()))
             evals = np.array([nivelAnterior['mejorEvalGrupo'][key] for key in nivelAnterior['mejorEvalGrupo']])
@@ -220,9 +207,6 @@ class GSO():
             mejoresSol = soluciones.copy()
             
             mejoresEvals = evals.copy()
-#            print(soluciones.shape)
-#            print(mejoresSol.shape)
-#            exit()
             datosNivel = {}
             datosNivel['soluciones']     = soluciones
             datosNivel['mejoresEvaluaciones'] = mejoresEvals
@@ -235,23 +219,9 @@ class GSO():
         return datosNivel
     
     def agruparNivel(self, datosNivel, nivel):
-        
-        #print(datosNivel['soluciones'])
-#        print(f'num grupos {self.contenedorParametros["gruposPorNivel"][nivel]}')
         datosNivel['soluciones'] = datosNivel['soluciones'].astype('float64')
-#        print(len(datosNivel['soluciones']))
-        
-#        centroids,_ = kmeans(datosNivel['soluciones'],self.contenedorParametros['gruposPorNivel'][nivel])
-#        centroids,_ = kmeans(datosNivel['evalSoluciones'].astype('float'),len(datosNivel['soluciones']))
         centroids,_ = kmeans(datosNivel['soluciones'],len(datosNivel['soluciones']))
-#        centroids,_ = kmeans(datosNivel['velocidades'],len(datosNivel['soluciones']))
-#        print(centroids.shape)
-#        exit()
-#        grupos,_ = vq(datosNivel['evalSoluciones'],centroids)
         grupos,_ = vq(datosNivel['soluciones'],centroids)
-#        grupos,_ = vq(datosNivel['velocidades'],centroids)
-#        print(grupos)
-#        exit()
         datosNivel['grupos'] = grupos
         datosNivel['solPorGrupo'] = {}
         for idGrupo in grupos:
@@ -259,11 +229,6 @@ class GSO():
                 datosNivel['solPorGrupo'][idGrupo] = 1
             else:
                 datosNivel['solPorGrupo'][idGrupo] += 1
-#        print(datosNivel['solPorGrupo'])
-#        exit()
-#        for idxSolucion in range(len(grupos)):
-#            if not grupos[idxSolucion] in datosNivel['grupos']:
-#                datosNivel['grupos'][grupos[idxSolucion]] = []
         datosNivel = self.evaluarGrupos(datosNivel)
         return datosNivel    
         
@@ -279,7 +244,6 @@ class GSO():
         mejorEvalGlobal = self.contenedorParametros['mejorEvalGlobal']
         
         for idxSolucion in range(len(datosNivel['soluciones'])):
-#            print(datosNivel['evalSoluciones'][idxSolucion])
             if datosNivel['evalSoluciones'][idxSolucion] > datosNivel['mejoresEvaluaciones'][idxSolucion]:
                 datosNivel['mejoresEvaluaciones'][idxSolucion] = datosNivel['evalSoluciones'][idxSolucion]
                 datosNivel['mejoresSoluciones'][idxSolucion] = datosNivel['soluciones'][idxSolucion]
@@ -290,10 +254,6 @@ class GSO():
                 mejorEvaluacionGrupo[datosNivel['grupos'][idxSolucion]] = datosNivel['evalSoluciones'][idxSolucion]
                 mejorSolucionGrupo[datosNivel['grupos'][idxSolucion]] = datosNivel['soluciones'] [idxSolucion]
                 mejorSolucionGrupoBin[datosNivel['grupos'][idxSolucion]] = datosNivel['solucionesBin'] [idxSolucion]
-                #if(not datosNivel['grupos'][idxSolucion] in datosNivel['mejorSolPorGrupos']
-                #    or datosNivel['mejorEvalPorGrupos'][datosNivel['grupos'][idxSolucion]] < datosNivel['evalSoluciones'][idxSolucion]):
-                #    datosNivel['mejorEvalPorGrupos'][datosNivel['grupos'][idxSolucion]] = datosNivel['evalSoluciones'][idxSolucion]
-                #    datosNivel['mejorSolPorGrupos'][datosNivel['grupos'][idxSolucion]] = datosNivel['soluciones'][idxSolucion]
                 if mejorEvalGlobal is None or mejorEvalGlobal < datosNivel['evalSoluciones'][idxSolucion]:
                     mejorEvalGlobal = datosNivel['evalSoluciones'][idxSolucion]
                     mejorGlobal = datosNivel['soluciones'][idxSolucion]

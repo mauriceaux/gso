@@ -38,13 +38,8 @@ class KP():
     def evalEnc(self, encodedInstance):
         decoded = self.decodeInstance(encodedInstance)
         repaired, numReparaciones = self.repairStrategy.repara(decoded)
-#        if numReparaciones > 0:
-#            fitness = 0
-#        else:
-#            fitness = self.evalInstance(decoded)
         fitness = self.evalInstance(repaired)
-#        return fitness, repaired, numReparaciones
-        return fitness, decoded, numReparaciones
+        return fitness, repaired, numReparaciones
     
     def decodeInstance(self, encodedInstance):
         start = datetime.now()
@@ -58,7 +53,6 @@ class KP():
     
     def fObj(self, solution):
         return np.sum(self.instance.itemValues*solution)
-#    /1+(self.instance.capacidad-np.sum(self.instance.itemWeights*solution))
     
     def encode(self, decoded):
         decoded = np.array(decoded)
@@ -67,10 +61,7 @@ class KP():
         return decoded
     
     def generarSolsAlAzar(self, numSols):
-#        args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
         args = np.random.uniform(size=(numSols, self.getNumDim()))
-#        args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['max']
-#        args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
         pool = mp.Pool(4)
         ret = pool.map(self.evalEnc, args)
         pool.close()
