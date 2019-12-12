@@ -154,9 +154,11 @@ class SCPProblem():
         sol = []
         for arg in args:
 ##            print(len(arg))
-            sol_ = self.evalEnc(arg)[1]
-            sol_[sol_ ==0] = self.getRangoSolucion()['min']
-            sol_[sol_ ==1] = self.getRangoSolucion()['max']
+            sol_ = np.array(self.evalEnc(arg)[1])
+            sol_[sol_==0] = self.getRangoSolucion()['min']
+            sol_[sol_==1] = self.getRangoSolucion()['max']
+#            print(sol_)
+#            exit()
             sol.append(sol_)
         
 #        print(f'fin doluciones al azar')

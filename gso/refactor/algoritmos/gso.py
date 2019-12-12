@@ -148,7 +148,7 @@ class GSO():
         return solucionesBin, evaluaciones.reshape((evaluaciones.shape[0]))
     
     def generarSolucion(self):
-        start = datetime.now()
+        self.inicio = datetime.now()
         niveles = self.contenedorParametros['niveles']
         for nivel in range(niveles):
             nivel += 1
@@ -168,14 +168,18 @@ class GSO():
                 datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
                 datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
                 datosNivel['velocidades']    = resultadoMovimiento['velocidades']
-                self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
-        end = datetime.now()
-        self.indicadores['tiempoEjecucion'] = end-start
+#                self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
+                self.contenedorParametros['datosNivel'][nivel] = self.agruparNivel(datosNivel, nivel)
+        self.fin = datetime.now()
+        self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
         self.indicadores['mejorObjetivo'] = self.contenedorParametros['mejorEvalGlobal']
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
                 
     def generarSolucionAlAzar(self, numSols):
-        return self.problema.generarSolsAlAzar(numSols)
+        sols = self.problema.generarSolsAlAzar(numSols)
+#        print(sols[0])
+#        exit()
+        return sols
         
                         
     def generarNivel(self, nivel):
@@ -184,12 +188,16 @@ class GSO():
 #            print(self.problema.getNumDim())
             soluciones = np.array(self.generarSolucionAlAzar(self.contenedorParametros['numParticulas']))
             mejoresSoluciones = np.array(self.generarSolucionAlAzar(self.contenedorParametros['numParticulas']))
-            velocidades = np.random.uniform(size=(self.contenedorParametros['numParticulas'], self.problema.getNumDim()))
+            velocidades = np.random.uniform(low=self.contenedorParametros['minVel'], high=self.contenedorParametros['maxVel'], size=(self.contenedorParametros['numParticulas'], self.problema.getNumDim()))
             solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
             mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
-            mejoresEvaluaciones[evaluaciones>mejoresEvaluaciones] = evaluaciones[evaluaciones>mejoresEvaluaciones]
-            mejoresSoluciones[evaluaciones>mejoresEvaluaciones] = soluciones[evaluaciones>mejoresEvaluaciones]
-            mejoresSolucionesBin[evaluaciones>mejoresEvaluaciones] = solucionesBin[evaluaciones>mejoresEvaluaciones]
+            idxMejores = evaluaciones>mejoresEvaluaciones
+            mejoresEvaluaciones[idxMejores] = evaluaciones[idxMejores]
+#            print(f'evaluaciones {evaluaciones}')
+#            print(mejoresEvaluaciones)
+#            exit()
+            mejoresSoluciones[idxMejores] = soluciones[idxMejores]
+            mejoresSolucionesBin[idxMejores] = solucionesBin[idxMejores]
             datosNivel = {}
             datosNivel['mejoresEvaluaciones'] = mejoresEvaluaciones
             datosNivel['mejoresSoluciones'] = mejoresSoluciones
@@ -231,8 +239,17 @@ class GSO():
         #print(datosNivel['soluciones'])
 #        print(f'num grupos {self.contenedorParametros["gruposPorNivel"][nivel]}')
         datosNivel['soluciones'] = datosNivel['soluciones'].astype('float64')
-        centroids,_ = kmeans(datosNivel['soluciones'],self.contenedorParametros['gruposPorNivel'][nivel])
+#        print(len(datosNivel['soluciones']))
+        
+#        centroids,_ = kmeans(datosNivel['soluciones'],self.contenedorParametros['gruposPorNivel'][nivel])
+#        centroids,_ = kmeans(datosNivel['evalSoluciones'].astype('float'),len(datosNivel['soluciones']))
+        centroids,_ = kmeans(datosNivel['soluciones'],len(datosNivel['soluciones']))
+#        centroids,_ = kmeans(datosNivel['velocidades'],len(datosNivel['soluciones']))
+#        print(centroids.shape)
+#        exit()
+#        grupos,_ = vq(datosNivel['evalSoluciones'],centroids)
         grupos,_ = vq(datosNivel['soluciones'],centroids)
+#        grupos,_ = vq(datosNivel['velocidades'],centroids)
 #        print(grupos)
 #        exit()
         datosNivel['grupos'] = grupos
@@ -242,6 +259,8 @@ class GSO():
                 datosNivel['solPorGrupo'][idGrupo] = 1
             else:
                 datosNivel['solPorGrupo'][idGrupo] += 1
+#        print(datosNivel['solPorGrupo'])
+#        exit()
 #        for idxSolucion in range(len(grupos)):
 #            if not grupos[idxSolucion] in datosNivel['grupos']:
 #                datosNivel['grupos'][grupos[idxSolucion]] = []
