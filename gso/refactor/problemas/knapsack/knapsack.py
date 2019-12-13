@@ -61,7 +61,8 @@ class KP():
         return decoded
     
     def generarSolsAlAzar(self, numSols):
-        args = np.random.uniform(size=(numSols, self.getNumDim()))
+        args = np.ones((numSols, self.getNumDim())) * self.getRangoSolucion()['max']
+#        args = np.random.uniform(size=(numSols, self.getNumDim()))
         pool = mp.Pool(4)
         ret = pool.map(self.evalEnc, args)
         pool.close()
