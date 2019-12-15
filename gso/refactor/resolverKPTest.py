@@ -17,7 +17,7 @@ np.set_printoptions(threshold=sys.maxsize)
 if __name__ == '__main__':
     carpeta = 'problemas/knapsack/instances'
     carpetaResultados = 'resultados/knapsack'
-    for _ in range(30):
+    for _ in range(1):
         for archivo in os.listdir(carpeta):
             path = os.path.join(carpeta, archivo)
             if os.path.isdir(path):
