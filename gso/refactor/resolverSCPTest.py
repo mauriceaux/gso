@@ -18,7 +18,7 @@ import json
 if __name__ == '__main__':
     carpeta = 'problemas/scp/instances'
     carpetaResultados = 'resultados/scp'
-    for _ in range(30):
+    for _ in range(1):
         for archivo in os.listdir(carpeta):
             path = os.path.join(carpeta, archivo)
             if os.path.isdir(path):
@@ -43,5 +43,5 @@ if __name__ == '__main__':
     print(f'mejor resultado  {solver.getMejorResultado()}')
     print(f'mejor solucion   {solver.getMejorSolucion()}')
     print(f'tiempo ejecución {solver.getTiempoEjecucion()}')
-#    solver.graficarConvergencia()
+    solver.graficarConvergencia()
 

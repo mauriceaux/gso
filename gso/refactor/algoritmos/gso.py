@@ -24,7 +24,7 @@ class GSO():
         self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
         self.contenedorParametros['maxVel'] = 0.2
         self.contenedorParametros['minVel'] = -0.2
-        self.contenedorParametros['autonomo'] = False
+        self.contenedorParametros['autonomo'] = True
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -139,10 +139,10 @@ class GSO():
 #        return ret, nextVel
     
     
-    def aplicarMovimiento(self, datosNivel, iteracion, totIteraciones):
-        iodata = [datosNivel, iteracion, totIteraciones, {}]
-        self.aplicarMovimiento_(iodata)
-        return iodata[3]
+    #def aplicarMovimiento(self, datosNivel, iteracion, totIteraciones):
+    #    iodata = [datosNivel, iteracion, totIteraciones, {}]
+    #    self.aplicarMovimiento_(iodata)
+    #    return iodata[3]
     
     
     def aplicarMovimiento(self, datosNivel, iteracion, totIteraciones):
@@ -209,9 +209,12 @@ class GSO():
                 solucionesBin.append(solBin)
                 evaluaciones.append(evals)
                 velocidades.append(vel)
+                #self.guardarIndicadorTiempo('generarSolucionAlAzar', len(soluciones), end-start)
+            evaluaciones = np.array(evaluaciones)
+            self.agregarDataEjec(evaluaciones)
             resultadoMovimiento['soluciones'] = np.vstack(np.array(soluciones))
             resultadoMovimiento['solucionesBin'] = np.array(solucionesBin)
-            resultadoMovimiento['evalSoluciones'] = np.array(evaluaciones)
+            resultadoMovimiento['evalSoluciones'] = evaluaciones
             resultadoMovimiento['velocidades'] = np.vstack(np.array(velocidades))
                 
         return resultadoMovimiento
@@ -238,11 +241,14 @@ class GSO():
 #            self.dataEvals = []
         self.dataEvals.append(evaluaciones.tolist())
         self.totalEvals = len(self.dataEvals)
-        if not 'mejoresResultados' in self.indicadores:
-            self.indicadores['mejoresResultados'] = []
+        #if not 'mejoresResultados' in self.indicadores:
+        #    self.indicadores['mejoresResultados'] = []
         if not 'mejoresResultadosReales' in self.indicadores:
             self.indicadores['mejoresResultadosReales'] = []
         self.indicadores['mejoresResultadosReales'].append(np.max(evaluaciones))
+        if not 'mediaResultadosReales' in self.indicadores:
+            self.indicadores['mediaResultadosReales'] = []
+        self.indicadores['mediaResultadosReales'].append(np.mean(evaluaciones))
         
         
     
@@ -276,8 +282,10 @@ class GSO():
         self.inicio = datetime.now()
         nivel = self.contenedorParametros['nivel']
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
+        #if not nivel in self.contenedorParametros['datosNivel'] or nivel > 1: 
         if not nivel in self.contenedorParametros['datosNivel']: 
             self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
+        
         datosNivel = self.contenedorParametros['datosNivel'][nivel]
         
         for iteracion in range(self.contenedorParametros['numIteraciones']):

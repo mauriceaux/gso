@@ -11,7 +11,7 @@ from algoritmos.gso import GSO
 from problemas.esfera.esfera import Esfera
 if __name__ == '__main__':
     problema = Esfera()
-    gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:500, 2:500}, gruposPorNivel={1:12,2:12})
+    gso = GSO(niveles=2, numParticulas=100, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
     gso.procesoParalelo = False
     gso.setProblema(problema)
 

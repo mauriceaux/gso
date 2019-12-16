@@ -15,9 +15,12 @@ class Esfera():
     def __init__(self):
         self.centro = [-5,5]
         self.radio = 200
+        self.instancia = f'esfera centro {self.centro} radio {self.radio}'
 
     def getNombre(self):
         return 'esfera'
+
+    
     
     def getNumDim(self):
         return 2

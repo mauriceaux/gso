@@ -7,11 +7,11 @@ class Solver():
     def __init__(self):
         self.resultados = ContenedorResultadosAlgoritmo()
         self.agente = OptimizadorParametros()
-        self.autonomo = False
+        self.autonomo = True
         self.algoritmo = None
     
     def setAlgoritmo(self, algoritmo):
-        print(algoritmo)
+        #print(algoritmo)
         self.algoritmo = algoritmo
         self.agente.setParamDim(self.algoritmo.getParamDim())
         pass
@@ -27,11 +27,13 @@ class Solver():
             self.algoritmo.generarSolucion()
         else:
             #30 ejecuciones porque si
+            
             for i in range(30):
     #            indicadores = self.algoritmo.getIndicadores()
                 self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
-                
                 self.algoritmo.generarSolucionReducida()
+                
+                
             
 #        print(indicadores)
 #        self.resultados.agregarResultado(self.algoritmo.getResultado())
@@ -55,7 +57,9 @@ class Solver():
         return 'tiempo ejecución'
     
     def graficarConvergencia(self):
+        #print(np.array(self.algoritmo.indicadores['mejoresResultadosReales']))
         plt.plot(np.array(self.algoritmo.indicadores['mejoresResultados']))
         plt.plot(np.array(self.algoritmo.indicadores['mejoresResultadosReales']))
+        plt.plot(np.array(self.algoritmo.indicadores['mediaResultadosReales']))
         plt.show()
         print("generando grafico")
