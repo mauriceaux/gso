@@ -13,7 +13,7 @@ import multiprocessing as mp
 
 class Esfera():
     def __init__(self):
-        self.centro = [-5,5]
+        self.centro = [-5,5,-30]
         self.radio = 200
         self.instancia = f'esfera centro {self.centro} radio {self.radio}'
 
@@ -23,9 +23,10 @@ class Esfera():
     
     
     def getNumDim(self):
-        return 2
+        return 3
+        
     def getRangoSolucion(self):
-        return {'max': 100, 'min':-100}
+        return {'max': 1000, 'min':-1000}
 
     def evalEnc(self, encodedInstance):
         repaired, numReparaciones = self.repara(encodedInstance)
@@ -33,8 +34,10 @@ class Esfera():
         return fitness, encodedInstance, numReparaciones
                
     def evalInstance(self, decoded):
-        return -np.sqrt(np.power(decoded[0]-self.centro[0],2)
-                       +np.power(decoded[1]-self.centro[1],2))
+        suma = 0
+        for i in range(len(decoded)):
+            suma += (decoded[i]-self.centro[i])**2
+        return -np.sqrt(suma)
     
     def repara(self, solution):
         valido = self.evalInstance(solution) <= self.radio
