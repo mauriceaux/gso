@@ -17,7 +17,7 @@ np.set_printoptions(threshold=sys.maxsize)
 if __name__ == '__main__':
     carpeta = 'problemas/knapsack/instances'
     carpetaResultados = 'resultados/knapsack'
-    for _ in range(1):
+    for _ in range(30):
         for archivo in os.listdir(carpeta):
             path = os.path.join(carpeta, archivo)
             if os.path.isdir(path):
@@ -25,7 +25,7 @@ if __name__ == '__main__':
                 continue
             kp = KP(f'{carpeta}/{archivo}')
             gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
-            gso.procesoParalelo = True
+            gso.procesoParalelo = False
             gso.setProblema(kp)
         
             solver = Solver()
@@ -39,5 +39,5 @@ if __name__ == '__main__':
             print(f'mejor resultado  {solver.getMejorResultado()}')
             print(f'mejor solucion   {solver.getMejorSolucion()}')
             print(f'tiempo ejecución {solver.getTiempoEjecucion()}')
-            solver.graficarConvergencia()
+            #solver.graficarConvergencia()
 

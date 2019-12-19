@@ -25,6 +25,7 @@ class KP():
         self.minimize = False
         self.repairStrategy = repairStrategy(self.instance.numItems, self.instance.capacidad, self.instance.itemValues, self.instance.itemWeights)
         self.binarizationStrategy = _binarization.BinarizationStrategy(self.tTransferencia, self.tBinary)
+        self.paralelo = False
 
     def getNombre(self):
         return 'knapsack'
@@ -63,8 +64,15 @@ class KP():
     def generarSolsAlAzar(self, numSols):
         args = np.ones((numSols, self.getNumDim())) * self.getRangoSolucion()['max']
 #        args = np.random.uniform(size=(numSols, self.getNumDim()))
-        pool = mp.Pool(4)
-        ret = pool.map(self.evalEnc, args)
-        pool.close()
-        sol = np.array([self.encode(item[1]) for item in ret])
+        if self.paralelo:
+            pool = mp.Pool(4)
+            ret = pool.map(self.evalEnc, args)
+            pool.close()
+            sol = np.array([self.encode(item[1]) for item in ret])
+        else:
+            sol = []
+            for arg in args:
+                _,bin,_ = self.evalEnc(arg)
+                sol.append(bin)
+            sol = np.array(sol)
         return sol
