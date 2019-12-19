@@ -16,6 +16,7 @@ class Esfera():
         self.centro = [-5,5,-30]
         self.radio = 200
         self.instancia = f'esfera centro {self.centro} radio {self.radio}'
+        self.paralelo = False
 
     def getNombre(self):
         return 'esfera'
@@ -40,18 +41,30 @@ class Esfera():
         return -np.sqrt(suma)
     
     def repara(self, solution):
-        valido = self.evalInstance(solution) <= self.radio
+        valido = -self.evalInstance(solution) <= self.radio
+        #print(valido)
+        #exit()
         numReparaciones = 0
         while not valido:
-            solution = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(1, self.getNumDim()))
-            valido = self.evalInstance(solution) <= self.radio
+            idx = np.random.choice(np.arange(self.getNumDim()))
+            exp = 1 if solution[idx] > 0 else -1
+            solution[idx] = (abs(solution[idx]) - 1) * exp
+            #solution = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(self.getNumDim()))
+            valido = -self.evalInstance(solution) <= self.radio
             numReparaciones += 1
         return solution, numReparaciones
     
     def generarSolsAlAzar(self, numSols):
         args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(numSols, self.getNumDim()))
-        pool = mp.Pool(4)
-        ret = pool.map(self.evalEnc, args)
-        pool.close()
-        sol = np.array([item[1] for item in ret])
+        sol = None
+        if self.paralelo:
+            pool = mp.Pool(4)
+            ret = pool.map(self.evalEnc, args)
+            pool.close()
+            sol = np.array([item[1] for item in ret])
+        else:
+            sol = []
+            for arg in args:
+                sol.append(self.evalEnc(arg)[1])
+            sol = np.array(sol)
         return sol

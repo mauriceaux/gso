@@ -36,6 +36,7 @@ class GSO():
         
         self.mejorEval = None
         self.calcularParamDim()
+        self.nivelAnterior = 1
         
         pass
     
@@ -48,6 +49,8 @@ class GSO():
                 ,'numParticulas':self.contenedorParametros['numParticulas']
                 ,'iterPorNivel':self.contenedorParametros['iterPorNivel']
                 ,'inercia':self.contenedorParametros['inercia']
+                ,'accelPer':self.contenedorParametros['accelPer']
+                ,'accelBest':self.contenedorParametros['accelBest']
                 }
     
     def setParametros(self, parametros):
@@ -60,18 +63,23 @@ class GSO():
         self.problema = problema
         self.indicadores['problema'] = problema.getNombre()
         self.indicadores['numDimProblema'] = problema.getNumDim()
+        problema.paralelo = self.procesoParalelo
 #        self.indicadores['instancia'] = problema.instancia
 #        pass
         
     def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia):
         accelPer = self.contenedorParametros['accelPer']
         accelBest = self.contenedorParametros['accelBest']
+        #accelPer = 1
+        #accelBest = 1
         maxVel = self.contenedorParametros['maxVel']
         minVel = self.contenedorParametros['minVel']
         maxVal = self.problema.getRangoSolucion()['max']
         minVal = self.problema.getRangoSolucion()['min']
-        randPer = np.random.uniform(low=-1, high=1)
-        randBest = np.random.uniform(low=-1, high=1)
+        #randPer = np.random.uniform(low=-1, high=1)
+        #randBest = np.random.uniform(low=-1, high=1)
+        randPer = 1
+        randBest = 1
         personalDif = personalBest - swarm
         personalAccel = accelPer * randPer * personalDif
         #print(f'personalAccel {personalAccel}')
@@ -93,6 +101,7 @@ class GSO():
         return ret, nextVel
     
     def aplicarMovimiento(self, datosNivel, iteracion, totIteraciones):
+        start = datetime.now()
         args = []
         #inercia = 1 - (iteracion/(totIteraciones + 1)) 
         inercia = self.contenedorParametros['inercia']
@@ -110,19 +119,19 @@ class GSO():
 
         
         resultadoMovimiento = {}
-        if self.procesoParalelo and False:
-            start = datetime.now()
+        if self.procesoParalelo:
+            #start = datetime.now()
             pool = mp.Pool(4)
             ret = pool.starmap(self.moveSwarm, args)
             pool.close()
-            end = datetime.now()
-            self.guardarIndicadorTiempo('moveSwarm', len(args), end-start)
+            #end = datetime.now()
+            #self.guardarIndicadorTiempo('moveSwarm', len(args), end-start)
             
-            start = datetime.now()
+            #start = datetime.now()
             solucionesBin, evaluaciones = self.evaluarSoluciones([item[0] for item in ret])
             
-            end = datetime.now()
-            self.guardarIndicadorTiempo('evaluarSoluciones', len(ret), end-start)
+            #end = datetime.now()
+            #self.guardarIndicadorTiempo('evaluarSoluciones', len(ret), end-start)
             resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
             resultadoMovimiento['solucionesBin'] = solucionesBin
             resultadoMovimiento['evalSoluciones'] = evaluaciones
@@ -155,16 +164,32 @@ class GSO():
             resultadoMovimiento['solucionesBin'] = np.array(solucionesBin)
             resultadoMovimiento['evalSoluciones'] = evaluaciones
             resultadoMovimiento['velocidades'] = np.vstack(np.array(velocidades))
-                
+        end = datetime.now()
+        self.guardarIndicadorTiempo('aplicarMovimiento', len(args), end-start)
         return resultadoMovimiento
     
     def evaluarSoluciones(self, soluciones):
         start = datetime.now()
-        pool = mp.Pool(4)
-        ret = pool.map(self.problema.evalEnc, soluciones)
-        pool.close()
-        solucionesBin = np.vstack(np.array(ret)[:,1])
-        evaluaciones = np.vstack(np.array(ret)[:,0])
+        solucionesBin = None
+        evaluaciones = None
+        if self.procesoParalelo:
+            
+            pool = mp.Pool(4)
+            ret = pool.map(self.problema.evalEnc, soluciones)
+            pool.close()
+            solucionesBin = np.vstack(np.array(ret)[:,1])
+            evaluaciones = np.vstack(np.array(ret)[:,0])
+        else:
+            solucionesBin = []
+            evaluaciones = []
+            for sol in soluciones:
+                eval, bin, _ = self.problema.evalEnc(sol)
+                solucionesBin.append(bin)
+                evaluaciones.append(eval)
+            solucionesBin = np.array(solucionesBin)
+            evaluaciones = np.array(evaluaciones)
+            #print(evaluaciones)
+            #exit()
 #        mejoresEvaluaciones.reshape((mejoresEvaluaciones.shape[0]))
         end = datetime.now()
 #        if self.evaluaciones is None:
@@ -226,8 +251,9 @@ class GSO():
 
 
 
-        if not nivel in self.contenedorParametros['datosNivel']: 
+        if not nivel in self.contenedorParametros['datosNivel'] or (self.nivelAnterior == 1 and nivel == 2): 
             self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
+        self.nivelAnterior = nivel
 
         
 
@@ -402,7 +428,7 @@ class GSO():
             numGrupos = int(totalNivel * 0.2)
         else:
             numGrupos = totalNivel
-        print(f'NUMERO GRUPOS {numGrupos}')
+        #print(f'NUMERO GRUPOS {numGrupos}')
         #numGrupos = int(totalNivel * self.contenedorParametros['porcentajePartPorGrupoNivel'][nivel])
 #            numGrupos = self.calcularNumGrupos(datosNivel['soluciones'])
         kmeans = KMeans(n_clusters=numGrupos, init='k-means++')

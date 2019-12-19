@@ -38,6 +38,7 @@ class SCPProblem():
                                             ,self.instance.get_c()
                                             ,self.instance.get_rows()
                                             ,self.instance.get_columns())
+        self.paralelo = False
    
 
     def getNombre(self):
@@ -147,23 +148,26 @@ class SCPProblem():
         #args = np.random.uniform(low=-2, high=2, size=(numSols, self.getNumDim()))
         #print(args)
 #        exit()
-        #pool = mp.Pool(4)
-        #ret = pool.map(self.evalEnc, args.tolist())
-        #pool.close()
-        #sol = np.array([item[1] for item in ret])
-        #sol[sol==0] = self.getRangoSolucion()['min']
-        #sol[sol==1] = self.getRangoSolucion()['max']
+        if self.paralelo:
+            pool = mp.Pool(4)
+            ret = pool.map(self.evalEnc, args.tolist())
+            pool.close()
+            sol = np.array([item[1] for item in ret])
+            sol[sol==0] = self.getRangoSolucion()['min']
+            sol[sol==1] = self.getRangoSolucion()['max']
 #        print(sol)
 #        exit()
-        sol = []
-        for arg in args:
+        else:
+            sol = []
+            for arg in args:
 ###            print(len(arg))
-            sol_ = np.array(self.evalEnc(arg)[1])
-            sol_[sol_==0] = self.getRangoSolucion()['min']
-            sol_[sol_==1] = self.getRangoSolucion()['max']
+                sol_ = np.array(self.evalEnc(arg)[1])
+                sol_[sol_==0] = self.getRangoSolucion()['min']
+                sol_[sol_==1] = self.getRangoSolucion()['max']
 ##            print(sol_)
 ##            exit()
-            sol.append(sol_)
+                sol.append(sol_)
+            sol = np.array(sol)
         
 #        print(f'fin doluciones al azar')
 #        exit()

@@ -26,14 +26,15 @@ if __name__ == '__main__':
                 continue
             problema = SCPProblem(f'{carpeta}/{archivo}')
             gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
-#            gso.procesoParalelo = True
+            gso.procesoParalelo = False
             gso.setProblema(problema)
         
             solver = Solver()
             solver.setAlgoritmo(gso)
+            solver.autonomo = True
         
             solver.resolverProblema()
-            with open(f"{carpetaResultados}/{archivo}.csv", "a") as myfile:
+            with open(f"{carpetaResultados}/{archivo}-{'Autonomo' if solver.autonomo else 'No-autonomo'}.csv", "a") as myfile:
                 mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
                 myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{solver.algoritmo.inicio}, {solver.algoritmo.fin}, {solver.algoritmo.fin-solver.algoritmo.inicio}, {mejorSolStr}\n')
             with open(f"{carpetaResultados}/algoritmos/gso/{archivo}GSO.csv", "a") as myfile:

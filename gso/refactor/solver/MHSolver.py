@@ -2,6 +2,7 @@ from algoritmos.contenedores.ContenedorResultadosAlgoritmo import ContenedorResu
 from agentes.optimizadorParametros import OptimizadorParametros
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime
 
 class Solver():
     def __init__(self):
@@ -17,6 +18,7 @@ class Solver():
         pass
     
     def resolverProblema(self):
+        start = datetime.now()
         if self.algoritmo is None:
             raise Exception('No se ha definido el algoritmo')
         print(f"resolviendo problema {self.algoritmo.problema.instancia}")
@@ -28,13 +30,14 @@ class Solver():
         else:
             #30 ejecuciones porque si
             
-            for i in range(30):
+            for i in range(10):
     #            indicadores = self.algoritmo.getIndicadores()
                 self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
                 self.algoritmo.generarSolucionReducida()
                 
                 
-            
+        end = datetime.now()
+        self.tiempoEjec = end-start
 #        print(indicadores)
 #        self.resultados.agregarResultado(self.algoritmo.getResultado())
         
@@ -48,13 +51,13 @@ class Solver():
             
     
     def getMejorResultado(self):
-        return 'mejor resultado'
+        return self.algoritmo.contenedorParametros['mejorEvalGlobal']
     
     def getMejorSolucion(self):
-        return 'mejor solucion'
+        return self.algoritmo.indicadores['mejorSolucion']
     
     def getTiempoEjecucion(self):
-        return 'tiempo ejecución'
+        return self.tiempoEjec
     
     def graficarConvergencia(self):
         #print(np.array(self.algoritmo.indicadores['mejoresResultadosReales']))
