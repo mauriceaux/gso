@@ -144,7 +144,7 @@ class SCPProblem():
     def generarSolsAlAzar(self, numSols):
         args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
         
-        #args = np.random.uniform(low=-2, high=2, size=(numSols, self.getNumDim()))
+#        args = np.random.uniform(low=-2, high=2, size=(numSols, self.getNumDim()))
         #print(args)
 #        exit()
         pool = mp.Pool(4)

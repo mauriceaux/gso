@@ -11,7 +11,7 @@ class OptimizadorParametros:
 
     def __init__(self):
         self.parametros = None
-        self.iteraciones =60
+        self.iteraciones =10
     
     def setParamDim(self, paramDim):
         self.paramDim = paramDim
@@ -22,7 +22,7 @@ class OptimizadorParametros:
         if not 'mediaResultadosReales' in resultados:
             self.mejoraResultados = True
         else:    
-            self.mejoraResultados = np.mean(resultados['mediaResultadosReales'][-self.iteraciones]) < np.mean(resultados['mediaResultadosReales'][-2*self.iteraciones:-self.iteraciones])
+            self.mejoraResultados = np.mean(resultados['mediaResultadosReales'][-self.iteraciones]) > np.mean(resultados['mediaResultadosReales'][-2*self.iteraciones:-self.iteraciones])
         print(f'parametros {parametros.keys()}')
         print(f'resultados {resultados.keys()}')
         pass
@@ -31,6 +31,15 @@ class OptimizadorParametros:
         self.parametros['numIteraciones'] = self.iteraciones
         if not self.mejoraResultados:
             self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
+#            if not 'maxVel' in self.parametros: self.parametros['maxVel'] = 1
+#            self.parametros['maxVel'] += 0.1
+#            if not 'minVel' in self.parametros: self.parametros['minVel'] = -1
+#            self.parametros['minVel'] -= 0.1
+#        else: 
+#            if not 'maxVel' in self.parametros: self.parametros['maxVel'] = 1
+#            self.parametros['maxVel'] -= 0.1
+#            if not 'minVel' in self.parametros: self.parametros['minVel'] = -1
+#            self.parametros['minVel'] += 0.1
         return self.parametros
 
         

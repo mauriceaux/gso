@@ -25,13 +25,13 @@ class GSO():
         self.contenedorParametros['maxVel'] = 0.2
         self.contenedorParametros['minVel'] = -0.2
         self.contenedorParametros['autonomo'] = True
-        self.procesoParalelo = False
+        self.procesoParalelo = True
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
         self.paramDim = {}
         self.dataEvals = []
         self.nivelEjecutar = None
-        
+        self.ultimoNivelEvaluado = None        
         self.mejorEval = None
         self.calcularParamDim()
         
@@ -171,7 +171,7 @@ class GSO():
 
         
         resultadoMovimiento = {}
-        if self.procesoParalelo and False:
+        if self.procesoParalelo:
             start = datetime.now()
             pool = mp.Pool(4)
             ret = pool.starmap(self.moveSwarm, args)
@@ -283,7 +283,7 @@ class GSO():
         nivel = self.contenedorParametros['nivel']
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
         #if not nivel in self.contenedorParametros['datosNivel'] or nivel > 1: 
-        if not nivel in self.contenedorParametros['datosNivel']: 
+        if not nivel in self.contenedorParametros['datosNivel'] or (nivel == 2 and self.ultimoNivelEvaluado == 1): 
             self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
         
         datosNivel = self.contenedorParametros['datosNivel'][nivel]
@@ -303,6 +303,7 @@ class GSO():
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
         self.indicadores['mejorObjetivo'] = self.contenedorParametros['mejorEvalGlobal']
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
+        self.ultimoNivelEvaluado = nivel
                 
     def generarSolucionAlAzar(self, numSols):
         start = datetime.now()
@@ -342,6 +343,7 @@ class GSO():
             if not nivel-1 in self.contenedorParametros['datosNivel']:
                 self.contenedorParametros['datosNivel'][nivel-1] = self.generarNivel(nivel-1)
             nivelAnterior = self.contenedorParametros['datosNivel'][nivel-1]
+            nivelAnterior = self.agruparNivel(nivelAnterior, nivel-1)
             soluciones = np.array([nivelAnterior['mejorSolGrupo'][key] for key in nivelAnterior['mejorSolGrupo']])
             totalNivel = len(soluciones)
             velocidades = np.random.uniform(size=(len(soluciones), self.problema.getNumDim()))
@@ -373,7 +375,8 @@ class GSO():
         numGrupos = self.contenedorParametros['gruposPorNivel'][nivel]
 #            numGrupos = self.calcularNumGrupos(datosNivel['soluciones'])
         kmeans = KMeans(n_clusters=numGrupos, init='k-means++')
-        grupos = kmeans.fit_predict(datosNivel['soluciones'])
+        grupos = kmeans.fit_predict(datosNivel['evalSoluciones'].reshape(-1,1))
+#        grupos = kmeans.fit_predict(datosNivel['soluciones'])
 #        print(grupos)
 #        exit()
 #        centroids,_ = kmeans(datosNivel['soluciones'],len(datosNivel['soluciones']))
