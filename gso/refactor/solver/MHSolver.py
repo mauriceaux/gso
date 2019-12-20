@@ -18,7 +18,7 @@ class Solver():
         pass
     
     def resolverProblema(self):
-        start = datetime.now()
+        self.start = datetime.now()
         if self.algoritmo is None:
             raise Exception('No se ha definido el algoritmo')
         print(f"resolviendo problema {self.algoritmo.problema.instancia}")
@@ -30,14 +30,14 @@ class Solver():
         else:
             #30 ejecuciones porque si
 
-            for i in range(10):
+            for i in range(20):
     #            indicadores = self.algoritmo.getIndicadores()
                 self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
                 self.algoritmo.generarSolucionReducida()
                 
                 
-        end = datetime.now()
-        self.tiempoEjec = end-start
+        self.end = datetime.now()
+        self.tiempoEjec = self.end-self.start
 #        print(indicadores)
 #        self.resultados.agregarResultado(self.algoritmo.getResultado())
         
