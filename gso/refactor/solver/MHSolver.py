@@ -14,6 +14,7 @@ class Solver():
     def setAlgoritmo(self, algoritmo):
         #print(algoritmo)
         self.algoritmo = algoritmo
+        self.algoritmo.contenedorParametros['autonomo'] = self.autonomo
         self.agente.setParamDim(self.algoritmo.getParamDim())
         pass
     
