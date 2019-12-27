@@ -47,6 +47,8 @@ class GSO():
         self.mejorGlobal = None
         self.ax = self.fig.add_subplot(111)
         self.niveles = {}
+        self.scaler = None
+        self.plotShowing = False
         
         pass
     
@@ -247,6 +249,7 @@ class GSO():
         if self.mostrarGraficoParticulas:
             plt.ion()
             plt.show()
+            input("Press Enter to continue...")
         self.inicio = datetime.now()
         niveles = self.contenedorParametros['niveles']
         for nivel in range(niveles):
@@ -292,9 +295,11 @@ class GSO():
         
     def generarSolucionReducida(self):
         self.inicio = datetime.now()
-        if self.mostrarGraficoParticulas:
+        if self.mostrarGraficoParticulas and not self.plotShowing:
             plt.ion()
             plt.show()
+            self.plotShowing = True
+            input("press ENTER")
         nivel = self.contenedorParametros['nivel']
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
         #if not nivel in self.contenedorParametros['datosNivel'] or nivel > 1: 
@@ -407,9 +412,10 @@ class GSO():
                 del velocidades[idxPeor]
                 del soluciones[idxPeor]
                 del solucionesBin[idxPeor]
-                
-                peor =  self.niveles[1][nivel1['grupos'][idxPeor]]
-                del peor
+#                print(f'self.niveles[1] {self.niveles[1]} idxPeor {idxPeor} nivel1["grupos"][idxPeor] {nivel1["grupos"][idxPeor]}')
+#                peor =  self.niveles[1][nivel1['grupos'][idxPeor]]
+#                del peor
+#                del self.niveles[1][nivel1['grupos'][idxPeor]]
                 
                 
 
@@ -468,7 +474,7 @@ class GSO():
             if not nivel-1 in self.contenedorParametros['datosNivel']:
                 self.contenedorParametros['datosNivel'][nivel-1] = self.generarNivel(nivel-1)
             nivelAnterior = self.contenedorParametros['datosNivel'][nivel-1]
-            nivelAnterior = self.agruparNivel(nivelAnterior, nivel-1)
+#            nivelAnterior = self.agruparNivel(nivelAnterior, nivel-1)
             soluciones = np.array([nivelAnterior['mejorSolGrupo'][key] for key in nivelAnterior['mejorSolGrupo'] if len(nivelAnterior['mejorSolGrupo'][key]) > 0])
 #            print(f"mejorSolGrupo {nivelAnterior['mejorSolGrupo']}")
             
@@ -492,6 +498,7 @@ class GSO():
             datosNivel['velocidades']    = velocidades
             datosNivel['solucionesBin']  = solsBin
             datosNivel['grupos'] = grupos
+#            print(f'GRUPOS {grupos}')
             solPorGrupo = {}
             for grupo in grupos:
                 solPorGrupo[grupo] = 1
@@ -671,9 +678,12 @@ class GSO():
             
             self.niveles[nivel] = {}
             self.mejores[nivel] = {}
-        
-        scaler = MinMaxScaler(feature_range=(0,int(0XDDDDDD)))
-        colores = scaler.fit_transform(np.array([key for key in datosNivel['grupos']]).reshape((-1,1)))
+#        colores = None
+        if self.scaler is None:
+            self.scaler = MinMaxScaler(feature_range=(0,int(0Xcccccc)))
+            self.colores = self.scaler.fit_transform(np.array([key for key in datosNivel['grupos']]).reshape((-1,1)))
+#        else:
+#            colores = self.scaler.transform(np.array([key for key in datosNivel['grupos']]).reshape((-1,1)))
         cont = 0
 #        if nivel == 2:
 #            print(self.contenedorParametros['datosNivel'][nivel-1]['mejorSolGrupo'])
@@ -684,8 +694,13 @@ class GSO():
 #            print(datosNivel['soluciones'][np.where(datosNivel['grupos'] == 0)])
 #            exit()
 #        print(datosNivel['mejorSolGrupo'])
+#        if nivel == 2:
+#            print(f'NIVEL 2')
+#            print(datosNivel['grupos'])
+#            exit()
+        
         for idGrupo in datosNivel['grupos']:
-            color = colores[idGrupo]
+            color = self.colores[idGrupo]
 #            print(hex(int(color)))
 #            exit()
             color = str(hex(int(color)))[2:].upper()
@@ -700,10 +715,12 @@ class GSO():
             
             
             if idGrupo not in self.niveles[nivel]:
-                marker = f'${nivel}.{idGrupo}$'# if nivel == 1 else 'o'
+#                marker = f'${nivel}.{idGrupo}$'# if nivel == 1 else 'o'
+                marker = 'o'
+                markerSizeLvl = 5 if nivel == 1 else 14
                 
-                self.niveles[nivel][idGrupo], = self.ax.plot(solsGrupo[:,0], solsGrupo[:,1], marker=marker, linestyle='None', markersize=12, color=color)
-                self.mejores[nivel][idGrupo], = self.ax.plot(mejor[0], mejor[1], marker=marker, linestyle='None', markersize=14, color=color)
+                self.niveles[nivel][idGrupo], = self.ax.plot(solsGrupo[:,0], solsGrupo[:,1], marker=marker, linestyle='None', markersize=markerSizeLvl, color=color)
+                self.mejores[nivel][idGrupo], = self.ax.plot(mejor[0], mejor[1], marker=marker, linestyle='None', markersize=10, color=color)
 #                if self.mejorGlobal is not None:
 #                    del self.mejorGlobal
             if self.mejorGlobal is None:

@@ -30,12 +30,12 @@ if __name__ == '__main__':
             gso.setProblema(problema)
         
             solver = Solver()
-            solver.autonomo = False
+            solver.autonomo = True
             solver.setAlgoritmo(gso)
             
         
             solver.resolverProblema()
-            with open(f"{carpetaResultados}/{archivo}-{'Autonomo' if solver.autonomo else 'No-autonomo'}.csv", "a") as myfile:
+            with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}.csv", "a") as myfile:
                 mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
                 myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{solver.algoritmo.inicio}, {solver.algoritmo.fin}, {solver.algoritmo.fin-solver.algoritmo.inicio}, {mejorSolStr}\n')
             with open(f"{carpetaResultados}/algoritmos/gso/{archivo}GSO.csv", "a") as myfile:

@@ -11,7 +11,7 @@ from algoritmos.gso import GSO
 from problemas.esfera.esfera import Esfera
 if __name__ == '__main__':
     problema = Esfera()
-    gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
+    gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:10,2:10})
     gso.procesoParalelo = False
     gso.mostrarGraficoParticulas = True
     gso.setProblema(problema)
@@ -26,5 +26,5 @@ if __name__ == '__main__':
     print(f'tiempo ejecución {solver.getTiempoEjecucion()}')
     print(f'num llamadas funcion objetivo {solver.algoritmo.indicadores["numLlamadasFnObj"]}')
     input("Press Enter to continue...")
-    solver.graficarConvergencia()
+#    solver.graficarConvergencia()
 

@@ -14,7 +14,7 @@ import multiprocessing as mp
 class Esfera():
     def __init__(self):
         self.centro = [-5,50]
-        self.radio = 100
+        self.radio = 1000
         self.instancia = f'esfera centro {self.centro} radio {self.radio}'
         self.paralelo = False
 
@@ -27,7 +27,7 @@ class Esfera():
         return 2
         
     def getRangoSolucion(self):
-        return {'max': 100, 'min':-100}
+        return {'max': 1000, 'min':-1000}
 
     def evalEnc(self, encodedInstance):
         repaired, numReparaciones = self.repara(encodedInstance)

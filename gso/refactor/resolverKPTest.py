@@ -34,7 +34,7 @@ if __name__ == '__main__':
         
             solver.resolverProblema()
             
-            with open(f"{carpetaResultados}/{archivo}.csv", "a") as myfile:
+            with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}.csv", "a") as myfile:
                 mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
                 myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{solver.algoritmo.inicio}, {solver.algoritmo.fin}, {solver.algoritmo.fin-solver.algoritmo.inicio}, {mejorSolStr}\n')
             print(f'mejor resultado  {solver.getMejorResultado()}')
