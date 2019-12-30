@@ -8,6 +8,7 @@ Created on Tue Apr 23 19:05:37 2019
 import math
 import random
 import multiprocessing as mp
+import numpy as np
 
 class BinarizationStrategy:
     def __init__(self,tecnica,binary):
@@ -44,6 +45,17 @@ class BinarizationStrategy:
         tb = [self.funcShape(item) for item in x]        
         matrizbinaria = [self.funcBin(item) for item in tb]
         return matrizbinaria
+
+    def binarizeBatch(self, matriz):
+        #tb = [self.funcShape(item) for item in x]        
+        #print(matriz.shape)
+        #exit()
+        tb = np.vectorize(self.funcShape)(matriz)
+        #matrizbinaria = [self.funcBin(item) for item in tb]
+        matrizbinaria = np.vectorize(self.funcBin)(tb)
+        return matrizbinaria
+
+        
     
     def set_binary(self,binary):
         self._b = binary
@@ -86,7 +98,8 @@ class BinarizationStrategy:
     
     #-----------------------------------------------------------------------------------------------------------------------------   
     def sShape1(self,x):
-        
+        #print(x)
+        #exit()
         try:
             return (1 / (1 + math.pow(math.e, -2 * x)))
         except OverflowError:

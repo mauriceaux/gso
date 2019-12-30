@@ -91,3 +91,63 @@ class ReparaStrategy:
 #        solucion = self.elegirMejorAgregar(solucion)
         return solucion, cont
 #        print(f'idx eliminar {idxEliminar}')
+
+    def reparaBatch(self, soluciones):
+        start = datetime.now()
+        pesos = self.pesos
+        ponderacion = self.ponderacionItems
+        capacidad = self.capacidad
+        NUM_FILAS = soluciones.shape[0]
+        s = datetime.now()
+        pesosAplicados = soluciones * pesos
+        e = datetime.now()
+        s = datetime.now()
+        #print(f'aplicacion pesos {e-s}')
+        sumaPesos = np.sum(pesosAplicados, axis=1)
+        e = datetime.now()
+        #print(f'suma pesos {e-s}')
+        #print(sumaPesos)
+        incumplidas = sumaPesos > capacidad
+        while (incumplidas).any():
+                #print(f'incumplidas {incumplidas}')
+                #exit()
+                s = datetime.now()
+                solucionesPonderadas = soluciones[incumplidas] * ponderacion
+                e = datetime.now()
+                #print(f'ponderacion columnas {e-s}')
+                #print(solucionesPonderadas)
+                k=4
+                s = datetime.now()
+                peoresIndices = np.argpartition(-solucionesPonderadas,k,axis=1)[:,k-1::-1]
+                e = datetime.now()
+                #print(f'peoresIndices {e-s}')
+                #print(peoresIndices)
+                peoresIndicesEliminar = np.random.randint(peoresIndices.shape[1], size=peoresIndices.shape[0])
+
+                #print(peoresIndicesEliminar)
+
+                #print(np.arange(len(peoresIndices)))
+                #exit()
+
+
+                s = datetime.now()
+                indicesEliminar = peoresIndices[np.arange(len(peoresIndices)), peoresIndicesEliminar]
+                e = datetime.now()
+                #print(f'indicesEliminar {e-s}')
+                #print(indicesEliminar)
+
+                soluciones[incumplidas,indicesEliminar] = 0
+                s = datetime.now()
+                pesosAplicados = soluciones * pesos
+                e = datetime.now()
+                #print(f'pesosAplicados {e-s}')
+                #print(f'pesosAplicados {pesosAplicados}')
+                s = datetime.now()
+                sumaPesos = np.sum(pesosAplicados, axis=1)
+                e = datetime.now()
+                #print(f'sumaPesos {e-s}')
+                #print(sumaPesos)
+                incumplidas = sumaPesos > capacidad
+        end = datetime.now()
+        #print(f'reparaBatch demoro {end-start}')
+        return soluciones

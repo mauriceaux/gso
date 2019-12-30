@@ -199,6 +199,12 @@ class GSO():
         start = datetime.now()
         solucionesBin = None
         evaluaciones = None
+        #print(soluciones)
+        #print(soluciones.shape)
+        #exit()
+        evaluaciones, solucionesBin, _ = self.problema.evalEncBatch(soluciones)
+
+        """
         if self.procesoParalelo:
             
             pool = mp.Pool(4)
@@ -217,7 +223,9 @@ class GSO():
             evaluaciones = np.array(evaluaciones)
             #print(evaluaciones)
             #exit()
+        """
 #        mejoresEvaluaciones.reshape((mejoresEvaluaciones.shape[0]))
+        
         end = datetime.now()
 #        if self.evaluaciones is None:
 #            self.evaluaciones = {}

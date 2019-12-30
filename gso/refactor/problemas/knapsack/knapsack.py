@@ -39,7 +39,21 @@ class KP():
     def evalEnc(self, encodedInstance):
         decoded = self.decodeInstance(encodedInstance)
         repaired, numReparaciones = self.repairStrategy.repara(decoded)
+        #repaired, numReparaciones = self.repairStrategy.reparaBatch(np.array([decoded]))
         fitness = self.evalInstance(repaired)
+        return fitness, repaired, numReparaciones
+
+    def evalEncBatch(self, encodedInstances):
+        decoded = self.decodeInstanceBatch(encodedInstances)
+        #for enc in encodedInstances:
+        #    decoded.append(self.decodeInstance(encodedInstance))
+        #repaired, numReparaciones = self.repairStrategy.repara(decoded)
+        start = datetime.now()
+        numReparaciones = 0
+        repaired = self.repairStrategy.reparaBatch(np.array(decoded))
+        fitness = self.evalInstanceBatch(repaired)
+        end = datetime.now()
+        #print(f'evalEncBatch demoro {end-start}')
         return fitness, repaired, numReparaciones
     
     def decodeInstance(self, encodedInstance):
@@ -48,9 +62,29 @@ class KP():
         end = datetime.now()
         binTime = end-start
         return np.array(encodedInstance)
+
+    def decodeInstanceBatch(self, encodedInstances):
+        start = datetime.now()
+        encodedInstance = self.binarizationStrategy.binarizeBatch(encodedInstances)
+        end = datetime.now()
+        binTime = end-start
+        #print(f'decodeInstanceBatch demoro {binTime}')
+        return np.array(encodedInstance)
            
     def evalInstance(self, decoded):
         return self.fObj(decoded)
+
+    def evalInstanceBatch(self, decoded):
+        start = datetime.now()
+        #ret = np.apply_along_axis(self.fObj, -1, decoded)
+        ret = np.sum(self.instance.itemValues*decoded, axis=1)
+        #print(ret)
+        #print(ret.shape)
+        #exit()
+        end = datetime.now()
+        #print(f'evalInstanceBatch demoro {end-start}')
+        return ret
+        #return np.array([self.fObj(d) for d in decoded])
     
     def fObj(self, solution):
         return np.sum(self.instance.itemValues*solution)
@@ -62,17 +96,21 @@ class KP():
         return decoded
     
     def generarSolsAlAzar(self, numSols):
+        start = datetime.now()
         args = np.ones((numSols, self.getNumDim())) * self.getRangoSolucion()['max']
 #        args = np.random.uniform(size=(numSols, self.getNumDim()))
-        if self.paralelo:
-            pool = mp.Pool(4)
-            ret = pool.map(self.evalEnc, args)
-            pool.close()
-            sol = np.array([self.encode(item[1]) for item in ret])
-        else:
-            sol = []
-            for arg in args:
-                _,bin,_ = self.evalEnc(arg)
-                sol.append(bin)
-            sol = np.array(sol)
+        _,sol,_ = self.evalEncBatch(args)
+        #if self.paralelo:
+        #    pool = mp.Pool(4)
+        #    ret = pool.map(self.evalEnc, args)
+        #    pool.close()
+        #    sol = np.array([self.encode(item[1]) for item in ret])
+        #else:
+        #    sol = []
+        #    for arg in args:
+        #        _,bin,_ = self.evalEnc(arg)
+        #        sol.append(bin)
+        #    sol = np.array(sol)
+        end = datetime.now()
+        #print(f'generarSolsAlAzar demoro {end-start}')
         return sol
