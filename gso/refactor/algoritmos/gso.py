@@ -202,7 +202,7 @@ class GSO():
         #print(soluciones)
         #print(soluciones.shape)
         #exit()
-        evaluaciones, solucionesBin, _ = self.problema.evalEncBatch(soluciones)
+        evaluaciones, solucionesBin, _ = self.problema.evalEncBatch(soluciones, self.contenedorParametros['mejorSolucionBin'])
 
         """
         if self.procesoParalelo:

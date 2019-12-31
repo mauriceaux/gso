@@ -26,7 +26,7 @@ if __name__ == '__main__':
                 continue
             problema = SCPProblem(f'{carpeta}/{archivo}')
             gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
-            gso.procesoParalelo = True
+            gso.procesoParalelo = False
             gso.setProblema(problema)
         
             solver = Solver()

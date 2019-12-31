@@ -43,8 +43,10 @@ class KP():
         fitness = self.evalInstance(repaired)
         return fitness, repaired, numReparaciones
 
-    def evalEncBatch(self, encodedInstances):
-        decoded = self.decodeInstanceBatch(encodedInstances)
+    def evalEncBatch(self, encodedInstances, mejorSol):
+        if mejorSol is None:
+            mejorSol = encodedInstances[0]
+        decoded = self.decodeInstanceBatch(encodedInstances, mejorSol)
         #for enc in encodedInstances:
         #    decoded.append(self.decodeInstance(encodedInstance))
         #repaired, numReparaciones = self.repairStrategy.repara(decoded)
@@ -63,9 +65,9 @@ class KP():
         binTime = end-start
         return np.array(encodedInstance)
 
-    def decodeInstanceBatch(self, encodedInstances):
+    def decodeInstanceBatch(self, encodedInstances, mejorSol):
         start = datetime.now()
-        encodedInstance = self.binarizationStrategy.binarizeBatch(encodedInstances)
+        encodedInstance = self.binarizationStrategy.binarizeBatch(encodedInstances, mejorSol)
         end = datetime.now()
         binTime = end-start
         #print(f'decodeInstanceBatch demoro {binTime}')
@@ -99,7 +101,7 @@ class KP():
         start = datetime.now()
         args = np.ones((numSols, self.getNumDim())) * self.getRangoSolucion()['max']
 #        args = np.random.uniform(size=(numSols, self.getNumDim()))
-        _,sol,_ = self.evalEncBatch(args)
+        _,sol,_ = self.evalEncBatch(args, args[0])
         #if self.paralelo:
         #    pool = mp.Pool(4)
         #    ret = pool.map(self.evalEnc, args)

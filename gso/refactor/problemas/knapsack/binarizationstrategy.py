@@ -46,13 +46,18 @@ class BinarizationStrategy:
         matrizbinaria = [self.funcBin(item) for item in tb]
         return matrizbinaria
 
-    def binarizeBatch(self, matriz):
+    def binarizeBatch(self, matriz, mejorSol):
         #tb = [self.funcShape(item) for item in x]        
         #print(matriz.shape)
         #exit()
         tb = np.vectorize(self.funcShape)(matriz)
         #matrizbinaria = [self.funcBin(item) for item in tb]
         matrizbinaria = np.vectorize(self.funcBin)(tb)
+        #matrizbinaria = np.ones(np.array(matriz).shape)
+        #for idx in range(tb.shape[0]):
+        #    for idy in range(tb.shape[1]):
+        #        matrizbinaria[idx,idy] = self.funcBin(matrizbinaria[idx,idy],mejorSol[idy] )
+
         return matrizbinaria
 
         
@@ -90,9 +95,9 @@ class BinarizationStrategy:
         else: 
             return 1
         
-    def elitist(self, x):
+    def elitist(self, x, mejorSol):
         if random.random() < x:
-            return self.standard(x) 
+            return mejorSol
         else: 
             return 0
     

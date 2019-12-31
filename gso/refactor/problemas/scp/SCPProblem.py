@@ -74,6 +74,20 @@ class SCPProblem():
 #        print(f'decoding time {decTime} fitness time {fitTime}')
         #encoded = self.encodeInstance(decoded)
         return fitness, decoded, numReparaciones
+
+    def evalEncBatch(self, encodedInstances, mejorSol):
+#        print(f'encodedInstance.shape {np.array(encodedInstance)}')
+#        exit()
+#        start = datetime.now()
+        fitness = []
+        decoded = []
+        numReparaciones = []
+        for encodedInstance in encodedInstances:
+                a,b,c = self.evalEnc(encodedInstance)
+                fitness.append(a)
+                decoded.append(b)
+                numReparaciones.append(c)
+        return np.array(fitness), np.array(decoded), np.array(numReparaciones)
     
     def encodeInstance(self, decodedInstance):
         decodedInstance[decodedInstance==1] = self.getRangoSolucion()['max']

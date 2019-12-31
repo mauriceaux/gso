@@ -107,8 +107,10 @@ class ReparaStrategy:
         e = datetime.now()
         #print(f'suma pesos {e-s}')
         #print(sumaPesos)
-        incumplidas = sumaPesos > capacidad
-        while (incumplidas).any():
+        incumplidas = np.where(sumaPesos > capacidad)
+        #print(len(incumplidas[0]))
+        #exit()
+        while len(incumplidas[0]) > 0:
                 #print(f'incumplidas {incumplidas}')
                 #exit()
                 s = datetime.now()
@@ -116,27 +118,24 @@ class ReparaStrategy:
                 e = datetime.now()
                 #print(f'ponderacion columnas {e-s}')
                 #print(solucionesPonderadas)
-                k=4
+                k=int(soluciones.shape[1]*0.01) #numero de candidatos eliminar
+                l=int(k*0.7) #numero de columnas a eliminar
                 s = datetime.now()
                 peoresIndices = np.argpartition(-solucionesPonderadas,k,axis=1)[:,k-1::-1]
                 e = datetime.now()
-                #print(f'peoresIndices {e-s}')
+                peoresIndicesEliminar = np.random.randint(peoresIndices.shape[1], size=(peoresIndices.shape[0],l))
                 #print(peoresIndices)
-                peoresIndicesEliminar = np.random.randint(peoresIndices.shape[1], size=peoresIndices.shape[0])
-
-                #print(peoresIndicesEliminar)
-
-                #print(np.arange(len(peoresIndices)))
+                #print(np.arange(len(peoresIndices)).reshape((-1,1)))
                 #exit()
-
-
                 s = datetime.now()
-                indicesEliminar = peoresIndices[np.arange(len(peoresIndices)), peoresIndicesEliminar]
+                indicesEliminar = peoresIndices[np.arange(len(peoresIndices)).reshape((-1,1)), peoresIndicesEliminar]
+                #indicesEliminar = peoresIndices[:, peoresIndicesEliminar]
                 e = datetime.now()
                 #print(f'indicesEliminar {e-s}')
-                #print(indicesEliminar)
+                #print(np.array(incumplidas[0]).reshape((-1,1)))
+                #exit()
 
-                soluciones[incumplidas,indicesEliminar] = 0
+                soluciones[np.array(incumplidas[0]).reshape((-1,1)),indicesEliminar] = 0
                 s = datetime.now()
                 pesosAplicados = soluciones * pesos
                 e = datetime.now()
@@ -147,7 +146,7 @@ class ReparaStrategy:
                 e = datetime.now()
                 #print(f'sumaPesos {e-s}')
                 #print(sumaPesos)
-                incumplidas = sumaPesos > capacidad
+                incumplidas = np.where(sumaPesos > capacidad)
         end = datetime.now()
         #print(f'reparaBatch demoro {end-start}')
         return soluciones
