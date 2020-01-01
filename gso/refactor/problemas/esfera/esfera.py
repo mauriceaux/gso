@@ -33,6 +33,18 @@ class Esfera():
         repaired, numReparaciones = self.repara(encodedInstance)
         fitness = self.evalInstance(repaired)
         return fitness, encodedInstance, numReparaciones
+
+    def evalEncBatch(self, encodedInstances,mejorSol):
+        fitness = []
+        encodedInstance = []
+        numReparaciones = []
+        for encodedInstance in encodedInstances:
+
+            a, b = self.repara(encodedInstance)
+            c = self.evalInstance(a)
+            fitness.append(c)
+            numReparaciones.append(b)
+        return np.array(fitness), encodedInstances, numReparaciones
                
     def evalInstance(self, decoded):
         suma = 0

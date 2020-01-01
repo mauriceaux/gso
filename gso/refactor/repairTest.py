@@ -20,6 +20,7 @@ def repara(soluciones, ponderacion, pesos, capacidad, resultado):
     sCumple = cuda.shared.array(shape=(numDim), dtype=float32)
     sPonderacion = cuda.shared.array(shape=(numDim), dtype=float32)
     sPesos = cuda.shared.array(shape=(TPB, numDim), dtype=float32)
+    sSumaPesos = cuda.shared.array(shape=(TPB), dtype=float32)
     sCapacidad = cuda.shared.array(shape=(1), dtype=float32)
     x, y = cuda.grid(2)
 
@@ -53,6 +54,7 @@ def repara(soluciones, ponderacion, pesos, capacidad, resultado):
     #return
     sResultado[tx,y] = sSoluciones[tx, y]*sPonderacion[y]
     #print(f'sincronizacion 1 hilo {x}, {y}')
+    sSumaPesos[tx] += sPesos[tx, y]
     cuda.syncthreads()
     
         #for j in range(numDim):
@@ -60,7 +62,7 @@ def repara(soluciones, ponderacion, pesos, capacidad, resultado):
     #cuda.syncthreads()
 
     if ty == 0:
-        sumaPesos = np.sum(sPesos[tx])
+        #sumaPesos = np.sum(sPesos[tx])
         cont = 0
         while sumaPesos > sCapacidad[0]:
             candEliminar = np.argsort(-sResultado[tx])[:5]

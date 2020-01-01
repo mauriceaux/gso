@@ -17,7 +17,7 @@ if __name__ == '__main__':
     gso.setProblema(problema)
 
     solver = Solver()
-    solver.autonomo = True
+    solver.autonomo = False
     solver.setAlgoritmo(gso)
 
     solver.resolverProblema()

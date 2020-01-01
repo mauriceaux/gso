@@ -118,8 +118,9 @@ class ReparaStrategy:
                 e = datetime.now()
                 #print(f'ponderacion columnas {e-s}')
                 #print(solucionesPonderadas)
-                k=int(soluciones.shape[1]*0.01) #numero de candidatos eliminar
-                l=int(k*0.7) #numero de columnas a eliminar
+                k = int(soluciones.shape[1]*0.01) #numero de candidatos eliminar
+                l = int(k*0.6) #numero de columnas a eliminar
+                l = l if l > 0 else 1
                 s = datetime.now()
                 peoresIndices = np.argpartition(-solucionesPonderadas,k,axis=1)[:,k-1::-1]
                 e = datetime.now()
