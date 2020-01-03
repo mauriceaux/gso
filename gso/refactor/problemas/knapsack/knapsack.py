@@ -101,7 +101,7 @@ class KP():
         start = datetime.now()
         args = np.ones((numSols, self.getNumDim())) * self.getRangoSolucion()['max']
 #        args = np.random.uniform(size=(numSols, self.getNumDim()))
-        _,sol,_ = self.evalEncBatch(args, args[0])
+        fitness,sol,_ = self.evalEncBatch(args, args[0])
         #if self.paralelo:
         #    pool = mp.Pool(4)
         #    ret = pool.map(self.evalEnc, args)
@@ -115,4 +115,4 @@ class KP():
         #    sol = np.array(sol)
         end = datetime.now()
         #print(f'generarSolsAlAzar demoro {end-start}')
-        return sol
+        return sol, fitness

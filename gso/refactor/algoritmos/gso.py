@@ -145,6 +145,7 @@ class GSO():
 
         
         resultadoMovimiento = {}
+        ret = []
         if self.procesoParalelo:
 
             #start = datetime.now()
@@ -155,42 +156,53 @@ class GSO():
             #self.guardarIndicadorTiempo('moveSwarm', len(args), end-start)
             
             #start = datetime.now()
-            solucionesBin, evaluaciones = self.evaluarSoluciones([item[0] for item in ret])
-            
-            #end = datetime.now()
-            #self.guardarIndicadorTiempo('evaluarSoluciones', len(ret), end-start)
-            resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
-            resultadoMovimiento['solucionesBin'] = solucionesBin
-            resultadoMovimiento['evalSoluciones'] = evaluaciones
-            resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
+#            solucionesBin, evaluaciones = self.evaluarSoluciones([item[0] for item in ret])
+#            
+#            #end = datetime.now()
+#            #self.guardarIndicadorTiempo('evaluarSoluciones', len(ret), end-start)
+#            resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
+#            resultadoMovimiento['solucionesBin'] = solucionesBin
+#            resultadoMovimiento['evalSoluciones'] = evaluaciones
+#            resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
         else:
-            soluciones = []
+#            soluciones = []
             solucionesBin = []
             evaluaciones = []
-            velocidades = []
+#            velocidades = []
 #            print(f'velocidad {args[0][1][1]}')
 #            cont = 0
+            ret = []
             for arg in args:
                 #if cont == 0: print(f'solucion {arg[0]}')
                 #cont +=1
 #                print(arg)
                 sol, vel = self.moveSwarm(arg[0], arg[1], arg[2], arg[3], arg[4])
+                ret.append(sol)
 #                print(f'solucion inicial {arg[0]}')
 #                print(f'velocidad inicial {arg[1]}')
 #                print(f'solucion calculada {sol}')
 #                exit()
-                evals, solBin, _ = self.problema.evalEnc(sol)
-                soluciones.append(sol)
-                solucionesBin.append(solBin)
-                evaluaciones.append(evals)
-                velocidades.append(vel)
-                #self.guardarIndicadorTiempo('generarSolucionAlAzar', len(soluciones), end-start)
-            evaluaciones = np.array(evaluaciones)
-            self.agregarDataEjec(evaluaciones)
-            resultadoMovimiento['soluciones'] = np.vstack(np.array(soluciones))
-            resultadoMovimiento['solucionesBin'] = np.array(solucionesBin)
-            resultadoMovimiento['evalSoluciones'] = evaluaciones
-            resultadoMovimiento['velocidades'] = np.vstack(np.array(velocidades))
+#                evals, solBin, _ = self.problema.evalEnc(sol)
+#                soluciones.append(sol)
+#                solucionesBin.append(solBin)
+#                evaluaciones.append(evals)
+#                velocidades.append(vel)
+#                #self.guardarIndicadorTiempo('generarSolucionAlAzar', len(soluciones), end-start)
+#            evaluaciones = np.array(evaluaciones)
+#            self.agregarDataEjec(evaluaciones)
+#            resultadoMovimiento['soluciones'] = np.vstack(np.array(soluciones))
+#            resultadoMovimiento['solucionesBin'] = np.array(solucionesBin)
+#            resultadoMovimiento['evalSoluciones'] = evaluaciones
+#            resultadoMovimiento['velocidades'] = np.vstack(np.array(velocidades))
+        solucionesBin, evaluaciones = self.evaluarSoluciones(np.array([item[0] for item in ret]))
+            
+        #end = datetime.now()
+        #self.guardarIndicadorTiempo('evaluarSoluciones', len(ret), end-start)
+        resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
+        resultadoMovimiento['solucionesBin'] = solucionesBin
+        resultadoMovimiento['evalSoluciones'] = evaluaciones
+        resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
+        
         end = datetime.now()
         self.guardarIndicadorTiempo('aplicarMovimiento', len(args), end-start)
         return resultadoMovimiento
@@ -199,9 +211,9 @@ class GSO():
         start = datetime.now()
         solucionesBin = None
         evaluaciones = None
-        #print(soluciones)
-        #print(soluciones.shape)
-        #exit()
+#        print(soluciones)
+#        print(soluciones.shape)
+#        exit()
         evaluaciones, solucionesBin, _ = self.problema.evalEncBatch(soluciones, self.contenedorParametros['mejorSolucionBin'])
 
         """
@@ -362,12 +374,22 @@ class GSO():
         #print(f' soluciones inicio {nivel1["soluciones"]}')
         if dif > 0:
             print(f'AGREGANDO {dif} SOLUCIONES')
-            soluciones = np.array(self.generarSolucionAlAzar(dif))
+            solucionesBin, evaluaciones = self.generarSolucionAlAzar(dif)
             
             mejoresSoluciones = np.array([self.contenedorParametros['mejorSolGlobal'] for _ in range(dif)])
-            velocidades = np.random.uniform(low=self.contenedorParametros['minVel'], high=self.contenedorParametros['maxVel'], size=(dif, self.problema.getNumDim()))
-            solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
             mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
+            velocidades = np.random.uniform(low=self.contenedorParametros['minVel'], high=self.contenedorParametros['maxVel'], size=(dif, self.problema.getNumDim()))
+#            solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
+#            mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
+            soluciones = solucionesBin.copy()
+            soluciones[soluciones == 0] = self.problema.getRangoSolucion()['min']
+            soluciones[soluciones == 1] = self.problema.getRangoSolucion()['max']
+            
+            mejoresSoluciones = mejoresSolucionesBin.copy()
+            mejoresSoluciones[mejoresSoluciones == 0] = self.problema.getRangoSolucion()['min']
+            mejoresSoluciones[mejoresSoluciones == 1] = self.problema.getRangoSolucion()['max']
+            
+            
             idxMejores = evaluaciones>mejoresEvaluaciones
             mejoresEvaluaciones[idxMejores] = evaluaciones[idxMejores]
             mejoresSoluciones[idxMejores] = soluciones[idxMejores]
@@ -443,12 +465,12 @@ class GSO():
 
     def generarSolucionAlAzar(self, numSols):
         start = datetime.now()
-        sols = self.problema.generarSolsAlAzar(numSols)
+        sols, evals = self.problema.generarSolsAlAzar(numSols)
         end = datetime.now()
         self.guardarIndicadorTiempo('generarSolucionAlAzar', numSols, end-start)
 #        print(sols[0])
 #        exit()
-        return sols
+        return sols, evals
         
                         
     def generarNivel(self, nivel):
@@ -456,11 +478,19 @@ class GSO():
         totalNivel = 0
         if nivel == 1:
             totalNivel = self.contenedorParametros['numParticulas']
-            soluciones = np.array(self.generarSolucionAlAzar(totalNivel))
-            mejoresSoluciones = np.array(self.generarSolucionAlAzar(self.contenedorParametros['numParticulas']))
+            solucionesBin, evaluaciones = self.generarSolucionAlAzar(totalNivel)
+            mejoresSolucionesBin, mejoresEvaluaciones = self.generarSolucionAlAzar(self.contenedorParametros['numParticulas'])
             velocidades = np.random.uniform(low=self.contenedorParametros['minVel'], high=self.contenedorParametros['maxVel'], size=(self.contenedorParametros['numParticulas'], self.problema.getNumDim()))
-            solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
-            mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
+#            solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
+#            mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
+            soluciones = solucionesBin.copy()
+            soluciones[soluciones == 0] = self.problema.getRangoSolucion()['min']
+            soluciones[soluciones == 1] = self.problema.getRangoSolucion()['max']
+            
+            mejoresSoluciones = mejoresSolucionesBin.copy()
+            mejoresSoluciones[mejoresSoluciones == 0] = self.problema.getRangoSolucion()['min']
+            mejoresSoluciones[mejoresSoluciones == 1] = self.problema.getRangoSolucion()['max']
+            
             idxMejores = evaluaciones>mejoresEvaluaciones
             mejoresEvaluaciones[idxMejores] = evaluaciones[idxMejores]
             mejoresSoluciones[idxMejores] = soluciones[idxMejores]

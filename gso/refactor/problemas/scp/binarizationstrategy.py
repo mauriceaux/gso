@@ -8,53 +8,54 @@ Created on Tue Apr 23 19:05:37 2019
 import math
 import random
 import multiprocessing as mp
+import numpy as np
 
 class BinarizationStrategy:
-    def __init__(self,x,tecnica,binary):
+    def __init__(self,tecnica,binary):
         self._b = []
-        self.x = x  
+#        self.x = x  
         self.tecnica = tecnica
         matrizbinaria = []
         
         
-        funcShape = None
+        self.funcShape = None
         if(self.tecnica=="sShape1"):
-            funcShape = self.sShape1
+            self.funcShape = self.sShape1
         if(self.tecnica=="sShape2"):
-            funcShape = self.sShape2
+            self.funcShape = self.sShape2
         if(self.tecnica=="sShape3"):
-            funcShape = self.sShape3
+            self.funcShape = self.sShape3
         if(self.tecnica=="sShape4"):
-            funcShape = self.sShape4
+            self.funcShape = self.sShape4
         if(self.tecnica=="vShape1"):
-            funcShape = self.vShape1
+            self.funcShape = self.vShape1
         if(self.tecnica=="vShape2"):
-            funcShape = self.vShape2
+            self.funcShape = self.vShape2
         if(self.tecnica=="vShape3"):
-            funcShape = self.vShape3
+            self.funcShape = self.vShape3
         if(self.tecnica=="vShape4"):
-            funcShape = self.vShape4
+            self.funcShape = self.vShape4
         
-        tb = [funcShape(item) for item in x]
+#        tb = [funcShape(item) for item in x]
         
 #        pool = mp.Pool(4)
 #        tb = pool.map(funcShape, x)
 #        pool.close()
         
-        funcBin = None
+        self.funcBin = None
         if(binary=="Standar"):
-            funcBin = self.standard
+            self.funcBin = self.standard
         
         if(binary=="Complement"):
-            funcBin = self.complement
+            self.funcBin = self.complement
         
         if (binary=="StaticProbability"):
-            funcBin = self.staticProbability
+            self.funcBin = self.staticProbability
             
         if(binary=="Elitist"):
-            funcBin = self.elitist
+            self.funcBin = self.elitist
         
-        matrizbinaria = [funcBin(item) for item in tb]
+#        matrizbinaria = [funcBin(item) for item in tb]
         
 #        pool = mp.Pool(4)
 #        matrizbinaria = pool.map(funcBin, tb)
@@ -94,6 +95,17 @@ class BinarizationStrategy:
                 
         self.set_binary(matrizbinaria)
         #print(matrizbinaria)
+        
+    def binarize(self, x):
+        tb = [self.funcShape(item) for item in x]        
+        matrizbinaria = [self.funcBin(item) for item in tb]
+        return matrizbinaria
+    
+    def binarizeBatch(self, matriz, mejorSol):
+        tb = np.vectorize(self.funcShape)(matriz)
+        matrizbinaria = np.vectorize(self.funcBin)(tb)
+    
+        return matrizbinaria
     
     def set_binary(self,binary):
         self._b = binary

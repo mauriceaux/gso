@@ -18,7 +18,7 @@ import json
 if __name__ == '__main__':
     carpeta = 'problemas/scp/instances'
     carpetaResultados = 'resultados/scp'
-    for _ in range(30):
+    for _ in range(1):
         for archivo in os.listdir(carpeta):
             path = os.path.join(carpeta, archivo)
             if os.path.isdir(path):
@@ -26,7 +26,7 @@ if __name__ == '__main__':
                 continue
             problema = SCPProblem(f'{carpeta}/{archivo}')
             gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
-            gso.procesoParalelo = False
+            gso.procesoParalelo = True
             gso.setProblema(problema)
         
             solver = Solver()
