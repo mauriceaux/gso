@@ -9,10 +9,11 @@ import numpy as np
 from . import read_instance as r_instance
 from . import binarizationstrategy as _binarization
 #import reparastrategy as _repara
-from .repair import ReparaStrategy2 as _repara
-#from .repair import ReparaStrategy as _repara
+#from .repair import ReparaStrategy2 as _repara
+from .repair import ReparaStrategy as _repara
 from datetime import datetime
 import multiprocessing as mp
+from numpy.random import default_rng
 #import line_profiler
 
 class SCPProblem():
@@ -58,8 +59,11 @@ class SCPProblem():
 #        print(f'encodedInstance.shape {np.array(encodedInstance)}')
 #        exit()
 #        start = datetime.now()
+#        if mejorSol is not None:
+#            self.binarizationStrategy.mejorSol = mejorSol
         decoded, numReparaciones = self.decodeInstance(encodedInstance)
-        
+#        decoded = self.binarizationStrategy.binarize(encodedInstance)
+#        numReparaciones = 0
 #        print(f'decodedInstance.shape {np.array(decoded)}')
 #        exit()
 #        end = datetime.now()
@@ -168,7 +172,7 @@ class SCPProblem():
 #    @profile
     def evalInstance(self, decoded):
 #        time.sleep(0.1)
-        return -(self.fObj(decoded, self.instance.get_c()))
+        return -(self.fObj(decoded, self.instance.get_c())) if self.repair.cumple(decoded) == 1 else -10000000000
     
     def evalInstanceBatch(self, decoded):
         start = datetime.now()
@@ -212,6 +216,7 @@ class SCPProblem():
 #        c = self.instance.get_columns()
         cumpleTodas=self.repair.cumple(x)
         if cumpleTodas == 1: return x, 0
+        
         x, numReparaciones = self.repair.repara_one(x)    
         end = datetime.now()
 #        print(f'repara one {end-start}')
@@ -222,36 +227,58 @@ class SCPProblem():
 #        print(f'repara two {end-start}')
         return x, numReparaciones
     
-    def generarSolsAlAzar(self, numSols):
-        args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
-        fitness,sol,_ = self.evalEncBatch(args, args[0])
-        sol[sol==0] = self.getRangoSolucion()['min']
-        sol[sol==1] = self.getRangoSolucion()['max']
+    def generarSolsAlAzar(self, numSols, mejorSol=None):
+#        args = []
+        if mejorSol is None:
+            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
+        else:
+            args = np.repeat(np.array(mejorSol)[None, :], numSols, axis=0)
+            for i in range(numSols):
+                rng = default_rng()
+                unos = np.where(mejorSol>0)[0]
+                if len(unos) > 0:
+                    idxVariar = rng.choice(unos, size=(int((unos.shape[0]*.03)+1)), replace=False)
+                    args[i,idxVariar] = self.getRangoSolucion()['min']
+#                args[i,idxVariar] *= np.random.uniform(-1,1) 
+#            args = np.repeat(np.array(mejorSol)[None, :], numSols, axis=0)
+#            print(f'idxVariar {idxVariar.shape}')
+#            print(f'args {args.shape}')
+            
+#            args[np.arange(mejorSol.shape[0]),idxVariar] *= np.random.uniform(-1,1) * np.random.uniform()
+#            exit()
+#        fitness,sol,_ = self.evalEncBatch(args, args[0])
+#        sol[sol==0] = self.getRangoSolucion()['min']
+#        sol[sol==1] = self.getRangoSolucion()['max']
 #        print(fitness)
 #        exit()
-#        args = np.random.uniform(low=-2, high=2, size=(numSols, self.getNumDim()))
+#        args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(numSols, self.getNumDim()))
         #print(args)
 #        exit()
-#        if self.paralelo:
-#            pool = mp.Pool(4)
-#            ret = pool.map(self.evalEnc, args.tolist())
-#            pool.close()
-#            sol = np.array([item[1] for item in ret])
-#            sol[sol==0] = self.getRangoSolucion()['min']
-#            sol[sol==1] = self.getRangoSolucion()['max']
-##        print(sol)
-##        exit()
-#        else:
-#            sol = []
-#            for arg in args:
-####            print(len(arg))
-#                sol_ = np.array(self.evalEnc(arg)[1])
-#                sol_[sol_==0] = self.getRangoSolucion()['min']
-#                sol_[sol_==1] = self.getRangoSolucion()['max']
-###            print(sol_)
-###            exit()
-#                sol.append(sol_)
-#            sol = np.array(sol)
+        fitness = []
+        if self.paralelo:
+            pool = mp.Pool(4)
+            ret = pool.map(self.evalEnc, args.tolist())
+            pool.close()
+            fitness =  np.array([item[0] for item in ret])
+            sol = np.array([item[1] for item in ret])
+            sol[sol==0] = self.getRangoSolucion()['min']
+            sol[sol==1] = self.getRangoSolucion()['max']
+#        print(sol)
+#        exit()
+        else:
+            sol = []
+            for arg in args:
+###            print(len(arg))
+                sol_ = np.array(self.evalEnc(arg)[1])
+                fitness_ = np.array(self.evalEnc(arg)[0])
+                sol_[sol_==0] = self.getRangoSolucion()['min']
+                sol_[sol_==1] = self.getRangoSolucion()['max']
+##            print(sol_)
+##            exit()
+                sol.append(sol_)
+                fitness.append(fitness_)
+            sol = np.array(sol)
+            fitness = np.array(fitness)
         
 #        print(f'fin doluciones al azar')
 #        exit()

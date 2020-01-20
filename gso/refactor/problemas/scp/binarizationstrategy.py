@@ -54,6 +54,8 @@ class BinarizationStrategy:
             
         if(binary=="Elitist"):
             self.funcBin = self.elitist
+            
+        self.mejorSol = None
         
 #        matrizbinaria = [funcBin(item) for item in tb]
         
@@ -98,7 +100,7 @@ class BinarizationStrategy:
         
     def binarize(self, x):
         tb = [self.funcShape(item) for item in x]        
-        matrizbinaria = [self.funcBin(item) for item in tb]
+        matrizbinaria = [self.funcBin(item, tb) for item in range(len(tb))]
         return matrizbinaria
     
     def binarizeBatch(self, matriz, mejorSol):
@@ -119,9 +121,9 @@ class BinarizationStrategy:
         else:
            return 0
     
-    def standard(self, x):
-        if x is None: return 1
-        if random.random() <= x:
+    def standard(self, idx, tb):
+        if tb is None or idx is None: return 1
+        if random.random() <= tb[idx]:
             return 1.
         else: 
             return 0.
@@ -140,9 +142,10 @@ class BinarizationStrategy:
         else: 
             return 1
         
-    def elitist(self, x):
-        if random.random() < x:
-            return self.standard(x) 
+    def elitist(self, idx, tb):
+        
+        if random.random() < tb[idx]:
+            return self.mejorSol[idx] if self.mejorSol is not None else self.standard(idx,tb)
         else: 
             return 0
     

@@ -14,11 +14,12 @@ import numpy as np
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 import json
+from datetime import datetime
 
 if __name__ == '__main__':
     carpeta = 'problemas/scp/instances'
     carpetaResultados = 'resultados/scp'
-    for _ in range(1):
+    for _ in range(31):
         for archivo in os.listdir(carpeta):
             path = os.path.join(carpeta, archivo)
             if os.path.isdir(path):
@@ -33,11 +34,12 @@ if __name__ == '__main__':
             solver.autonomo = True
             solver.setAlgoritmo(gso)
             
-        
+            inicio = datetime.now()
             solver.resolverProblema()
+            fin = datetime.now()
             with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}.csv", "a") as myfile:
                 mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
-                myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{solver.algoritmo.inicio}, {solver.algoritmo.fin}, {solver.algoritmo.fin-solver.algoritmo.inicio}, {mejorSolStr}\n')
+                myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{inicio}, {fin}, {fin-inicio}, {mejorSolStr}\n')
             with open(f"{carpetaResultados}/algoritmos/gso/{archivo}GSO.csv", "a") as myfile:
                 myfile.write(json.dumps(solver.algoritmo.indicadores["tiempos"]))
             with open(f"{carpetaResultados}/algoritmos/gso/{archivo}-evalsTodas.csv", "a") as myfile:
