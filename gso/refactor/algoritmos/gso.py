@@ -22,13 +22,15 @@ class GSO():
         self.contenedorParametros['mejorSolucion'] = None
         self.contenedorParametros['mejorSolucionBin'] = None
         self.contenedorParametros['mejorSolGlobal'] = None
-        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
-        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
-        self.contenedorParametros['maxVel'] = 4
-        self.contenedorParametros['minVel'] = -4
+#        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
+#        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
+        self.contenedorParametros['accelPer'] = 0.5
+        self.contenedorParametros['accelBest'] = 0.5
+        self.contenedorParametros['maxVel'] = 5
+        self.contenedorParametros['minVel'] = -5
         self.contenedorParametros['autonomo'] = True
 
-        self.contenedorParametros['inercia'] = 1
+        self.contenedorParametros['inercia'] = 3
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -81,7 +83,12 @@ class GSO():
 #        self.ax.set_xlim(self.problema.getRangoSolucion()['min'], self.problema.getRangoSolucion()['max'])
 #        self.indicadores['instancia'] = problema.instancia
 #        pass
+    
+    def moveSwarmGeometric(self, swarm, velocity, personalBest, bestFound, inertia):
+        ret = np.zeros(swarm.shape)
         
+        return ret, None
+    
     def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia):
 #        print(f"swarm {swarm.shape}")
 #        print(f"velocity {velocity.shape}")
@@ -109,9 +116,14 @@ class GSO():
         bestAccel = accelBest * randBest * bestDif
         #print(f'bestAccel {bestAccel}')
         acceleration =  personalAccel + bestAccel
+        acceleration[acceleration > maxVel]  = maxVel
+        acceleration[acceleration < minVel]  = minVel
 #        print(acceleration[0:30])
 #        print(inertia)
-        nextVel = (inertia*velocity) + acceleration
+        vInercia = inertia*velocity
+        vInercia[vInercia > maxVel]  = maxVel
+        vInercia[vInercia < minVel]  = minVel
+        nextVel = vInercia + acceleration
         #print(f'velocidad anterior {nextVel}')
         
         nextVel[nextVel > maxVel]  = maxVel
@@ -128,7 +140,9 @@ class GSO():
         args = []
         start = datetime.now()
         if self.contenedorParametros['autonomo']:
+            
             inercia = self.contenedorParametros['inercia']
+#            print(inercia)
 #            inercia = 1 - (iteracion/(totIteraciones + 1)) 
         else:
             inercia = 1 - (iteracion/(totIteraciones + 1)) 
@@ -355,6 +369,7 @@ class GSO():
             self.agregarEliminarParticulas(dif)
         
         datosNivel = self.contenedorParametros['datosNivel'][nivel]
+#        datosNivel = self.agruparNivel(datosNivel, nivel)
         
         for iteracion in range(self.contenedorParametros['numIteraciones']):
             string = 'nivel '+str(nivel)+' iteracion '+str(iteracion)+' mejor valor encontrado '+str(self.contenedorParametros["mejorEvalGlobal"]) + " num particulas " + str(datosNivel['soluciones'].shape[0])

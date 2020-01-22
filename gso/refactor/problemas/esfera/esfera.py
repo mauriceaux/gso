@@ -47,21 +47,43 @@ class Esfera():
             fitness.append(c)
             numReparaciones.append(b)
         return np.array(fitness), encodedInstances, numReparaciones
-               
+        
+    def calcDistaance(self,x,y):
+        return np.linalg.norm(x-y)
+       
     def evalInstance(self, decoded):
-        suma = 0
+#        suma = 0
 #        print(f"decoded {decoded}")
-        for i in range(len(decoded)):
-            suma += (decoded[i]-self.centro[i])**2
+#        for i in range(len(decoded)):
+#            suma += (decoded[i]-self.centro[i])**2
 #            suma += (decoded[i]-self.centro1[i])**2
 #            suma += (decoded[i]-self.centro2[i])**2
-        distancia = np.sqrt(suma)
-        if distancia <100 and distancia > 30:
-            return -100
-        if distancia <250 and distancia > 150:
-            return -310
-        if distancia <450 and distancia > 350:
-            return -450
+#        distancia = np.sqrt(suma)
+        distancia = self.calcDistaance( decoded, self.centro)
+        if distancia > 50 and distancia < 100: return -1000
+        if distancia > 200 and distancia < 150: return -1000
+        if distancia > 300 and distancia < 250: return -1000
+#        distractor = [500,500]
+#        distDistractor = self.calcDistaance(decoded, distractor)
+#        if distDistractor <= 200:
+#            return -200
+#        
+#        distractor = [1000,1000]
+#        distDistractor = self.calcDistaance(decoded, distractor)
+#        if distDistractor <= 200:
+#            return -200
+#        
+#        distractor = [300,400]
+#        distDistractor = self.calcDistaance(decoded, distractor)
+#        if distDistractor <= 200:
+#            return -200
+#        
+#        distractor = [-300,-300]
+#        distDistractor = self.calcDistaance(decoded, distractor)
+#        if distDistractor <= 200:
+#            return -200
+        
+         
         return -distancia
     
     def repara(self, solution):
@@ -70,9 +92,10 @@ class Esfera():
         #exit()
         numReparaciones = 0
         while not valido:
+#            solution[:]= np.array([10,200])
             idx = np.random.choice(np.arange(self.getNumDim()))
-            exp = 1 if solution[idx] > 0 else -1
-            solution[idx] = (abs(solution[idx]) - 1) * exp
+#            exp = 1 if solution[idx] > 0 else -1
+            solution[idx] *= 0.8
             #solution = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(self.getNumDim()))
             valido = -self.evalInstance(solution) <= self.radio
             numReparaciones += 1
