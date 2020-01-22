@@ -55,6 +55,11 @@ class SCPProblem():
     def getRangoSolucion(self):
         return {'max': 5, 'min':-5}
 
+    def eval(self, encodedInstance):
+        decoded, numReparaciones = self.frepara(encodedInstance)
+        fitness = self.evalInstance(encodedInstance)
+        return fitness, decoded, numReparaciones
+
     def evalEnc(self, encodedInstance):
 #        print(f'encodedInstance.shape {np.array(encodedInstance)}')
 #        exit()

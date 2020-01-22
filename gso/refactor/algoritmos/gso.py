@@ -24,8 +24,8 @@ class GSO():
         self.contenedorParametros['mejorSolGlobal'] = None
 #        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
 #        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
-        self.contenedorParametros['accelPer'] = 0.5
-        self.contenedorParametros['accelBest'] = 0.5
+        self.contenedorParametros['accelPer'] = 0.1
+        self.contenedorParametros['accelBest'] = 0.1
         self.contenedorParametros['maxVel'] = 5
         self.contenedorParametros['minVel'] = -5
         self.contenedorParametros['autonomo'] = True
@@ -51,6 +51,7 @@ class GSO():
         self.niveles = {}
         self.scaler = None
         self.plotShowing = False
+        self.geometric = False
         
         pass
     
@@ -85,9 +86,30 @@ class GSO():
 #        pass
     
     def moveSwarmGeometric(self, swarm, velocity, personalBest, bestFound, inertia):
-        ret = np.zeros(swarm.shape)
+        if len(swarm.shape) == 1:
+            swarm = np.array([swarm])
+        indicesOcupados = np.zeros(swarm.shape)
+        #print(f"swarm.shape {swarm.reshape(-1,1)}")
+        #print(f"indicesOcupados {indicesOcupados}")
+        idx = 0
+        for indice in indicesOcupados:
+            #print(f"indice {indice}")
+            disponible = np.where(indice==0)[0]
+            #print(f"disponible.shape[0] {disponible.shape[0]}")
+            #print(f"int(swarm.shape[1]*self.contenedorParametros['accelBest']) {int(swarm.shape[1]*self.contenedorParametros['accelBest'])}")
+            if disponible.shape[0] >= int(swarm.shape[1]*self.contenedorParametros['accelBest']):
+                eleccionRandomMejor = np.random.choice(np.where(indice==0)[0], int(swarm.shape[1]*self.contenedorParametros['accelBest']), replace=False)
+                indice[eleccionRandomMejor] = 1
+                swarm[idx,eleccionRandomMejor] = bestFound[eleccionRandomMejor]
+            disponible = np.where(indice==0)[0]
+            if disponible.shape[0] >= int(swarm.shape[1]*self.contenedorParametros['accelPer']):
+                eleccionRandomPersonal = np.random.choice(np.where(indice==0)[0], int(swarm.shape[1]*self.contenedorParametros['accelPer']), replace=False)
+                indice[eleccionRandomPersonal] = 1
+                if len(personalBest.shape) == 1: personalBest = np.array([personalBest])
+                swarm[idx,eleccionRandomPersonal] = personalBest[idx,eleccionRandomPersonal]
+            idx+=1
         
-        return ret, None
+        return swarm, None
     
     def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia):
 #        print(f"swarm {swarm.shape}")
@@ -171,7 +193,10 @@ class GSO():
 
             #start = datetime.now()
             pool = mp.Pool(4)
-            ret = pool.starmap(self.moveSwarm, args)
+            if self.geometric:
+                ret = pool.starmap(self.moveSwarmGeometric, args)
+            else:
+                ret = pool.starmap(self.moveSwarm, args)
             pool.close()
             #end = datetime.now()
             #self.guardarIndicadorTiempo('moveSwarm', len(args), end-start)
@@ -197,7 +222,10 @@ class GSO():
                 #if cont == 0: print(f'solucion {arg[0]}')
                 #cont +=1
 #                print(arg)
-                sol, vel = self.moveSwarm(arg[0], arg[1], arg[2], arg[3], arg[4])
+                if self.geometric:
+                    sol, vel = self.moveSwarmGeometric(arg[0], arg[1], arg[2], arg[3], arg[4])
+                else:
+                    sol, vel = self.moveSwarm(arg[0], arg[1], arg[2], arg[3], arg[4])
                 ret.append(sol)
 #                print(f'solucion inicial {arg[0]}')
 #                print(f'velocidad inicial {arg[1]}')
@@ -232,7 +260,7 @@ class GSO():
 #        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['min']
         resultadoMovimiento['solucionesBin'] = solucionesBin
         resultadoMovimiento['evalSoluciones'] = evaluaciones
-        resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
+        if not self.geometric: resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
 #        print(resultadoMovimiento['soluciones'][0, 0:20])
         end = datetime.now()
         self.guardarIndicadorTiempo('aplicarMovimiento', len(args), end-start)
@@ -252,7 +280,8 @@ class GSO():
         if self.procesoParalelo:
             
             pool = mp.Pool(4)
-            ret = pool.map(self.problema.evalEnc, soluciones)
+            if not self.geometric: ret = pool.map(self.problema.evalEnc, soluciones)
+            else: ret = pool.map(self.problema.eval, soluciones)
             pool.close()
             solucionesBin = np.vstack(np.array(ret)[:,1])
             evaluaciones = np.vstack(np.array(ret)[:,0])
@@ -261,7 +290,8 @@ class GSO():
             evaluaciones = []
 #            print(f"soluciones {soluciones}")
             for sol in soluciones:
-                eval, bin, _ = self.problema.evalEnc(sol)
+                if not self.geometric: eval, bin, _ = self.problema.evalEnc(sol)
+                else: eval, bin, _ = self.problema.eval(sol)
                 solucionesBin.append(bin)
                 evaluaciones.append(eval)
             solucionesBin = np.array(solucionesBin)
@@ -378,7 +408,7 @@ class GSO():
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
             datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
             datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
-            datosNivel['velocidades']    = resultadoMovimiento['velocidades']
+            if not self.geometric: datosNivel['velocidades']    = resultadoMovimiento['velocidades']
             self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
             if self.mostrarGraficoParticulas:
 #                self.line1, = self.ax.plot(datosNivel['soluciones'][0,0], datosNivel['soluciones'][0,1], 'r-', marker='o') 
