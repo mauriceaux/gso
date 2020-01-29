@@ -24,13 +24,13 @@ class GSO():
         self.contenedorParametros['mejorSolGlobal'] = None
 #        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
 #        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
-        self.contenedorParametros['accelPer'] = 0.5
-        self.contenedorParametros['accelBest'] = 0.5
+        self.contenedorParametros['accelPer'] = 0.09
+        self.contenedorParametros['accelBest'] = 0.09
         self.contenedorParametros['maxVel'] = 5
         self.contenedorParametros['minVel'] = -5
         self.contenedorParametros['autonomo'] = True
 
-        self.contenedorParametros['inercia'] = 3
+        self.contenedorParametros['inercia'] = 0.4
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -79,8 +79,10 @@ class GSO():
         self.indicadores['numDimProblema'] = problema.getNumDim()
         self.indicadores['numLlamadasFnObj'] = 0
         self.problema.paralelo = self.procesoParalelo
-#        self.ax.set_ylim(self.problema.getRangoSolucion()['min'], self.problema.getRangoSolucion()['max'])
-#        self.ax.set_xlim(self.problema.getRangoSolucion()['min'], self.problema.getRangoSolucion()['max'])
+#        self.ax.set_ylim(-.000000000000000009, .000000000000000009)
+        escala = 1/10**-1
+        self.ax.set_ylim(-escala, escala)
+        self.ax.set_xlim(-escala, escala)
 #        self.indicadores['instancia'] = problema.instancia
 #        pass
     
@@ -321,6 +323,7 @@ class GSO():
                 datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
                 datosNivel['velocidades']    = resultadoMovimiento['velocidades']
                 self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
+                self.contenedorParametros['datosNivel'][nivel] = self.agruparNivel(datosNivel, nivel)
                 if self.mostrarGraficoParticulas:
 #                    self.line1, = self.ax.plot(datosNivel['soluciones'][0,0], datosNivel['soluciones'][0,1], 'r-', marker='o') 
                     self.graficarParticulas(datosNivel, nivel)
@@ -347,19 +350,25 @@ class GSO():
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
         
     def generarSolucionReducida(self):
+        nivel = self.contenedorParametros['nivel']
+        if not nivel in self.contenedorParametros['datosNivel'] or (self.nivelAnterior == 1 and nivel == 2): 
+            self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
+        datosNivel = self.contenedorParametros['datosNivel'][nivel]
+        self.nivelAnterior = nivel
         self.inicio = datetime.now()
+        
         if self.mostrarGraficoParticulas and not self.plotShowing:
             plt.ion()
             plt.show()
             self.plotShowing = True
+#            evalProm = int(abs(np.mean(datosNivel['evalSoluciones'])))
+#            self.ax.set_ylim(-evalProm, evalProm)
+#            self.ax.set_xlim(-evalProm, evalProm)
 #            input("press ENTER")
-        nivel = self.contenedorParametros['nivel']
+#        nivel = self.contenedorParametros['nivel']
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
         #if not nivel in self.contenedorParametros['datosNivel'] or nivel > 1: 
-        if not nivel in self.contenedorParametros['datosNivel'] or (self.nivelAnterior == 1 and nivel == 2): 
-
-            self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
-        self.nivelAnterior = nivel
+        
 
         
 
@@ -368,7 +377,8 @@ class GSO():
         if dif != 0:
             self.agregarEliminarParticulas(dif)
         
-        datosNivel = self.contenedorParametros['datosNivel'][nivel]
+#        datosNivel = self.contenedorParametros['datosNivel'][nivel]
+        
 #        datosNivel = self.agruparNivel(datosNivel, nivel)
         
         for iteracion in range(self.contenedorParametros['numIteraciones']):
@@ -491,11 +501,13 @@ class GSO():
                 nivel1['solucionesBin']  = np.array(solucionesBin)
 
         #print(f' soluciones fin {nivel1["soluciones"]}')
+        
         self.contenedorParametros['datosNivel'][1] = self.agruparNivel(nivel1, 1)
 
 
     def generarSolucionAlAzar(self, numSols):
         start = datetime.now()
+#        print(self.contenedorParametros[''])
         sols, evals = self.problema.generarSolsAlAzar(numSols, self.contenedorParametros['mejorSolucionBin'])
         end = datetime.now()
         self.guardarIndicadorTiempo('generarSolucionAlAzar', numSols, end-start)
@@ -537,8 +549,8 @@ class GSO():
             datosNivel['velocidades']    = velocidades
             datosNivel['soluciones']     = soluciones
             datosNivel['solucionesBin']  = solucionesBin
-            
             datosNivel = self.agruparNivel(datosNivel, nivel)
+            
 #            print(datosNivel['soluciones'])
 #            print(datosNivel['grupos'])
 #            exit()
@@ -591,25 +603,37 @@ class GSO():
         start = datetime.now()
 #        if not self.contenedorParametros['autonomo']: numGrupos = self.contenedorParametros['gruposPorNivel'][nivel]
 #        else:    
-        if nivel == 1:
-            numGrupos = int(totalNivel * 0.2)
+        
+        
+        if 'grupos' in datosNivel and len(datosNivel['grupos']) > 0 and False:
+            nGrupos = np.max(datosNivel['grupos'])
+            datosNivel['grupos'] = datosNivel['grupos'].tolist()
+            
+            for idx in range(len(datosNivel['grupos']), len(datosNivel['soluciones']), 1):
+                datosNivel['grupos'].append(np.random.randint(low=0, high=nGrupos))
+            datosNivel['grupos'] = np.array(datosNivel['grupos'])
         else:
-            numGrupos = totalNivel
-        #print(f'NUMERO GRUPOS {numGrupos}')
-        #numGrupos = int(totalNivel * self.contenedorParametros['porcentajePartPorGrupoNivel'][nivel])
-#            numGrupos = self.calcularNumGrupos(datosNivel['soluciones'])
-        kmeans = KMeans(n_clusters=numGrupos, init='k-means++')
-#        grupos = kmeans.fit_predict(datosNivel['velocidades'])
-        grupos = kmeans.fit_predict(datosNivel['evalSoluciones'].reshape(-1,1))
-#        grupos = kmeans.fit_predict(datosNivel['soluciones'])
-
-#        print(grupos)
-#        exit()
-#        centroids,_ = kmeans(datosNivel['soluciones'],len(datosNivel['soluciones']))
-#        grupos,_ = vq(datosNivel['soluciones'],centroids)
-        datosNivel['grupos'] = grupos
+        
+        
+            if nivel == 1:
+                numGrupos = int(totalNivel * 0.25)
+            else:
+                numGrupos = totalNivel
+            #print(f'NUMERO GRUPOS {numGrupos}')
+            #numGrupos = int(totalNivel * self.contenedorParametros['porcentajePartPorGrupoNivel'][nivel])
+    #            numGrupos = self.calcularNumGrupos(datosNivel['soluciones'])
+            kmeans = KMeans(n_clusters=numGrupos, init='k-means++')
+    #        grupos = kmeans.fit_predict(datosNivel['velocidades'])
+            grupos = kmeans.fit_predict(datosNivel['evalSoluciones'].reshape(-1,1))
+#            grupos = kmeans.fit_predict(datosNivel['soluciones'])
+    
+    #        print(f"grupos {grupos} {type(grupos)}")
+    #        exit()
+    #        centroids,_ = kmeans(datosNivel['soluciones'],len(datosNivel['soluciones']))
+    #        grupos,_ = vq(datosNivel['soluciones'],centroids)
+            datosNivel['grupos'] = grupos
         datosNivel['solPorGrupo'] = {}
-        for idGrupo in grupos:
+        for idGrupo in datosNivel['grupos']:
             if not idGrupo in datosNivel['solPorGrupo']:
                 datosNivel['solPorGrupo'][idGrupo] = 1
             else:

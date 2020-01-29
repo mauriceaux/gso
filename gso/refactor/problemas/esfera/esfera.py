@@ -49,7 +49,8 @@ class Esfera():
         return np.array(fitness), encodedInstances, numReparaciones
         
     def calcDistaance(self,x,y):
-        return np.linalg.norm(x-y)
+        return np.sum(x * x)
+#        return np.linalg.norm(x-y)
        
     def evalInstance(self, decoded):
 #        suma = 0
@@ -60,9 +61,9 @@ class Esfera():
 #            suma += (decoded[i]-self.centro2[i])**2
 #        distancia = np.sqrt(suma)
         distancia = self.calcDistaance( decoded, self.centro)
-        if distancia > 50 and distancia < 100: return -1000
-        if distancia > 200 and distancia < 150: return -1000
-        if distancia > 300 and distancia < 250: return -1000
+#        if distancia > 50 and distancia < 100: return -1000
+#        if distancia > 200 and distancia < 150: return -1000
+#        if distancia > 300 and distancia < 250: return -1000
 #        distractor = [500,500]
 #        distDistractor = self.calcDistaance(decoded, distractor)
 #        if distDistractor <= 200:

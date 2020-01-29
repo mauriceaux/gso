@@ -41,6 +41,7 @@ class SCPProblem():
                                             ,self.instance.get_rows()
                                             ,self.instance.get_columns())
         self.paralelo = False
+        self.mejorSolHist = np.ones((self.instance.get_columns())) * 0.5
    
 
     def getNombre(self):
@@ -232,15 +233,28 @@ class SCPProblem():
         if mejorSol is None:
             args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
         else:
+            self.mejorSolHist = (mejorSol+self.mejorSolHist)/2
+#            print(f'self.mejorSolHist {self.mejorSolHist}')
+            mejorSol = self.mejorSolHist
             args = np.repeat(np.array(mejorSol)[None, :], numSols, axis=0)
             for i in range(numSols):
-                rng = default_rng()
-                unos = np.where(mejorSol>0)[0]
-                if len(unos) > 0:
-                    idxVariar = rng.choice(unos, size=(int((unos.shape[0]*.03)+1)), replace=False)
-                    args[i,idxVariar] = self.getRangoSolucion()['min']
+                for j in range(args.shape[1]):
+                    args[i,j] = (self.getRangoSolucion()['min'] 
+                                    if np.random.uniform() > args[i,j] 
+                                    else  self.getRangoSolucion()['max'])
+#                    args[i,j] = (1
+#                                    if np.random.uniform() < args[i,j] 
+#                                    else  0)
+#                print(args[i])
+#                rng = default_rng()
+#                unos = np.where(mejorSol>0)[0]
+#                if len(unos) > 0:
+#                    idxVariar = rng.choice(unos, size=(int((unos.shape[0]*.03)+1)), replace=False)
+#                    args[i,idxVariar] = self.getRangoSolucion()['min']
 #                args[i,idxVariar] *= np.random.uniform(-1,1) 
 #            args = np.repeat(np.array(mejorSol)[None, :], numSols, axis=0)
+#            args[args == 1] = self.getRangoSolucion()['max']
+#            args[args == 0] = self.getRangoSolucion()['min']
 #            print(f'idxVariar {idxVariar.shape}')
 #            print(f'args {args.shape}')
             
