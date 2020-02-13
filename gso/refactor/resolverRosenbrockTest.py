@@ -8,12 +8,12 @@ Created on Sun Dec  8 17:35:28 2019
 
 from solver.MHSolver import Solver
 from algoritmos.gso import GSO
-from problemas.esfera.esfera import Esfera
+from problemas.rosenbrock.rosenbrock import Rosenbrock
 if __name__ == '__main__':
-    problema = Esfera()
+    problema = Rosenbrock()
     gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:10,2:10})
     gso.procesoParalelo = True
-    gso.mostrarGraficoParticulas = True
+    gso.mostrarGraficoParticulas = False
     gso.setProblema(problema)
 
     solver = Solver()
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     print(f'mejor solucion   {solver.getMejorSolucion()}')
     print(f'tiempo ejecución {solver.getTiempoEjecucion()}')
     print(f'num llamadas funcion objetivo {solver.algoritmo.indicadores["numLlamadasFnObj"]}')
-    print(f'solucion promedio {solver.algoritmo.solPromedio}')
+#    print(f'solucion promedio {solver.algoritmo.solPromedio}')
 #    input("Press Enter to continue...")
-#    solver.graficarConvergencia()
+    solver.graficarConvergencia()
 

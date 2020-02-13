@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 import multiprocessing.dummy as mp
 from datetime import datetime
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
 class GSO():
@@ -24,13 +24,13 @@ class GSO():
         self.contenedorParametros['mejorSolGlobal'] = None
 #        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
 #        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
-        self.contenedorParametros['accelPer'] = 0.09
-        self.contenedorParametros['accelBest'] = 0.09
+        self.contenedorParametros['accelPer'] = 2
+        self.contenedorParametros['accelBest'] = 1.8
         self.contenedorParametros['maxVel'] = 5
         self.contenedorParametros['minVel'] = -5
         self.contenedorParametros['autonomo'] = True
 
-        self.contenedorParametros['inercia'] = 0.4
+        self.contenedorParametros['inercia'] = 1.1
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -41,16 +41,19 @@ class GSO():
         self.mejorEval = None
         self.calcularParamDim()
         self.nivelAnterior = 1
-        self.fig = plt.figure()
+#        self.fig = plt.figure()
         self.mostrarGraficoParticulas = False
         self.nivel1=None
         self.nivel2=None
         self.mejores = None
         self.mejorGlobal = None
-        self.ax = self.fig.add_subplot(111)
+#        self.ax = self.fig.add_subplot(111)
+#        self.ax = plt.gca()
         self.niveles = {}
         self.scaler = None
         self.plotShowing = False
+        self.solPromedio = None
+        self.mostrarPromedio = False
         
         pass
     
@@ -80,9 +83,10 @@ class GSO():
         self.indicadores['numLlamadasFnObj'] = 0
         self.problema.paralelo = self.procesoParalelo
 #        self.ax.set_ylim(-.000000000000000009, .000000000000000009)
-        escala = 1/10**-1
-        self.ax.set_ylim(-escala, escala)
-        self.ax.set_xlim(-escala, escala)
+#        escala = 10
+#        escalax = 899 - (1/10**121) 
+#        self.ax.set_ylim(-escala, escala)
+#        self.ax.set_xlim(-escala, escala)
 #        self.indicadores['instancia'] = problema.instancia
 #        pass
     
@@ -91,7 +95,7 @@ class GSO():
         
         return ret, None
     
-    def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia):
+    def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia, accelPer, accelBest):
 #        print(f"swarm {swarm.shape}")
 #        print(f"velocity {velocity.shape}")
 #        exit()
@@ -162,6 +166,8 @@ class GSO():
                 ,datosNivel['mejoresSoluciones'][idx]
                 ,mejorGrupo
                 ,inercia
+                ,self.contenedorParametros['accelPer']
+                ,self.contenedorParametros['accelBest']
                 ] )
 
         end = datetime.now()
@@ -230,8 +236,11 @@ class GSO():
         #self.guardarIndicadorTiempo('evaluarSoluciones', len(ret), end-start)
         resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
 #        resultadoMovimiento['soluciones'] = solucionesBin
-#        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['max']
-#        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['min']
+        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['max']
+        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 0] = self.problema.getRangoSolucion()['min']
+#        if (solucionesBin>1).any():
+#            print(solucionesBin)
+#            exit()
         resultadoMovimiento['solucionesBin'] = solucionesBin
         resultadoMovimiento['evalSoluciones'] = evaluaciones
         resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
@@ -270,6 +279,21 @@ class GSO():
             evaluaciones = np.array(evaluaciones)
             #print(evaluaciones)
             #exit()
+        if self.mostrarPromedio:
+            tmp = np.mean(soluciones, axis=0)
+            if self.solPromedio is None:
+                self.solPromedio = tmp
+            else:
+                
+                self.solPromedio = np.append(self.solPromedio, tmp).reshape(2, tmp.shape[0])
+    #            print(self.solPromedio.shape)
+    #            exit()
+                self.solPromedio = np.mean(self.solPromedio, axis=0)
+#            print(self.solPromedio.shape)
+#            exit()
+#        print(soluciones.shape)
+#        print(self.solPromedio.shape)
+#        exit()
         
 #        mejoresEvaluaciones.reshape((mejoresEvaluaciones.shape[0]))
         
@@ -302,8 +326,8 @@ class GSO():
     
     def generarSolucion(self):
         if self.mostrarGraficoParticulas:
-            plt.ion()
-            plt.show()
+#            plt.ion()
+#            plt.show()
             input("Press Enter to continue...")
         self.inicio = datetime.now()
         niveles = self.contenedorParametros['niveles']
@@ -350,6 +374,11 @@ class GSO():
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
         
     def generarSolucionReducida(self):
+        if 1 in self.contenedorParametros['datosNivel']:
+            dif = self.contenedorParametros['numParticulas'] - self.contenedorParametros['datosNivel'][1]['soluciones'].shape[0]
+            print(f'DIFERENCIA {dif}')
+            if dif != 0:
+                self.agregarEliminarParticulas(dif)
         nivel = self.contenedorParametros['nivel']
         if not nivel in self.contenedorParametros['datosNivel'] or (self.nivelAnterior == 1 and nivel == 2): 
             self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
@@ -358,9 +387,14 @@ class GSO():
         self.inicio = datetime.now()
         
         if self.mostrarGraficoParticulas and not self.plotShowing:
-            plt.ion()
-            plt.show()
+#            escala = abs(self.contenedorParametros['mejorEvalGlobal'])*2
+#            self.ax.set_ylim(-escala, escala)
+#            self.ax.set_xlim(-escala, escala)
+#            plt.ion()
+#            plt.show()
+#            plt.draw()
             self.plotShowing = True
+#            self.ax = plt.gca()
 #            evalProm = int(abs(np.mean(datosNivel['evalSoluciones'])))
 #            self.ax.set_ylim(-evalProm, evalProm)
 #            self.ax.set_xlim(-evalProm, evalProm)
@@ -372,20 +406,21 @@ class GSO():
 
         
 
-        dif = self.contenedorParametros['numParticulas'] - self.contenedorParametros['datosNivel'][1]['soluciones'].shape[0]
-        print(f'DIFERENCIA {dif}')
-        if dif != 0:
-            self.agregarEliminarParticulas(dif)
+        
         
 #        datosNivel = self.contenedorParametros['datosNivel'][nivel]
         
 #        datosNivel = self.agruparNivel(datosNivel, nivel)
         
         for iteracion in range(self.contenedorParametros['numIteraciones']):
-            string = 'nivel '+str(nivel)+' iteracion '+str(iteracion)+' mejor valor encontrado '+str(self.contenedorParametros["mejorEvalGlobal"]) + " num particulas " + str(datosNivel['soluciones'].shape[0])
-            print(string)
+            
             resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['numIteraciones'])
+            strPromedio = " romedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
+            string = f'nivel {nivel} iteracion {iteracion} mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]} {strPromedio} num particulas {datosNivel["soluciones"].shape[0]}'
+            print(string)
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
+#            datosNivel['soluciones'][resultadoMovimiento['solucionesBin'] == 0] = self.problema.getRangoSolucion()['min']
+#            datosNivel['soluciones'][resultadoMovimiento['solucionesBin'] == 1] = self.problema.getRangoSolucion()['max']
             datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
             datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
             datosNivel['velocidades']    = resultadoMovimiento['velocidades']
@@ -400,8 +435,8 @@ class GSO():
 #                    self.nivel1.set_xdata(datosNivel['soluciones'][:,0])
 #                    self.nivel1.set_ydata(datosNivel['soluciones'][:,1])
 #
-                self.fig.canvas.draw()
-                self.fig.canvas.flush_events()
+#                self.fig.canvas.draw()
+#                self.fig.canvas.flush_events()
                 
 #                self.contenedorParametros['datosNivel'][nivel] = self.agruparNivel(datosNivel, nivel)
         self.fin = datetime.now()
@@ -420,6 +455,7 @@ class GSO():
             mejoresSoluciones = np.array([self.contenedorParametros['mejorSolGlobal'] for _ in range(dif)])
             mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
             velocidades = np.random.uniform(low=self.contenedorParametros['minVel'], high=self.contenedorParametros['maxVel'], size=(dif, self.problema.getNumDim()))
+            mejoresVelocidades = velocidades.copy()
 #            solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
 #            mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
             soluciones = solucionesBin.copy()
@@ -434,6 +470,7 @@ class GSO():
             idxMejores = evaluaciones>mejoresEvaluaciones
             mejoresEvaluaciones[idxMejores] = evaluaciones[idxMejores]
             mejoresSoluciones[idxMejores] = soluciones[idxMejores]
+            mejoresVelocidades[idxMejores] = velocidades[idxMejores]
             mejoresSolucionesBin[idxMejores] = solucionesBin[idxMejores]
 
             nmejoresEvaluaciones = list(nivel1['mejoresEvaluaciones'])
@@ -441,6 +478,7 @@ class GSO():
             nmejoresSolucionesBin = list(nivel1['mejoresSolucionesBin'])
             nevalSoluciones = list(nivel1['evalSoluciones'])
             nvelocidades = list(nivel1['velocidades'])
+            nMejoresVelocidades = list(nivel1['mejoresVel'])
             nsoluciones = list(nivel1['soluciones'])
             nsolucionesBin = list(nivel1['solucionesBin'])
 
@@ -449,6 +487,7 @@ class GSO():
             nmejoresSolucionesBin.extend(mejoresSolucionesBin)
             nevalSoluciones.extend(evaluaciones)
             nvelocidades.extend(velocidades)
+            nMejoresVelocidades.extend(mejoresVelocidades)
             nsoluciones.extend(soluciones)
             nsolucionesBin.extend(solucionesBin)
             #if len(nmejoresEvaluaciones) != self.contenedorParametros['numParticulas']:
@@ -460,6 +499,7 @@ class GSO():
             nivel1['mejoresSolucionesBin'] = np.array(nmejoresSolucionesBin)
             nivel1['evalSoluciones'] = np.array(nevalSoluciones)
             nivel1['velocidades']    = np.array(nvelocidades)
+            nivel1['mejoresVel']     = np.array(nMejoresVelocidades)
             nivel1['soluciones']     = np.array(nsoluciones)
             nivel1['solucionesBin']  = np.array(nsolucionesBin)
             
@@ -473,16 +513,20 @@ class GSO():
                 mejoresSolucionesBin = nivel1['mejoresSolucionesBin'].tolist()
                 evalSoluciones = nivel1['evalSoluciones'].tolist()
                 velocidades = nivel1['velocidades'].tolist()
+#                mejoresVel = nivel1['mejoresVel'].tolist()
                 soluciones = nivel1['soluciones'].tolist()
                 solucionesBin = nivel1['solucionesBin'].tolist()
+                grupos = nivel1['grupos'].tolist()
 
                 del mejoresEvaluaciones[idxPeor]
                 del mejoresSoluciones[idxPeor]
                 del mejoresSolucionesBin[idxPeor]
                 del evalSoluciones[idxPeor]
                 del velocidades[idxPeor]
+#                del mejoresVel[idxPeor]
                 del soluciones[idxPeor]
                 del solucionesBin[idxPeor]
+                del grupos[idxPeor]
 #                print(f'self.niveles[1] {self.niveles[1]} idxPeor {idxPeor} nivel1["grupos"][idxPeor] {nivel1["grupos"][idxPeor]}')
 #                peor =  self.niveles[1][nivel1['grupos'][idxPeor]]
 #                del peor
@@ -494,11 +538,14 @@ class GSO():
                 #    print(f'NO SE ELIMINARON BIEN LAS PARTICULAS actuales: {len(mejoresEvaluaciones)} deberian ser {self.contenedorParametros["numParticulas"]}')
                 nivel1['mejoresEvaluaciones'] = np.array(mejoresEvaluaciones)
                 nivel1['mejoresSoluciones'] = np.array(mejoresSoluciones)
+#                nivel1['mejoresVel']     = np.array(mejoresVel)
                 nivel1['mejoresSolucionesBin'] = np.array(mejoresSolucionesBin)
                 nivel1['evalSoluciones'] = np.array(evalSoluciones)
                 nivel1['velocidades']    = np.array(velocidades)
+                
                 nivel1['soluciones']     = np.array(soluciones)
                 nivel1['solucionesBin']  = np.array(solucionesBin)
+                nivel1['grupos']         = np.array(grupos)
 
         #print(f' soluciones fin {nivel1["soluciones"]}')
         
@@ -508,7 +555,8 @@ class GSO():
     def generarSolucionAlAzar(self, numSols):
         start = datetime.now()
 #        print(self.contenedorParametros[''])
-        sols, evals = self.problema.generarSolsAlAzar(numSols, self.contenedorParametros['mejorSolucionBin'])
+        sols, evals = self.problema.generarSolsAlAzar(numSols, self.contenedorParametros['mejorSolGlobal'])
+#        sols, evals = self.problema.generarSolsAlAzar(numSols, self.solPromedio)
         end = datetime.now()
         self.guardarIndicadorTiempo('generarSolucionAlAzar', numSols, end-start)
 #        print(sols[0])
@@ -527,12 +575,13 @@ class GSO():
 #            solucionesBin, evaluaciones               = self.evaluarSoluciones(soluciones)
 #            mejoresSolucionesBin, mejoresEvaluaciones = self.evaluarSoluciones(mejoresSoluciones)
             soluciones = solucionesBin.copy()
-            soluciones[soluciones == 0] = self.problema.getRangoSolucion()['min']
-            soluciones[soluciones == 1] = self.problema.getRangoSolucion()['max']
+            divisor=1
+            soluciones[soluciones == 0] = self.problema.getRangoSolucion()['min']/divisor
+            soluciones[soluciones == 1] = self.problema.getRangoSolucion()['max']/divisor
             
             mejoresSoluciones = mejoresSolucionesBin.copy()
-            mejoresSoluciones[mejoresSoluciones == 0] = self.problema.getRangoSolucion()['min']
-            mejoresSoluciones[mejoresSoluciones == 1] = self.problema.getRangoSolucion()['max']
+            mejoresSoluciones[mejoresSoluciones == 0] = self.problema.getRangoSolucion()['min']/divisor
+            mejoresSoluciones[mejoresSoluciones == 1] = self.problema.getRangoSolucion()['max']/divisor
             
             idxMejores = evaluaciones>mejoresEvaluaciones
             mejoresEvaluaciones[idxMejores] = evaluaciones[idxMejores]
@@ -547,6 +596,7 @@ class GSO():
             datosNivel['mejoresSolucionesBin'] = mejoresSolucionesBin
             datosNivel['evalSoluciones'] = evaluaciones
             datosNivel['velocidades']    = velocidades
+            datosNivel['mejoresVel']    = velocidades
             datosNivel['soluciones']     = soluciones
             datosNivel['solucionesBin']  = solucionesBin
             datosNivel = self.agruparNivel(datosNivel, nivel)
@@ -558,8 +608,19 @@ class GSO():
             if not nivel-1 in self.contenedorParametros['datosNivel']:
                 self.contenedorParametros['datosNivel'][nivel-1] = self.generarNivel(nivel-1)
             nivelAnterior = self.contenedorParametros['datosNivel'][nivel-1]
+#            if not nivel in self.contenedorParametros['datosNivel']:
+#                nivelActual = self.contenedorParametros['datosNivel'][nivel]
+#                mejoresSol = nivelAnterior['mejoresSoluciones'].copy()
+#            else:
+#                nivelActual = self.contenedorParametros['datosNivel'][nivel]
+#                mejoresSol = nivelActual['mejoresSoluciones'].copy()
 #            nivelAnterior = self.agruparNivel(nivelAnterior, nivel-1)
             soluciones = np.array([nivelAnterior['mejorSolGrupo'][key] for key in nivelAnterior['mejorSolGrupo'] if len(nivelAnterior['mejorSolGrupo'][key]) > 0])
+#            print(f"nivelAnterior['mejoresVel'] {nivelAnterior['mejoresVel']}")
+#            exit()
+            velocidades = np.array([nivelAnterior['mejoresVel'][key] for key in nivelAnterior['mejoresVel'] if len(nivelAnterior['mejoresVel'][key]) > 0])
+#            print(f"nivelAnterior['mejorSolGrupo'] {nivelAnterior['mejorSolGrupo']}")
+#            exit()
 #            print(f"mejorSolGrupo {nivelAnterior['mejorSolGrupo']}")
             
             grupos = np.array([key for key in nivelAnterior['mejorSolGrupo'] ])
@@ -567,19 +628,38 @@ class GSO():
             
 #            exit()
             totalNivel = len(soluciones)
-            velocidades = np.random.uniform(size=(len(soluciones), self.problema.getNumDim()))
+#            velocidades = np.random.uniform(size=(len(soluciones), self.problema.getNumDim()))
             evals = np.array([nivelAnterior['mejorEvalGrupo'][key] for key in nivelAnterior['mejorEvalGrupo']])
             solsBin = np.array([nivelAnterior['mejorSolGrupoBin'][key] for key in nivelAnterior['mejorSolGrupoBin']])
+#            print(f"nivelAnterior['mejoresSoluciones'].shape[0] {len(nivelAnterior['mejoresSoluciones'])}")
+#            print(f"nivelAnterior['mejoresVel'].shape[0] {len(nivelAnterior['mejoresVel'])}")
+#            print(f"nivelAnterior['soluciones'].shape[0] {len(nivelAnterior['soluciones'])}")
+#            print(f"nivelAnterior['velocidades'].shape[0] {len(nivelAnterior['velocidades'])}")
+#            exit()
+#            mejoresSol = nivelActual['mejoresSoluciones'].copy()
+#            mejoresVel = nivelActual['mejoresVel'].copy()
+#            mejoresEvals = nivelActual['evalSoluciones'].copy()
+#            mejoresId = evals>nivelActual['evalSoluciones']
+#            mejoresSol[mejoresId] = soluciones[mejoresId]
+#            mejoresVel[mejoresId] = velocidades[mejoresId]
+#            mejoresEvals[mejoresId] = evals[mejoresId]
+#            ultId = (soluciones.shape[0] 
+#                        if 
+#                            self.contenedorParametros['datosNivel'][nivel-1]['mejoresSoluciones'].shape[0] < soluciones.shape[0]
+#                        else 
+#                            self.contenedorParametros['datosNivel'][nivel-1]['mejoresSoluciones'].shape[0])
+                            
+#            mejoresSol[:ultId,] = self.contenedorParametros['datosNivel'][nivel-1]['mejoresSoluciones']
+#            velocidades[:ultId,] = self.contenedorParametros['datosNivel'][nivel-1]['mejoresVel']
             mejoresSol = soluciones.copy()
-            
-            mejoresEvals = evals.copy()
             datosNivel = {}
             datosNivel['soluciones']     = soluciones
-            datosNivel['mejoresEvaluaciones'] = mejoresEvals
+            datosNivel['mejoresEvaluaciones'] = evals
             datosNivel['mejoresSoluciones'] = mejoresSol
             datosNivel['mejoresSolucionesBin'] = solsBin.copy()
             datosNivel['evalSoluciones'] = evals
             datosNivel['velocidades']    = velocidades
+#            datosNivel['mejoresVel']    = mejoresVel
             datosNivel['solucionesBin']  = solsBin
             datosNivel['grupos'] = grupos
 #            print(f'GRUPOS {grupos}')
@@ -605,7 +685,7 @@ class GSO():
 #        else:    
         
         
-        if 'grupos' in datosNivel and len(datosNivel['grupos']) > 0 and False:
+        if  False and 'grupos' in datosNivel and len(datosNivel['grupos']) > 0:
             nGrupos = np.max(datosNivel['grupos'])
             datosNivel['grupos'] = datosNivel['grupos'].tolist()
             
@@ -616,7 +696,8 @@ class GSO():
         
         
             if nivel == 1:
-                numGrupos = int(totalNivel * 0.25)
+                numGrupos = int(totalNivel * 0.1)
+                numGrupos = 1 if numGrupos < 1 else numGrupos
             else:
                 numGrupos = totalNivel
             #print(f'NUMERO GRUPOS {numGrupos}')
@@ -676,8 +757,10 @@ class GSO():
     def evaluarGrupos(self, datosNivel):
         start = datetime.now()
         mejorSolucionGrupo = {}
+        mejorVelGrupo = {}
         mejorSolucionGrupoBin = {}
         mejorEvaluacionGrupo = {}
+#        if not 'mejoresVel' in datosNivel: datosNivel['mejoresVel'] = {}
         datosNivel['mejorSolPorGrupos'] = {}
         datosNivel['mejorEvalPorGrupos'] = {}
         mejorGlobal = self.contenedorParametros['mejorSolGlobal']
@@ -688,12 +771,14 @@ class GSO():
             if datosNivel['evalSoluciones'][idxSolucion] > datosNivel['mejoresEvaluaciones'][idxSolucion]:
                 datosNivel['mejoresEvaluaciones'][idxSolucion] = datosNivel['evalSoluciones'][idxSolucion]
                 datosNivel['mejoresSoluciones'][idxSolucion] = datosNivel['soluciones'][idxSolucion]
+#                datosNivel['mejoresVel'][idxSolucion] = datosNivel['velocidades'][idxSolucion]
             
             
             if (not datosNivel['grupos'][idxSolucion] in mejorEvaluacionGrupo 
                     or datosNivel['mejoresEvaluaciones'][idxSolucion] > mejorEvaluacionGrupo[datosNivel['grupos'][idxSolucion]]): 
                 mejorEvaluacionGrupo[datosNivel['grupos'][idxSolucion]] = datosNivel['evalSoluciones'][idxSolucion]
                 mejorSolucionGrupo[datosNivel['grupos'][idxSolucion]] = datosNivel['soluciones'] [idxSolucion]
+                mejorVelGrupo[datosNivel['grupos'][idxSolucion]] = datosNivel['velocidades'] [idxSolucion]
                 mejorSolucionGrupoBin[datosNivel['grupos'][idxSolucion]] = datosNivel['solucionesBin'] [idxSolucion]
                 if mejorEvalGlobal is None or mejorEvalGlobal < datosNivel['evalSoluciones'][idxSolucion]:
                     mejorEvalGlobal = datosNivel['evalSoluciones'][idxSolucion]
@@ -705,8 +790,11 @@ class GSO():
                     
         datosNivel['mejorEvalGrupo'] = mejorEvaluacionGrupo
         datosNivel['mejorSolGrupo']  = mejorSolucionGrupo
+        datosNivel['mejoresVel']  = mejorVelGrupo
         datosNivel['mejorSolGrupoBin']  = mejorSolucionGrupoBin
         datosNivel['mejorGlobal']  = mejorGlobal
+#        print(f"datosNivel['mejorSolGrupo'] {datosNivel['mejorSolGrupo']}")
+#        exit()
         end = datetime.now()
         self.guardarIndicadorTiempo('evaluarGrupos', total, end-start)
         
@@ -767,6 +855,10 @@ class GSO():
 #        print("indice soluciones del grupo 1")
 #        print(datosNivel['soluciones'][np.where(datosNivel['grupos'] == 1)])
 #        exit()
+        if self.problema.getNombre() == "SCP":
+            parametrosGso = np.array([self.contenedorParametros['accelPer'],self.contenedorParametros['accelBest'],self.contenedorParametros['inercia']])
+            self.problema.graficarSol(datosNivel, parametrosGso, nivel, id = 0)
+            return
         
         if self.mejores is None:
             self.mejores = {}
@@ -777,7 +869,7 @@ class GSO():
 #        colores = None
         if self.scaler is None:
             self.scaler = MinMaxScaler(feature_range=(0,int(0Xcccccc)))
-            self.colores = self.scaler.fit_transform(np.array([key for key in datosNivel['grupos']]).reshape((-1,1)))
+        self.colores = self.scaler.fit_transform(np.array([key for key in datosNivel['grupos']]).reshape((-1,1)))
 #        else:
 #            colores = self.scaler.transform(np.array([key for key in datosNivel['grupos']]).reshape((-1,1)))
         cont = 0
@@ -796,6 +888,7 @@ class GSO():
 #            exit()
         
         for idGrupo in datosNivel['grupos']:
+#            print(f'self.colores {self.colores}')
             color = self.colores[idGrupo]
 #            print(hex(int(color)))
 #            exit()

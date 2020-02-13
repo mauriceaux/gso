@@ -9,9 +9,11 @@ from datetime import datetime
 import numpy as np
 from . import binarizationstrategy as _binarization
 import multiprocessing as mp
+import math
+
 #from .kp_repairStrategy import ReparaStrategy as repairStrategy
 
-class Esfera():
+class Rastrigin():
     def __init__(self):
         self.centro = [0,0]
         self.centro1 = [50,50]
@@ -26,7 +28,7 @@ class Esfera():
     
     
     def getNumDim(self):
-        return 2
+        return 50
         
     def getRangoSolucion(self):
         return {'max': 100, 'min':-100}
@@ -60,7 +62,11 @@ class Esfera():
 #            suma += (decoded[i]-self.centro1[i])**2
 #            suma += (decoded[i]-self.centro2[i])**2
 #        distancia = np.sqrt(suma)
-        distancia = self.calcDistaance( decoded, self.centro)
+        obj = 0
+        for idx in range(decoded.shape[0]):
+            x = decoded[idx]
+            obj += x**2-(10*math.cos(2*math.pi*x))
+        obj += 10*decoded.shape[0]
 #        if distancia > 50 and distancia < 100: return -1000
 #        if distancia > 200 and distancia < 150: return -1000
 #        if distancia > 300 and distancia < 250: return -1000
@@ -85,7 +91,7 @@ class Esfera():
 #            return -200
         
          
-        return -distancia
+        return -obj
     
     def repara(self, solution):
         valido = -self.evalInstance(solution) <= self.radio

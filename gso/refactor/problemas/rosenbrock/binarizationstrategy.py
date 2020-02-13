@@ -8,46 +8,28 @@ Created on Tue Apr 23 19:05:37 2019
 import math
 import random
 import multiprocessing as mp
-import numpy as np
 
 class BinarizationStrategy:
     def __init__(self,tecnica,binary):
-        self._b = []
-#        self.x = x  
-        self.tecnica = tecnica
-        matrizbinaria = []
-        
-        
-        self.funcShape = None
-        if(self.tecnica=="sShape1"):
+        if(tecnica=="sShape1"):
             self.funcShape = self.sShape1
-        if(self.tecnica=="sShape2"):
+        if(tecnica=="sShape2"):
             self.funcShape = self.sShape2
-        if(self.tecnica=="sShape3"):
+        if(tecnica=="sShape3"):
             self.funcShape = self.sShape3
-        if(self.tecnica=="sShape4"):
+        if(tecnica=="sShape4"):
             self.funcShape = self.sShape4
-        if(self.tecnica=="vShape1"):
+        if(tecnica=="vShape1"):
             self.funcShape = self.vShape1
-        if(self.tecnica=="vShape2"):
+        if(tecnica=="vShape2"):
             self.funcShape = self.vShape2
-        if(self.tecnica=="vShape3"):
+        if(tecnica=="vShape3"):
             self.funcShape = self.vShape3
-        if(self.tecnica=="vShape4"):
+        if(tecnica=="vShape4"):
             self.funcShape = self.vShape4
         
-#        tb = [funcShape(item) for item in x]
-        
-#        pool = mp.Pool(4)
-#        tb = pool.map(funcShape, x)
-#        pool.close()
-        
-        self.funcBin = None
         if(binary=="Standar"):
             self.funcBin = self.standard
-            
-        if(binary=="invStandar"):
-            self.funcBin = self.invStandard
         
         if(binary=="Complement"):
             self.funcBin = self.complement
@@ -57,59 +39,10 @@ class BinarizationStrategy:
             
         if(binary=="Elitist"):
             self.funcBin = self.elitist
-            
-        self.mejorSol = None
-        
-#        matrizbinaria = [funcBin(item) for item in tb]
-        
-#        pool = mp.Pool(4)
-#        matrizbinaria = pool.map(funcBin, tb)
-#        pool.close()
-        
-        
-#        for i in range(len(x)):
-#            tb = 0
-#            if(self.tecnica=="sShape1"):
-#                tb = self.sShape1(x[i])
-#            if(self.tecnica=="sShape2"):
-#                tb = self.sShape2(x[i])
-#            if(self.tecnica=="sShape3"):
-#                tb = self.sShape3(x[i])
-#            if(self.tecnica=="sShape4"):
-#                tb = self.sShape4(x[i])
-#            if(self.tecnica=="vShape1"):
-#                tb = self.vShape1(x[i])
-#            if(self.tecnica=="vShape2"):
-#                tb = self.vShape2(x[i])
-#            if(self.tecnica=="vShape3"):
-#                tb = self.vShape3(x[i])
-#            if(self.tecnica=="vShape4"):
-#                tb = self.vShape4(x[i])
-#            
-#            if(binary=="Standar"):
-#                matrizbinaria.append(self.standard(tb))
-#            
-#            if(binary=="Complement"):
-#                matrizbinaria.append(self.complement(tb))
-#            
-#            if (binary=="StaticProbability"):
-#                matrizbinaria.append(self.staticProbability(tb, 0.4))
-#                
-#            if(binary=="Elitist"):
-#                matrizbinaria.append(self.elitist(tb))
-                
-        self.set_binary(matrizbinaria)
-        #print(matrizbinaria)
         
     def binarize(self, x):
         tb = [self.funcShape(item) for item in x]        
-        matrizbinaria = [self.funcBin(item, tb) for item in range(len(tb))]
-        return matrizbinaria
-    
-    def binarizeBatch(self, matriz, mejorSol):
-        tb = np.vectorize(self.funcShape)(matriz)
-        matrizbinaria = np.vectorize(self.funcBin)(tb)
-    
+        matrizbinaria = [self.funcBin(item) for item in tb]
         return matrizbinaria
     
     def set_binary(self,binary):
@@ -124,19 +57,12 @@ class BinarizationStrategy:
         else:
            return 0
     
-    def standard(self, idx, tb):
-        if tb is None or idx is None: return 1
-        if random.random() <= tb[idx]:
-            return 1.
+    def standard(self, x):
+        if x is None: return 1
+        if random.random() <= x:
+            return 1
         else: 
-            return 0.
-        
-    def invStandard(self, idx, tb):
-        if tb is None or idx is None: return 1
-        if random.random() >= tb[idx]:
-            return 1.
-        else: 
-            return 0.
+            return 0
         
     def complement(self,x):
         if random.random() <= x:
@@ -152,10 +78,9 @@ class BinarizationStrategy:
         else: 
             return 1
         
-    def elitist(self, idx, tb):
-        
-        if random.random() < tb[idx]:
-            return self.mejorSol[idx] if self.mejorSol is not None else self.standard(idx,tb)
+    def elitist(self, x):
+        if random.random() < x:
+            return self.standard(x) 
         else: 
             return 0
     
