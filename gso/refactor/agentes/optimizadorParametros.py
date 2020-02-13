@@ -108,6 +108,7 @@ class OptimizadorParametros:
         if self.mejoraResultados > 0.0:
 #        if self.mejoraResultados > 0.5:
             print(f"LAS SOLUCIONES MEJORAN")
+
 #            self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
 #            self.parametros['accelPer'] *= 1.01
 #            self.parametros['accelBest'] -= .001
@@ -153,6 +154,22 @@ class OptimizadorParametros:
 #        print(self.parametros['accelPer'])
 #            self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
 #        self.parametros['nivel'] = 2
+
+#            self.parametros['accelPer'] *= 1.1 #max
+#            if self.parametros['accelPer'] > 0.5: self.parametros['accelPer'] = 0.5
+#            self.parametros['accelBest'] *= 1.1
+#            if self.parametros['accelBest'] > 0.5: self.parametros['accelBest'] = 0.5
+#            self.parametros['inercia'] *= 0.9
+#        else:
+#            print(f"LAS SOLUCIONES NO MEJORAN")
+#            self.parametros['accelPer'] *= .001 #max
+#            if self.parametros['accelPer'] < 0: self.parametros['accelPer'] = 0
+#            self.parametros['accelBest'] *= .001
+#            if self.parametros['accelBest'] < 0: self.parametros['accelBest'] = 0
+#            self.parametros['inercia'] *= 1.1
+#        print(self.parametros['accelPer'])
+#        self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
+#>>>>>>> ecdf6f5bbe33a9e12ce02fb8d2b39089ff0009ef
         
 #        if self.mejoraResultados <= self.delta:
 #            print('ESTANCADO')
