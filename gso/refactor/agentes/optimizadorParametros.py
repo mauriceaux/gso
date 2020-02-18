@@ -56,6 +56,9 @@ class OptimizadorParametros:
 #            print(resultados['mediaResultadosReales'][-self.iteraciones:-int(self.iteraciones/2)])
 #            self.estadoReal = (prmResProm - ultResProm) / prmResProm
             self.estadoReal = (prmResProm-ultResProm) / prmResProm
+            self.mediaUltRes = resultados['mediaResultadosReales'][-1] 
+            self.mejorEval = resultados['mejorObjetivo']
+            self.difMediaMejorEval = abs((self.mediaUltRes-self.mejorEval)/self.mejorEval)
             
             prmPromMejRes = np.mean(resultados['mejoresResultados'][-self.iteraciones:-int(self.iteraciones/2)])
             ultPromMejRes = np.mean(resultados['mejoresResultados'][-int(self.iteraciones/2):])
@@ -98,17 +101,30 @@ class OptimizadorParametros:
 #        if self.estadoReal > 0:
 #        self.parametros['numParticulas'] = int(self.parametros['numParticulas']*0.8)
 #        self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
-        self.parametros['inercia'] *= 0.99
-        self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
-        if self.parametros['nivel'] == 2:
-            self.iteraciones = 40
-        else:
-            self.iteraciones = 20
+#        self.parametros['inercia'] *= 0.99
+        
+#        if self.parametros['nivel'] == 2:
+#            self.iteraciones = 40
+#        else:
+#            self.iteraciones = 20
         self.parametros['numIteraciones'] = self.iteraciones
+        
+        if self.difMediaMejorEval > 0.3:
+            self.parametros['accelBest'] *= 1.2
+            self.parametros['accelPer'] *= .98
+        else if self.difMediaMejorEval == 0:
+            self.parametros['accelBest'] *= 0.9
+            self.parametros['accelPer'] *= 1.2
+#            self.parametros['inercia'] *= 1.5
+        else:
+            self.parametros['accelBest'] *= 0.98
+            self.parametros['accelPer'] *= 0.99
+        
         if self.mejoraResultados > 0.0:
 #        if self.mejoraResultados > 0.5:
             print(f"LAS SOLUCIONES MEJORAN")
-
+            self.parametros['inercia'] *= 0.99
+            self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
 #            self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
 #            self.parametros['accelPer'] *= 1.01
 #            self.parametros['accelBest'] -= .001
@@ -126,12 +142,12 @@ class OptimizadorParametros:
             
 #            self.parametros['accelBest'] *= 0.99
 #            self.parametros['accelPer'] *= 0.99
-            self.parametros['accelBest'] *= .99
-            self.parametros['accelPer'] *= .98
+#            self.parametros['accelBest'] *= .99
+#            self.parametros['accelPer'] *= .98
         else:
             print(f"LAS SOLUCIONES NO MEJORAN")
 #            self.parametros['inercia'] *= 1.1
-#            self.parametros['nivel'] = 1
+            self.parametros['nivel'] = 1
 #            self.parametros['numParticulas'] = int(self.parametros['numParticulas']*1.2)
             if self.parametros['nivel'] == 1:
 #                self.parametros['numParticulas'] = int(self.parametros['numParticulas']*1.1)
@@ -141,8 +157,8 @@ class OptimizadorParametros:
                     self.parametros['numParticulas'] = int(self.parametros['numParticulas']*1.1)
             
             
-            self.parametros['accelBest'] *= 1.02
-            self.parametros['accelPer'] *= 1.01
+#            self.parametros['accelBest'] *= 1.01
+#            self.parametros['accelPer'] *= 1.02
             
 #            self.parametros['accelBest'] *= 1.01
 #            self.parametros['accelPer'] *= 1.01
