@@ -112,7 +112,7 @@ class OptimizadorParametros:
         if self.difMediaMejorEval > 0.3:
             self.parametros['accelBest'] *= 1.2
             self.parametros['accelPer'] *= .98
-        else if self.difMediaMejorEval == 0:
+        elif self.difMediaMejorEval == 0:
             self.parametros['accelBest'] *= 0.9
             self.parametros['accelPer'] *= 1.2
 #            self.parametros['inercia'] *= 1.5
