@@ -33,6 +33,7 @@ class OptimizadorParametros:
             self.mejoraResultados = None
             self.estadoReal=1
             self.mejoraResultados = 1
+            self.difMediaMejorEval = 0.1
         else:
 #            print(f"resultados['mejoresResultados'] {resultados['mejoresResultados']}")
 #            print(f"resultados['mejoresResultados'][{-int(self.iteraciones/2)}:-1] {resultados['mejoresResultados'][-int(self.iteraciones/2):-1]}")
@@ -162,7 +163,7 @@ class OptimizadorParametros:
             
 #            self.parametros['accelBest'] *= 1.01
 #            self.parametros['accelPer'] *= 1.01
-            if self.parametros['inercia'] < 1:
+            if self.parametros['inercia'] < 0.5:
                 self.parametros['inercia'] *= 1.1
             pass
 #            if self.parametros['nivel'] == 1:

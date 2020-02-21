@@ -55,6 +55,8 @@ class GSO():
         self.solPromedio = None
         self.mostrarPromedio = False
         self.geometric = False
+        self.guardarDatosEjec = True
+        self.nomArchivoDatosEjec = f"ejecucion{datetime.now()}.csv"
         
         pass
     
@@ -309,6 +311,7 @@ class GSO():
             evaluaciones = np.array(evaluaciones)
             #print(evaluaciones)
             #exit()
+        
         if self.mostrarPromedio:
             tmp = np.mean(soluciones, axis=0)
             if self.solPromedio is None:
@@ -827,7 +830,18 @@ class GSO():
 #        exit()
         end = datetime.now()
         self.guardarIndicadorTiempo('evaluarGrupos', total, end-start)
-        
+        if self.guardarDatosEjec:
+            with open(self.nomArchivoDatosEjec, "a") as myfile:
+                
+                linea = f"{self.contenedorParametros['nivel']}"
+                linea += f",{len(datosNivel['soluciones'])}"                
+                linea += f",{self.contenedorParametros['accelPer']}"
+                linea += f",{self.contenedorParametros['accelBest']}"
+                linea += f",{self.contenedorParametros['inercia']}"
+                linea += f",{self.contenedorParametros['mejorEvalGlobal']}"
+                linea += f",{np.mean(datosNivel['evalSoluciones'])}"
+                linea += f",{np.std(datosNivel['evalSoluciones'])}\n"
+                myfile.write(linea)
         return datosNivel
     
     def guardarIndicadorTiempo(self, nombre, numEjec, timedelta):
