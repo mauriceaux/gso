@@ -22,15 +22,21 @@ class GSO():
         self.contenedorParametros['mejorSolucion'] = None
         self.contenedorParametros['mejorSolucionBin'] = None
         self.contenedorParametros['mejorSolGlobal'] = None
-#        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
-#        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
-        self.contenedorParametros['accelPer'] = 2
-        self.contenedorParametros['accelBest'] = 1.8
+        self.contenedorParametros['mejoresSolucionesBin'] = None
+        self.contenedorParametros['maxVal'] = None
+        self.contenedorParametros['minVal'] = None
+        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
+        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
+#        self.contenedorParametros['accelPer'] = 0
+#        self.contenedorParametros['accelBest'] = 0
+#        self.contenedorParametros['inercia'] = 0
+        self.contenedorParametros['inercia'] = np.random.uniform()
         self.contenedorParametros['maxVel'] = 5
         self.contenedorParametros['minVel'] = -5
         self.contenedorParametros['autonomo'] = True
+        self.contenedorParametros['numIteraciones'] = 1
 
-        self.contenedorParametros['inercia'] = 1.1
+        
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -64,6 +70,8 @@ class GSO():
         return self.indicadores
     
     def getParametros(self):
+#        print(self.contenedorParametros['datosNivel'])
+#        exit()
         return {
                 'nivel':self.contenedorParametros['nivel']
                 ,'numParticulas':self.contenedorParametros['numParticulas']
@@ -71,6 +79,12 @@ class GSO():
                 ,'inercia':self.contenedorParametros['inercia']
                 ,'accelPer':self.contenedorParametros['accelPer']
                 ,'accelBest':self.contenedorParametros['accelBest']
+                , 'mejorSolucionBin':self.contenedorParametros['mejorSolucionBin']
+                ,'mejoresSolucionesBin':self.contenedorParametros['datosNivel'][self.contenedorParametros['nivel']]['mejorSolGrupoBin']
+                ,'maxVal':self.contenedorParametros['maxVal']
+                ,'minVal':self.contenedorParametros['minVal']
+                ,'maxGlobalVal':self.problema.getRangoSolucion()['max']
+                ,'minGlobalVal':self.problema.getRangoSolucion()['min']
                 }
     
     def setParametros(self, parametros):
@@ -85,6 +99,8 @@ class GSO():
         self.indicadores['numDimProblema'] = problema.getNumDim()
         self.indicadores['numLlamadasFnObj'] = 0
         self.problema.paralelo = self.procesoParalelo
+        self.contenedorParametros['maxVal'] = np.ones(problema.getNumDim())*problema.getRangoSolucion()['max']
+        self.contenedorParametros['minVal'] = np.ones(problema.getNumDim())*problema.getRangoSolucion()['min']
 #        self.ax.set_ylim(-.000000000000000009, .000000000000000009)
 #        escala = 10
 #        escalax = 899 - (1/10**121) 
@@ -129,8 +145,8 @@ class GSO():
 #        accelBest = 1
         maxVel = self.contenedorParametros['maxVel']
         minVel = self.contenedorParametros['minVel']
-        maxVal = self.problema.getRangoSolucion()['max']
-        minVal = self.problema.getRangoSolucion()['min']
+        maxVal = self.contenedorParametros['maxVal']
+        minVal = self.contenedorParametros['minVal']
 #        randPer = np.random.uniform(low=0, high=1)
 #        randBest = np.random.uniform(low=0, high=1)
 #        randPer = np.random.uniform(low=-1, high=1)
@@ -161,8 +177,8 @@ class GSO():
         #print(f'velocidad nueva {nextVel}')
         #exit()
         ret = swarm+nextVel
-        ret[ret > maxVal]  = maxVal
-        ret[ret < minVal] = minVal
+        ret[ret > maxVal]  = self.problema.getRangoSolucion()['max']
+        ret[ret < minVal] = self.problema.getRangoSolucion()['min']
         return ret, nextVel
     
     def aplicarMovimiento(self, datosNivel, iteracion, totIteraciones):
@@ -448,9 +464,10 @@ class GSO():
         for iteracion in range(self.contenedorParametros['numIteraciones']):
             
             resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['numIteraciones'])
-            strPromedio = " romedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
+            strPromedio = " promedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
             string = f'nivel {nivel} iteracion {iteracion} mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]} {strPromedio} num particulas {datosNivel["soluciones"].shape[0]}'
             print(string)
+            
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
 #            datosNivel['soluciones'][resultadoMovimiento['solucionesBin'] == 0] = self.problema.getRangoSolucion()['min']
 #            datosNivel['soluciones'][resultadoMovimiento['solucionesBin'] == 1] = self.problema.getRangoSolucion()['max']
@@ -496,8 +513,8 @@ class GSO():
             soluciones[soluciones == 1] = self.problema.getRangoSolucion()['max']
             
             mejoresSoluciones = mejoresSolucionesBin.copy()
-            mejoresSoluciones[mejoresSoluciones == 0] = self.problema.getRangoSolucion()['min']
-            mejoresSoluciones[mejoresSoluciones == 1] = self.problema.getRangoSolucion()['max']
+#            mejoresSoluciones[mejoresSoluciones == 0] = self.problema.getRangoSolucion()['min']
+#            mejoresSoluciones[mejoresSoluciones == 1] = self.problema.getRangoSolucion()['max']
             
             
             idxMejores = evaluaciones>mejoresEvaluaciones
@@ -840,7 +857,8 @@ class GSO():
                 linea += f",{self.contenedorParametros['inercia']}"
                 linea += f",{self.contenedorParametros['mejorEvalGlobal']}"
                 linea += f",{np.mean(datosNivel['evalSoluciones'])}"
-                linea += f",{np.std(datosNivel['evalSoluciones'])}\n"
+                linea += f",{np.std(datosNivel['evalSoluciones'])}"
+                linea += f",{np.std(datosNivel['soluciones'])}\n"
                 myfile.write(linea)
         return datosNivel
     

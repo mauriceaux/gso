@@ -19,7 +19,7 @@ from datetime import datetime
 if __name__ == '__main__':
     carpeta = 'problemas/scp/instances'
     carpetaResultados = 'resultados/scp'
-    for _ in range(31):
+    for _ in range(1):
         for archivo in os.listdir(carpeta):
             path = os.path.join(carpeta, archivo)
             if os.path.isdir(path):

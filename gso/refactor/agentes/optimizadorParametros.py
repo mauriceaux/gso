@@ -6,18 +6,20 @@ Created on Sat Dec 14 20:37:01 2019
 @author: mauri
 """
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 class OptimizadorParametros:
 
     def __init__(self):
         self.parametros = None
-        self.iteraciones = 20
+        self.iteraciones = 10
         self.delta = 0
         self.contRechazo = 0
         self.maxRechazo = 4
         self.contExploracion = 0
         self.maxExploracion = 3
         self.numObs = 0
+        self.mejorSolProm = None
     
     def setParamDim(self, paramDim):
         self.paramDim = paramDim
@@ -29,6 +31,41 @@ class OptimizadorParametros:
 #        self.numObs += 1
         #if not 'mediaResultadosReales' in resultados:
         #print(resultados)
+#        print(parametros['mejoresSolucionesBin'])
+        if parametros['mejorSolucionBin'] is not None:
+            if self.mejorSolProm is None:
+                self.mejorSolProm = parametros['mejorSolucionBin']
+            else:
+                scaler = MinMaxScaler(feature_range=(parametros['minGlobalVal'], parametros['maxGlobalVal']))
+#            print(np.array([parametros['mejoresSolucionesBin'][key] for key in parametros['mejoresSolucionesBin']]))
+#            exit()
+#                solsBin = np.array([parametros['mejoresSolucionesBin'][key] for key in parametros['mejoresSolucionesBin']])
+                solsBin = np.array([self.mejorSolProm, parametros['mejorSolucionBin']])
+#            print(solsBin.shape)
+#            exit()
+                mean = np.mean(solsBin, axis=0)
+#            print(f"mean {mean}")
+#            print(mean.shape)
+#            exit()
+                std = np.std(solsBin, axis=0)
+#            print(std)
+#            exit()
+                maximo = np.array(mean+std).reshape(-1,1)
+                maximo[maximo>1] = 1
+#            print(maximo[0])
+#            exit()
+                minimo = np.array(mean-std).reshape(-1,1)
+                minimo[minimo<0] = 0
+#            print(minimo)
+#            exit()
+                self.parametros['maxVal'] = scaler.fit_transform(maximo)
+                self.parametros['maxVal'] = parametros['maxVal'].reshape(np.prod(parametros['maxVal'].shape))
+                self.parametros['minVal'] = scaler.fit_transform(minimo)
+                self.parametros['minVal'] = parametros['minVal'].reshape(np.prod(parametros['minVal'].shape))
+                print(f"parametros['maxVal'] {parametros['maxVal']}")
+                print(f"parametros['minVal'] {parametros['minVal']}")
+#            print((parametros['minVal'] > parametros['maxVal']).any())
+#            exit()
         if not 'mejoresResultados' in resultados:
             self.mejoraResultados = None
             self.estadoReal=1
@@ -45,12 +82,14 @@ class OptimizadorParametros:
 ##            prmResProm = np.mean(resultados['mediaResultadosReales'][-self.iteraciones:-int(self.iteraciones/2)])
 #            self.estadoReal = (prmResProm - ultResProm) *100/ prmResProm
 #            self.estadoRealAcumulado = self.estadoReal
-        
-            ultResProm = np.mean(resultados['mediaResultadosReales'][-int(self.iteraciones/2):])
-            print(f'ultResProm {ultResProm}')
             
+            ultResProm = np.mean(resultados['mediaResultadosReales'][-int(self.iteraciones/2):])
+#            print(f'ultResProm {ultResProm}')
+#            exit()
 #            print(resultados['mediaResultadosReales'][-int(self.iteraciones/2):])
             prmResProm = np.mean(resultados['mediaResultadosReales'][-self.iteraciones:-int(self.iteraciones/2)])
+#            print(resultados['mediaResultadosReales'])
+#            exit()
 #            print(f'prmResProm {prmResProm}')
 #            print(f'prm-ult {(prmResProm-ultResProm)/prmResProm  }')
 #            exit()
@@ -89,7 +128,14 @@ class OptimizadorParametros:
 #        self.parametros['accelBest'] += 0.0001
 #        self.parametros['inercia'] = 3
 #        self.parametros['nivel'] = 1
+        self.parametros['numIteraciones'] = self.iteraciones
         if self.mejoraResultados is None: return self.parametros
+#        self.parametros['accelBest'] += 0.5
+#        self.parametros['accelPer'] += 0
+#        self.parametros['inercia'] = 0
+##        exit()
+#        return self.parametros
+        
 #        return self.parametros
 #        print(f'porcentaje diferencia {self.estadoReal}')
         print(f'**********************\nESTADO REAL\n{self.mejoraResultados}\n**********************\n')
@@ -165,6 +211,7 @@ class OptimizadorParametros:
 #            self.parametros['accelPer'] *= 1.01
             if self.parametros['inercia'] < 0.5:
                 self.parametros['inercia'] *= 1.1
+            
             pass
 #            if self.parametros['nivel'] == 1:
 #                self.parametros['numParticulas'] = int(self.parametros['numParticulas'] * 1.1)

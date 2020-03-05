@@ -31,10 +31,11 @@ class Solver():
         else:
             #30 ejecuciones porque si
 
-            for i in range(20):
+            for i in range(10):
     #            indicadores = self.algoritmo.getIndicadores()
-                self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
                 self.algoritmo.generarSolucionReducida()
+                self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
+                
                 
                 
         end = datetime.now()

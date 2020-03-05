@@ -37,9 +37,11 @@ class SCPProblem():
 #        exit()
         self.tTransferencia = "sShape1"
 #        self.tTransferencia = "vShape2"
-        self.tBinary = "Standar"
+#        self.tBinary = "Standar"
+        self.tBinary = "StaticProbability"        
 #        self.tBinary = "invStandar"
         self.binarizationStrategy = _binarization.BinarizationStrategy(self.tTransferencia, self.tBinary)        
+        self.binarizationStrategy.alpha = 0.4
         self.repair = _repara.ReparaStrategy(self.instance.get_r()
                                             ,self.instance.get_c()
                                             ,self.instance.get_rows()
@@ -76,7 +78,7 @@ class SCPProblem():
         return self.instance.columns
 
     def getRangoSolucion(self):
-        return {'max': 1.5, 'min':-10}
+        return {'max':1.5, 'min':-10}
 
     def eval(self, encodedInstance):
         decoded, numReparaciones = self.frepara(encodedInstance)

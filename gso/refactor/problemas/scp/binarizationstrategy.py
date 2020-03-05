@@ -144,11 +144,12 @@ class BinarizationStrategy:
         else: 
             return 0
     
-    def staticProbability(self, x, alpha):
-        if alpha >= x: 
+    def staticProbability(self, idx,tb):
+        if tb is None or idx is None: return 0
+        if self.alpha >= tb[idx]: 
             return 0 
-        elif (alpha < x and x <= ((1 + alpha) / 2)):
-            return self.standard(x)
+        elif (self.alpha < tb[idx] and tb[idx] <= ((1 + self.alpha) / 2)):
+            return self.standard(idx,tb)
         else: 
             return 1
         
