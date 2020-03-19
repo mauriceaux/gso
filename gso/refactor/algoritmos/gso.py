@@ -156,10 +156,19 @@ class GSO():
         nextVel = vInercia + acceleration
         #print(f'velocidad anterior {nextVel}')
         
-        nextVel[nextVel > maxVel]  = maxVel
-        nextVel[nextVel < minVel]  = minVel
+#        nextVel[nextVel > maxVel]  = maxVel
+#        nextVel[nextVel < minVel]  = minVel
         #print(f'velocidad nueva {nextVel}')
         #exit()
+#        dimMinVel = np.argmin(nextVel)
+#        dimMaxVel = np.argmax(nextVel)
+#        print(f"dimMaxVel {dimMaxVel}")
+#        print(f"nextVel.shape {nextVel.shape}")
+#        print(f"swarm {swarm}")
+#        exit()
+#        swarm[dimMinVel]+=nextVel[dimMinVel]
+#        swarm[dimMaxVel]+=nextVel[dimMaxVel]
+#        ret = swarm.copy()
         ret = swarm+nextVel
         ret[ret > maxVal]  = maxVal
         ret[ret < minVal] = minVal
@@ -436,11 +445,6 @@ class GSO():
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
         #if not nivel in self.contenedorParametros['datosNivel'] or nivel > 1: 
         
-
-        
-
-        
-        
 #        datosNivel = self.contenedorParametros['datosNivel'][nivel]
         
 #        datosNivel = self.agruparNivel(datosNivel, nivel)
@@ -704,7 +708,8 @@ class GSO():
             datosNivel = self.evaluarGrupos(datosNivel)
         end = datetime.now()
         self.guardarIndicadorTiempo('generarNivel', totalNivel, end-start)
-        
+#        print(f"datosNivel['soluciones'].shape {datosNivel['soluciones'].shape}")
+#        exit() 
         return datosNivel
     
     def agruparNivel(self, datosNivel, nivel):
