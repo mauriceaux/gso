@@ -242,10 +242,10 @@ class GSO():
                 #cont +=1
 #                print(arg)
                 if self.geometric:
-                    sol, vel = self.moveSwarmGeometric(arg[0], arg[1], arg[2], arg[3], arg[4])
+                    sol, vel = self.moveSwarmGeometric(arg[0], arg[1], arg[2], arg[3], arg[4], arg[5], arg[6])
                 else:
-                    sol, vel = self.moveSwarm(arg[0], arg[1], arg[2], arg[3], arg[4])
-                ret.append(sol)
+                    sol, vel = self.moveSwarm(arg[0], arg[1], arg[2], arg[3], arg[4], arg[5], arg[6])
+                ret.append([sol,vel])
 #                print(f'solucion inicial {arg[0]}')
 #                print(f'velocidad inicial {arg[1]}')
 #                print(f'solucion calculada {sol}')
