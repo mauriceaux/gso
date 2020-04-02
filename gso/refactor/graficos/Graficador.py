@@ -42,11 +42,17 @@ class Graficador:
         limite=1000
         y1_data = y1_data[:limite]
         x_vec = x_vec[:limite]
-        idLine1 = np.where(np.array(self.axsIds) == identifier)[0][0]
-#        print(idLine1)
+#        print(f"np.where(np.array(self.axsIds) == identifier)[0][0] {np.where(np.array(self.axsIds) == identifier)[0].shape[0]}") 
 #        exit()
-        line1 = self.lines[idLine1]
-        ax = self.axs[idLine1]
+        line1 = None
+        if np.where(np.array(self.axsIds) == identifier)[0].shape[0] > 0:
+            
+            idLine1 = np.where(np.array(self.axsIds) == identifier)[0][0]
+    #        exit()
+    #        print(idLine1)
+    #        exit()
+            line1 = self.lines[idLine1]
+            ax = self.axs[idLine1]
         if line1 is None:
             # this is the call to matplotlib that allows dynamic plotting
             plt.ion()

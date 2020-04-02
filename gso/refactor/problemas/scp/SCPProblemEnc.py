@@ -8,6 +8,7 @@ Created on Tue Oct  1 22:02:44 2019
 import numpy as np
 from . import read_instance as r_instance
 from . import binarizationstrategy as _binarization
+from .rankPerm import rankPerm
 #import reparastrategy as _repara
 #from .repair import ReparaStrategy2 as _repara
 from .repair import ReparaStrategy as _repara
@@ -48,6 +49,8 @@ class SCPProblem():
         self.paralelo = False
         self.penalizar = False
         self.mejorSolHist = np.ones((self.instance.get_columns())) * 0.5
+        
+        self.rankPerm = rankPerm.RankPerm()
 #        self.graficador = None
 #        self.gParam = Graficador()
 #        self.gVels = Graficador()
@@ -75,8 +78,11 @@ class SCPProblem():
 #    def getNombre(self):
 #        return self.instancia
     
-    def getNumDim(self):
+    def _getNumDim(self):
         return self.instance.columns
+    
+    def getNumDim(self):
+        return 2
 
     def getRangoSolucion(self):
 #        return {'max': 5, 'min':-5}
@@ -88,13 +94,18 @@ class SCPProblem():
         return fitness, decoded, numReparaciones
 
     def evalEnc(self, encodedInstance):
+#        print(f"encodedInstance {encodedInstance}")
+        decoded = self.decodeInstance(encodedInstance)
         if not self.penalizar:
-            decoded, numReparaciones = self.decodeInstance(encodedInstance)
+            
+            decoded, numReparaciones = self.frepara(decoded)
         else:
-            decoded = self.binarizationStrategy.binarize(encodedInstance)
             numReparaciones = 0
         fitness = self.evalInstance(decoded)
-        return fitness, decoded, numReparaciones
+#        unos = np.count_nonzero(decoded > 0)
+#        rank = self.rankPerm.rankperm(decoded)
+        encoded = self.encodeInstance(decoded)
+        return fitness, encoded, numReparaciones
 
     def evalEncBatch(self, encodedInstances, mejorSol):
         decoded, numReparaciones = self.decodeInstancesBatch(encodedInstances, mejorSol)
@@ -122,22 +133,14 @@ class SCPProblem():
         return fitness, encodedInstances, None
     
     def encodeInstance(self, decodedInstance):
-        assert decodedInstance.shape[0] == self.getNumDim()
-        idx = np.ones((self.getNumDim())) * -1
-        cont = 0
-        for i in range(decodedInstance.shape[0]):
-            if decodedInstance[i] == 1:
-                idx[i] = cont
-                cont += 1
-        totalUnos = cont
-        for i in range(decodedInstance.shape[0]):
-            if decodedInstance[i] == 0:
-                idx[i] = cont
-                cont += 1
-        
-        p = Permutation(idx)
-        rank = p.rank()
-        return np.array([totalUnos, rank])
+        decodedInstance = np.array(decodedInstance)
+#        print(decodedInstance)
+#        exit()
+        assert decodedInstance.shape[0] == self._getNumDim()
+        unos = np.count_nonzero(decodedInstance > 0)
+        rank = self.rankPerm.rankperm(decodedInstance)
+        encoded = np.array([unos,rank])
+        return np.array(encoded)
 #        decodedInstance[decodedInstance==1] = self.getRangoSolucion()['max']
 #        decodedInstance[decodedInstance==0] = self.getRangoSolucion()['min']
 #        return decodedInstance
@@ -146,6 +149,7 @@ class SCPProblem():
         
     def decodeInstancesBatch(self, encodedInstances, mejorSol):
         start = datetime.now()
+        
         b = self.binarizationStrategy.binarizeBatch(encodedInstances, mejorSol)
         end = datetime.now()
         binTime = end-start
@@ -163,19 +167,29 @@ class SCPProblem():
     def decodeInstance(self, encodedInstance):
         start = datetime.now()
         arr = np.array(encodedInstance)
-        assert arr.shape[0] != 2
-        unrank = Permutation.unrank_lex(self.getNumDim(),arr[1])
-        idx = np.array([i^unrank for i in range(unrank.size)])
-        aux = np.zeros((self.getNumDim()))
-        print(arr[0])
-        aux[:arr[0]] = 1
-        decoded = np.ones((self.getNumDim())) * -1
+        assert arr.shape[0] == 2
+#        print(arr)
+        unos = arr[0]
+        original = np.zeros((self._getNumDim()))
+        #print(original)
+        original[-unos:] = 1
+        decoded = self.rankPerm.unrankperm(original,arr[1])
         
-        for i in range(self.getNumDim()):
-            decoded[i] = 1 if idx < arr[0] else 0
+#        unos = np.count_nonzero(arr > 0)
+#        original = np.zeros((tam))
+#        original[-unos:] = 1
+#        unrank = rankPerm.unrankperm(self.getNumDim(),arr[1])
+#        idx = np.array([i^unrank for i in range(unrank.size)])
+#        aux = np.zeros((self.getNumDim()))
+#        print(arr[0])
+#        aux[:arr[0]] = 1
+#        decoded = np.ones((self.getNumDim())) * -1
+        
+#        for i in range(self.getNumDim()):
+#            decoded[i] = 1 if idx[i] < arr[0] else 0
+#        return decoded
+        
         return decoded
-#        encodedInstance, numReparaciones = self.frepara(decoded)
-#        return encodedInstance, numReparaciones
         
         
 #        encodedInstance, numReparaciones = self.frepara(decoded)
@@ -195,7 +209,8 @@ class SCPProblem():
 #    @profile
     def evalInstance(self, decoded):
 #        time.sleep(0.1)
-        return -(self.fObj(decoded, self.instance.get_c())) if self.repair.cumple(decoded) == 1 else -10000000000
+        incumplidas = self.repair.cumple(decoded)
+        return -(self.fObj(decoded, self.instance.get_c())) if incumplidas == 0 else incumplidas*-10000000000
     
     def evalInstanceBatch(self, decoded):
         start = datetime.now()
@@ -223,8 +238,8 @@ class SCPProblem():
 #    @profile
     def freparaBatch(self,x):
         start = datetime.now()
-        print(x.shape)
-        exit()
+#        print(x.shape)
+#        exit()
         end = datetime.now()
     
     
@@ -238,7 +253,7 @@ class SCPProblem():
 #        r = self.instance.get_rows()
 #        c = self.instance.get_columns()
         cumpleTodas=self.repair.cumple(x)
-        if cumpleTodas == 1: return x, 0
+        if cumpleTodas == 0: return x, 0
         
         x, numReparaciones = self.repair.repara_one(x)    
         end = datetime.now()
@@ -248,89 +263,54 @@ class SCPProblem():
 #        x = self.repair.repara_two(x)    
 #        end = datetime.now()
 #        print(f'repara two {end-start}')
-        return x, numReparaciones
+        return np.array(x), numReparaciones
+    
+    def reparaEvalua(self, x):
+        x,_ = self.frepara(x)
+        obj = self.evalInstance(x)
+        return obj, x
     
     def generarSolsAlAzar(self, numSols, mejorSol=None):
 #        args = []
-        if mejorSol is None:
+        if mejorSol is None or True:
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['max']
-            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
-#            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * 0.1
-#            args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
+#            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
+            args = np.zeros((numSols, self._getNumDim()))
+#            args = np.random.randint(low=0,high=2,size=(numSols, self._getNumDim()))
         else:
-            self.mejorSolHist = (mejorSol+self.mejorSolHist)/2
-#            print(f'self.mejorSolHist {self.mejorSolHist}')
-#            mejorSol = self.mejorSolHist
-            args = np.repeat(np.array(self.mejorSolHist)[None, :], numSols, axis=0)
-#            for i in range(numSols):
-#                for j in range(args.shape[1]):
-#                    args[i,j] = (self.getRangoSolucion()['min'] 
-#                                    if np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max']) > args[i,j] 
-#                                    else  self.getRangoSolucion()['max'])
-#                    args[i,j] = (1
-#                                    if np.random.uniform() < args[i,j] 
-#                                    else  0)
-#                print(args[i])
-#                rng = default_rng()
-#                unos = np.where(mejorSol>0)[0]
-#                if len(unos) > 0:
-#                    idxVariar = rng.choice(unos, size=(int((unos.shape[0]*.03)+1)), replace=False)
-#                    args[i,idxVariar] = self.getRangoSolucion()['min']
-#                args[i,idxVariar] *= np.random.uniform(-1,1) 
-#            args = np.repeat(np.array(mejorSol)[None, :], numSols, axis=0)
-#            args[args == 1] = self.getRangoSolucion()['max']
-#            args[args == 0] = self.getRangoSolucion()['min']
-#            print(f'idxVariar {idxVariar.shape}')
-#            print(f'args {args.shape}')
-            
-#            args[np.arange(mejorSol.shape[0]),idxVariar] *= np.random.uniform(-1,1) * np.random.uniform()
-#            exit()
-#        fitness,sol,_ = self.evalEncBatch(args, args[0])
-#        sol[sol==0] = self.getRangoSolucion()['min']
-#        sol[sol==1] = self.getRangoSolucion()['max']
-#        print(fitness)
-#        exit()
-#        args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max'], size=(numSols, self.getNumDim()))
-#        print(args)
-#        exit()
-#        print(f'args {args}')
+#            self.mejorSolHist = (mejorSol+self.mejorSolHist)/2
+            args = np.array([self.decodeInstance(np.array([mejorSol[0],mejorSol[1]+np.random.randint(low=-10, high=10)])) for i in range(numSols)])
+#            args = np.repeat(np.array(self.mejorSolHist)[None, :], numSols, axis=0)
         fitness = []
         ant = self.penalizar
         self.penalizar = False
         if self.paralelo:
             pool = mp.Pool(4)
-            ret = pool.map(self.evalEnc, args.tolist())
+            ret = pool.map(self.reparaEvalua, args.tolist())
             pool.close()
+            
             fitness =  np.array([item[0] for item in ret])
-            sol = np.array([item[1] for item in ret])
-#            sol[sol==0] = self.getRangoSolucion()['min']
-#            sol[sol==1] = self.getRangoSolucion()['max']
-#        print(sol)
-#        exit()
+            sol = np.array([self.encodeInstance(item[1]) for item in ret])
         else:
             sol = []
             for arg in args:
 ###            print(len(arg))
-                sol_ = np.array(self.evalEnc(arg)[1])
-                fitness_ = np.array(self.evalEnc(arg)[0])
+                res = self.reparaEvalua(arg)
+                sol_ = self.encodeInstance(np.array(res[1]))
+                fitness_ = np.array(res[0])
 #                sol_[sol_==0] = self.getRangoSolucion()['min']
 #                sol_[sol_==1] = self.getRangoSolucion()['max']
 ##            print(sol_)
 ##            exit()
                 sol.append(sol_)
                 fitness.append(fitness_)
+            
             sol = np.array(sol)
+#            print(sol)
+#            exit()
             fitness = np.array(fitness)
         self.penalizar = ant
-#        print(sol)
-#        exit()
-#        print(f'fin doluciones al azar')
-#        exit()
-#        divisor = 9
-#        sol[sol==0] = self.getRangoSolucion()['min']/divisor
-#        sol[sol==1] = self.getRangoSolucion()['max']/divisor
-#        print(sol)
-#        exit()
+        
         return sol, fitness
     
     def graficarSol(self, datosNivel, parametros, nivel, id = 0):

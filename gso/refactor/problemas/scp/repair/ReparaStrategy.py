@@ -44,7 +44,22 @@ class ReparaStrategy:
         sol[lSolution] = 1
         return sol.tolist(), numReparaciones
     
+    def reparatwo(self,solucion):
+        cont = 0
+        while True:
+            incumplidas = np.zeros(np.array(solucion).shape)
+            for i in range(self.rows): 
+                if np.sum(self.matrix[i]*solucion) < 1: 
+                    incumplidas += self.matrix[i]-(self.matrix[i]*solucion)
+            if np.sum(incumplidas) < 1: 
+                return solucion, cont
+            solucion[np.argmax(incumplidas/self.pesos)] = 1
+            cont += 1
+        return solucion, cont
+    
     def cumple(self, solucion):
+        cont = 0
         for i in range(self.rows): 
-            if np.sum(self.matrix[i]*solucion) < 1: return 0
-        return 1
+            if np.sum(self.matrix[i]*solucion) < 1: 
+                cont += 1
+        return cont

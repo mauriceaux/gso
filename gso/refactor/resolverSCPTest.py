@@ -8,7 +8,7 @@ Created on Sun Dec  8 17:35:28 2019
 
 from solver.MHSolver import Solver
 from algoritmos.gso import GSO
-from problemas.scp.SCPProblem import SCPProblem
+from problemas.scp.SCPProblemEnc import SCPProblem
 import os
 import numpy as np
 import sys
@@ -39,7 +39,7 @@ if __name__ == '__main__':
             solver.resolverProblema()
             fin = datetime.now()
             with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}.csv", "a") as myfile:
-                mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
+                mejorSolStr = np.array2string(solver.algoritmo.problema.decodeInstance(solver.algoritmo.indicadores["mejorSolucion"]), max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
                 myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{inicio}, {fin}, {fin-inicio}, {mejorSolStr}\n')
             with open(f"{carpetaResultados}/algoritmos/gso/{archivo}GSO.csv", "a") as myfile:
                 myfile.write(json.dumps(solver.algoritmo.indicadores["tiempos"]))
