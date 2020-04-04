@@ -256,6 +256,7 @@ class SCPProblem():
         if cumpleTodas == 0: return x, 0
         
         x, numReparaciones = self.repair.repara_one(x)    
+        x = self.mejoraSolucion(x)
         end = datetime.now()
 #        print(f'repara one {end-start}')
 #        cumpleTodas = self.repair.cumple(x)
@@ -264,6 +265,18 @@ class SCPProblem():
 #        end = datetime.now()
 #        print(f'repara two {end-start}')
         return np.array(x), numReparaciones
+    
+    def mejoraSolucion(self, solucion):
+        solucion = np.array(solucion)
+        costos = solucion * self.instance.get_c()
+        cosOrd = np.argsort(costos)[::-1]
+        for pos in cosOrd:
+            if costos[pos] == 0: break
+            modificado = solucion.copy()
+            modificado[pos] = 0
+            if self.repair.cumple(modificado) == 0:
+                solucion = modificado
+        return solucion
     
     def reparaEvalua(self, x):
         x,_ = self.frepara(x)

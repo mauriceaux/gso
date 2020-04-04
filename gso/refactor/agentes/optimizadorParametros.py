@@ -59,7 +59,7 @@ class OptimizadorParametros:
             self.estadoReal = (prmResProm-ultResProm) / prmResProm
             self.mediaUltRes = resultados['mediaResultadosReales'][-1] 
             self.mejorEval = resultados['mejorObjetivo']
-            self.difMediaMejorEval = abs((self.mediaUltRes-self.mejorEval)/self.mejorEval)
+            self.difMediaMejorEval = (self.mediaUltRes-self.mejorEval)/self.mejorEval
             
             prmPromMejRes = np.mean(resultados['mejoresResultados'][-self.iteraciones:-int(self.iteraciones/2)])
             ultPromMejRes = np.mean(resultados['mejoresResultados'][-int(self.iteraciones/2):])
@@ -84,22 +84,24 @@ class OptimizadorParametros:
     
     def mejorarParametros(self):
         if self.mejoraResultados is None: return self.parametros
-        print(f'**********************\nESTADO REAL\n{self.mejoraResultados}\n**********************\n')
+        print(f'**********************\nESTADO REAL\n{self.mejoraResultados} {self.difMediaMejorEval}\n**********************\n')
         self.parametros['numIteraciones'] = self.iteraciones
         
         if self.difMediaMejorEval > 0.3:
             self.parametros['accelBest'] -= 1
             self.parametros['accelPer'] -= 1
+            self.parametros['inercia'] = int(self.parametros['inercia']*0.9)
         elif self.difMediaMejorEval == 0:
             self.parametros['accelBest'] += 1
             self.parametros['accelPer'] += 1
         else:
+            self.parametros['inercia'] = int(self.parametros['inercia']*1.5)
             self.parametros['accelBest'] += 2
             self.parametros['accelPer'] += 2
         
         if self.mejoraResultados > 0.0:
             print(f"LAS SOLUCIONES MEJORAN")
-            self.parametros['inercia'] -= 1
+            
             self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
             if self.parametros['nivel'] == 1:
                 self.parametros['numParticulas'] = int(self.parametros['numParticulas'] * 0.8)
@@ -111,7 +113,7 @@ class OptimizadorParametros:
                     self.parametros['numParticulas'] = int(self.parametros['numParticulas']*0.6)
                 else:
                     self.parametros['numParticulas'] = int(self.parametros['numParticulas']*1.1)
-            self.parametros['inercia'] += 5
+            
         if self.parametros['numParticulas'] > 100: self.parametros['numParticulas'] = 100
         if self.parametros['numParticulas'] < 20: self.parametros['numParticulas'] = 20
 

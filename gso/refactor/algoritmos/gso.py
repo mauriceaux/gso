@@ -126,8 +126,6 @@ class GSO():
         return swarm, None
     
     def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia, accelPer, accelBest):
-        accelPer = self.contenedorParametros['accelPer']
-        accelBest = self.contenedorParametros['accelBest']
         maxVel = self.contenedorParametros['maxVel']
         minVel = self.contenedorParametros['minVel']
         randPer = 1
