@@ -26,13 +26,13 @@ class GSO():
         self.contenedorParametros['mejorSolGlobal'] = None
 #        self.contenedorParametros['accelPer'] = 2.05*np.random.uniform()
 #        self.contenedorParametros['accelBest'] = 2.05*np.random.uniform()
-        self.contenedorParametros['accelPer'] = 20
-        self.contenedorParametros['accelBest'] = 30
+        self.contenedorParametros['accelPer'] = 2
+        self.contenedorParametros['accelBest'] = 3
         self.contenedorParametros['maxVel'] = 5
         self.contenedorParametros['minVel'] = -5
         self.contenedorParametros['autonomo'] = True
 
-        self.contenedorParametros['inercia'] = 10
+        self.contenedorParametros['inercia'] = 3
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -57,7 +57,7 @@ class GSO():
         self.scaler = None
         self.plotShowing = False
         self.solPromedio = None
-        self.mostrarPromedio = False
+        self.mostrarPromedio = True
         self.geometric = False
         self.guardarDatosEjec = True
         self.nomArchivoDatosEjec = f"ejecucion{datetime.now()}.csv"
@@ -128,17 +128,17 @@ class GSO():
     def moveSwarm(self, swarm, velocity, personalBest, bestFound, inertia, accelPer, accelBest):
         maxVel = self.contenedorParametros['maxVel']
         minVel = self.contenedorParametros['minVel']
-        randPer = 1
-        randBest = 1
+        randPer = np.random.uniform(low=-1,high=2)
+        randBest = np.random.uniform(low=-1,high=2)
         personalDif = personalBest - swarm
         
 #        exit()        
-        personalAccel = accelPer * randPer * personalDif
+        personalAccel = int(accelPer * randPer) * personalDif
         
         #print(f'personalAccel {personalAccel}')
         bestDif = bestFound - swarm
         
-        bestAccel = accelBest * randBest * bestDif
+        bestAccel = int(accelBest * randBest) * bestDif
         
         #print(f'bestAccel {bestAccel}')
         acceleration =  personalAccel + bestAccel
@@ -235,7 +235,7 @@ class GSO():
 #        resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
 #        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['max']
 #        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 0] = self.problema.getRangoSolucion()['min']
-        resultadoMovimiento['soluciones'] = solucionesBin
+        resultadoMovimiento['soluciones'] = np.array([item[0] for item in ret])
 #        print(resultadoMovimiento['soluciones'][0])
         resultadoMovimiento['solucionesBin'] = solucionesBin
         resultadoMovimiento['evalSoluciones'] = evaluaciones
@@ -274,16 +274,16 @@ class GSO():
             #print(evaluaciones)
             #exit()
         
-        if self.mostrarPromedio:
-            tmp = np.mean(soluciones, axis=0)
-            if self.solPromedio is None:
-                self.solPromedio = tmp
-            else:
-                
-                self.solPromedio = np.append(self.solPromedio, tmp).reshape(2, tmp.shape[0])
-    #            print(self.solPromedio.shape)
-    #            exit()
-                self.solPromedio = np.mean(self.solPromedio, axis=0)
+#        if self.mostrarPromedio:
+#            tmp = np.mean(soluciones, axis=0)
+#            if self.solPromedio is None:
+#                self.solPromedio = tmp
+#            else:
+#                
+#                self.solPromedio = np.append(self.solPromedio, tmp).reshape(2, tmp.shape[0])
+#    #            print(self.solPromedio.shape)
+#    #            exit()
+#                self.solPromedio = np.mean(self.solPromedio, axis=0)
         
         end = datetime.now()
         self.guardarIndicadorTiempo('evaluarSoluciones', len(soluciones), end-start)
@@ -395,7 +395,7 @@ class GSO():
         for iteracion in range(self.contenedorParametros['numIteraciones']):
             
             resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['numIteraciones'])
-            strPromedio = " promedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
+            strPromedio = f" promedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
             string = f'nivel {nivel} iteracion {iteracion} mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]} {strPromedio} num particulas {datosNivel["soluciones"].shape[0]}'
             print(string)
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
@@ -673,6 +673,7 @@ class GSO():
             kmeans = KMeans(n_clusters=numGrupos, init='k-means++')
     #        grupos = kmeans.fit_predict(datosNivel['velocidades'])
             grupos = kmeans.fit_predict(datosNivel['evalSoluciones'].reshape(-1,1))
+            print(f"WSS {kmeans.inertia_}")
 #            grupos = kmeans.fit_predict(datosNivel['soluciones'])
     
     #        print(f"grupos {grupos} {type(grupos)}")
