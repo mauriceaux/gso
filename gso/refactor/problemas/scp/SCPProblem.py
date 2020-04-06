@@ -35,8 +35,8 @@ class SCPProblem():
 #        
 #        np.savetxt(f"resultados/restriccion.csv", np.array(self.instance.get_r()), fmt='%d', delimiter=",")
 #        exit()
-        self.tTransferencia = "sShape1"
-#        self.tTransferencia = "vShape2"
+#        self.tTransferencia = "sShape1"
+        self.tTransferencia = "sShape2"
         self.tBinary = "Standar"
 #        self.tBinary = "invStandar"
         self.binarizationStrategy = _binarization.BinarizationStrategy(self.tTransferencia, self.tBinary)        
@@ -255,6 +255,7 @@ class SCPProblem():
         if cumpleTodas == 1: return x, 0
         
         x, numReparaciones = self.repair.repara_one(x)    
+        x = self.mejoraSolucion(x)
         end = datetime.now()
 #        print(f'repara one {end-start}')
 #        cumpleTodas = self.repair.cumple(x)
@@ -264,18 +265,39 @@ class SCPProblem():
 #        print(f'repara two {end-start}')
         return x, numReparaciones
     
+    def mejoraSolucion(self, solucion):
+        solucion = np.array(solucion)
+        costos = solucion * self.instance.get_c()
+        cosOrd = np.argsort(costos)[::-1]
+        for pos in cosOrd:
+            if costos[pos] == 0: break
+            modificado = solucion.copy()
+            modificado[pos] = 0
+            if self.repair.cumple(modificado) == 1:
+                solucion = modificado
+        return solucion
+    
     def generarSolsAlAzar(self, numSols, mejorSol=None):
 #        args = []
         if mejorSol is None:
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['max']
-            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
+#            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
+            args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max']+1, size=(numSols, self.getNumDim()))
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * 0.1
 #            args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
         else:
             self.mejorSolHist = (mejorSol+self.mejorSolHist)/2
 #            print(f'self.mejorSolHist {self.mejorSolHist}')
 #            mejorSol = self.mejorSolHist
-            args = np.repeat(np.array(self.mejorSolHist)[None, :], numSols, axis=0)
+            args = []
+            for i in range(numSols):
+                sol = mejorSol.copy()
+                idx = np.random.randint(low=0, high=sol.shape[0])
+                sol[idx] = 1 if sol[idx] == 0 else 0
+                args.append(sol)
+            args = np.array(args)
+#            args = np.repeat(np.array(self.mejorSolHist)[None, :], numSols, axis=0)
+            
 #            for i in range(numSols):
 #                for j in range(args.shape[1]):
 #                    args[i,j] = (self.getRangoSolucion()['min'] 

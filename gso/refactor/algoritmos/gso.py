@@ -53,7 +53,7 @@ class GSO():
         self.scaler = None
         self.plotShowing = False
         self.solPromedio = None
-        self.mostrarPromedio = False
+        self.mostrarPromedio = True
         self.geometric = False
         self.guardarDatosEjec = True
         self.nomArchivoDatosEjec = f"ejecucion{datetime.now()}.csv"
@@ -133,10 +133,10 @@ class GSO():
         minVal = self.problema.getRangoSolucion()['min']
 #        randPer = np.random.uniform(low=0, high=1)
 #        randBest = np.random.uniform(low=0, high=1)
-#        randPer = np.random.uniform(low=-1, high=1)
-#        randBest = np.random.uniform(low=-1, high=1)
-        randPer = 1
-        randBest = 1
+        randPer = np.random.uniform(low=-1, high=1)
+        randBest = np.random.uniform(low=-1, high=1)
+#        randPer = 1
+#        randBest = 1
 #        randPer = -1
 #        randBest = 1
         personalDif = personalBest - swarm
@@ -452,7 +452,7 @@ class GSO():
         for iteracion in range(self.contenedorParametros['numIteraciones']):
             
             resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['numIteraciones'])
-            strPromedio = " romedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
+            strPromedio = f" promedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
             string = f'nivel {nivel} iteracion {iteracion} mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]} {strPromedio} num particulas {datosNivel["soluciones"].shape[0]}'
             print(string)
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']

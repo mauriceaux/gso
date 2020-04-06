@@ -120,13 +120,12 @@ class OptimizadorParametros:
         else:
             self.parametros['accelBest'] *= 0.98
             self.parametros['accelPer'] *= 0.99
-        
+#        self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
         if self.mejoraResultados > 0.0:
 #        if self.mejoraResultados > 0.5:
             print(f"LAS SOLUCIONES MEJORAN")
             self.parametros['inercia'] *= 0.99
             self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
-#            self.parametros['nivel'] = 2 if self.parametros['nivel'] == 1 else 1
 #            self.parametros['accelPer'] *= 1.01
 #            self.parametros['accelBest'] -= .001
 #            self.parametros['accelPer'] -= .001
