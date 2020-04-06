@@ -32,7 +32,7 @@ class ReparaStrategy:
         self.lSolution = []
         self.dict = he.getRowColumn(matrix)
     def repara_one(self, solution):    
-        return self.reparatwo(solution)
+        return self.reparaSimple(solution)
     
     def repara(self, solution):
 #        print(f'solution {len(solution)}')
@@ -56,6 +56,16 @@ class ReparaStrategy:
             solucion[np.argmax(incumplidas/self.pesos)] = 1
             cont += 1
         return solucion, cont
+    
+    def reparaSimple(self, solution):
+        numRep = 0
+        for i in range(self.rows): 
+            if np.sum(self.matrix[i]*solution) < 1:
+                idxRestriccion = np.argwhere((self.matrix[i]) > 0)
+                idxMenorPeso = idxRestriccion[np.argmin(self.pesos[idxRestriccion])]
+                solution[idxMenorPeso[0]] = 1
+                numRep += 1
+        return solution, numRep
     
     def cumple(self, solucion):
         cont = 0
