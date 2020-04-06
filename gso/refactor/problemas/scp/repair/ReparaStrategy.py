@@ -32,7 +32,7 @@ class ReparaStrategy:
         self.lSolution = []
         self.dict = he.getRowColumn(matrix)
     def repara_one(self, solution):    
-        return self.repara(solution)
+        return self.reparatwo(solution)
     
     def repara(self, solution):
 #        print(f'solution {len(solution)}')

@@ -288,8 +288,8 @@ class SCPProblem():
         if mejorSol is None or True:
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['max']
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
-            args = np.zeros((numSols, self._getNumDim()))
-#            args = np.random.randint(low=0,high=2,size=(numSols, self._getNumDim()))
+#            args = np.zeros((numSols, self._getNumDim()))
+            args = np.random.randint(low=0,high=2,size=(numSols, self._getNumDim()))
         else:
 #            self.mejorSolHist = (mejorSol+self.mejorSolHist)/2
             args = np.array([self.decodeInstance(np.array([mejorSol[0],mejorSol[1]+np.random.randint(low=-10, high=10)])) for i in range(numSols)])
