@@ -11,7 +11,7 @@ from . import binarizationstrategy as _binarization
 #import reparastrategy as _repara
 #from .repair import ReparaStrategy2 as _repara
 from .repair import ReparaStrategy as _repara
-from graficos.Graficador import Graficador
+#from graficos.Graficador import Graficador
 from datetime import datetime
 import multiprocessing as mp
 from numpy.random import default_rng
@@ -282,9 +282,9 @@ class SCPProblem():
         if mejorSol is None:
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['max']
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * self.getRangoSolucion()['min']
-            args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max']+1, size=(numSols, self.getNumDim()))
+#            args = np.random.uniform(low=self.getRangoSolucion()['min'], high=self.getRangoSolucion()['max']+1, size=(numSols, self.getNumDim()))
 #            args = np.ones((numSols, self.getNumDim()), dtype=np.float) * 0.1
-#            args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
+            args = np.zeros((numSols, self.getNumDim()), dtype=np.float)
         else:
             self.mejorSolHist = (mejorSol+self.mejorSolHist)/2
 #            print(f'self.mejorSolHist {self.mejorSolHist}')

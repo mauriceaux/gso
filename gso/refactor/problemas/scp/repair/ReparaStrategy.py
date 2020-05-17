@@ -9,7 +9,7 @@ Created on Thu Nov 21 23:00:31 2019
 #import readOrProblems as rOP
 from . import solution as sl
 from . import heuristic as he
-from . import matrixUtility as mu
+import random
 import numpy as np
 
 class ReparaStrategy:
@@ -32,8 +32,8 @@ class ReparaStrategy:
         self.lSolution = []
         self.dict = he.getRowColumn(matrix)
     def repara_one(self, solution):    
-        return self.reparaSimple(solution)
-#        return self.repara(solution)
+#        return self.reparaSimple(solution)
+        return self.repara(solution)
     
     def repara(self, solution):
 #        print(f'solution {len(solution)}')
@@ -47,7 +47,9 @@ class ReparaStrategy:
     
     def reparaSimple(self, solution):
         numRep = 0
-        for i in range(self.rows): 
+        indices = list(range(self.rows))
+        random.shuffle(indices)
+        for i in indices: 
             if np.sum(self.matrix[i]*solution) < 1:
                 idxRestriccion = np.argwhere((self.matrix[i]) > 0)
                 idxMenorPeso = idxRestriccion[np.argmin(self.pesos[idxRestriccion])]

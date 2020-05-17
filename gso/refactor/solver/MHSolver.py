@@ -33,7 +33,9 @@ class Solver():
 
             for i in range(20):
     #            indicadores = self.algoritmo.getIndicadores()
+#                print(f"solver inicio {self.algoritmo.getParametros()}")
                 self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
+#                print(f"solver fin {self.algoritmo.getParametros()}")
                 self.algoritmo.generarSolucionReducida()
                 
                 

@@ -72,7 +72,7 @@ import numpy as np
 
 
 
-problema = SCPProblem(f'scp/instances/scp41.txt')
+problema = SCPProblem(f'scp/instances/mscp41.txt')
 #problema = SCPProblem(f'scp/instances/off/scpnrh5.txt')
 #problema = SCPProblem(f'scp/instances/off/scp0.txt')
 
@@ -80,16 +80,19 @@ repara = ReparaStrategy(problema.instance.get_r()
                             ,problema.instance.get_c()
                             ,problema.instance.get_rows()
                             ,problema.instance.get_columns())
-sols = np.zeros((50, problema.getNumDim()), dtype=np.float)
+#sols = np.zeros((50, problema.getNumDim()), dtype=np.float)
+#sols = [ [1.,1.,1.,0.,1.,1.,0.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,0.,1.,1.,1.,1.,0.,1.,1.,0.,1.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,1.,0.,1.,1.,1.,1.,1.,0.,1.,0.,1.,0.,0.,1.,1.,0.,0.,1.,1.,0.,1.,0.,0.,1.,1.,1.,0.,0.,1.,1.,1.,0.,0.,1.,0.,0.,0.,1.,1.,0.,0.,1.,0.,1.,0.,1.,0.,0.,0.,0.,1.,0.,1.,0.,0.,0.,0.,0.,1.,0.,0.,0.,1.,1.,1.,0.,1.,0.,0.,0.,0.,1.,0.,0.,0.,0.,1.,0.,0.,0.,1.,1.,0.,1.,0.,0.,0.,0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.]]
+sols = [ [1.,1.,1.,0.,1.,1.,0.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,0.,1.,1.,1.,1.,0.,1.,1.,0.,1.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,1.,0.,1.,1.,1.,1.,1.,0.,1.,0.,1.,0.,0.,1.,1.,0.,0.,0.,1.,0.,1.,0.,0.,1.,1.,1.,0.,0.,1.,1.,1.,0.,0.,1.,0.,1.,0.,1.,1.,0.,0.,1.,0.,1.,0.,1.,0.,0.,0.,0.,1.,0.,1.,0.,0.,1.,0.,0.,1.,0.,0.,0.,1.,1.,1.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.,1.,1.,0.,1.,0.,0.,0.,0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,1.,0.,0.,0.]]
 #sols = problema.generarSolsAlAzar(50)
+sols = np.array(sols)
 sols = repara.reparaBatch(sols)
 fitness, decoded, _ = problema.evalDecBatch(sols, None)
 #fitness, decoded, _ = problema.evalEnc(sols[1])
-print(sols[1])
+print(sols[0])
 #print(fitness1[1])
-print(problema.repair.cumple(sols[1]))
+print(problema.repair.cumple(sols[0]))
 #print(decoded)
-print(fitness[1])
+print(fitness[0])
 
 exit()
 

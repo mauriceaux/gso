@@ -34,7 +34,7 @@ class KP():
         return self.instance.numItems
 
     def getRangoSolucion(self):
-        return {'max': 3.0, 'min':-3.0}
+        return {'max': 3.0, 'min':-1.0}
     
     def evalEnc(self, encodedInstance):
         decoded = self.decodeInstance(encodedInstance)
@@ -97,7 +97,7 @@ class KP():
         decoded[decoded == 0] = self.getRangoSolucion()['min']
         return decoded
     
-    def generarSolsAlAzar(self, numSols):
+    def generarSolsAlAzar(self, numSols, mejorSol):
         start = datetime.now()
         args = np.ones((numSols, self.getNumDim())) * self.getRangoSolucion()['max']
 #        args = np.random.uniform(size=(numSols, self.getNumDim()))
