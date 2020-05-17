@@ -8,6 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 class GSO():
     def __init__(self, niveles=2, numParticulas=50, iterPorNivel={1:50,2:250}, gruposPorNivel={1:12,2:12}):
+        self.idInstancia = datetime.timestamp(datetime.now())
         self.contenedorParametros = {}
         self.contenedorParametros['niveles'] = niveles
         self.contenedorParametros['nivel'] = 2
@@ -302,9 +303,9 @@ class GSO():
             plt.show()
             self.plotShowing = True
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
-        
+        datosConvergencia = []
         for iteracion in range(self.contenedorParametros['numIteraciones']):
-            
+            inicio = datetime.now()
             resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['numIteraciones'])
             strPromedio = f" promedio {np.mean(resultadoMovimiento['evalSoluciones'])} " if self.mostrarPromedio else ''
             string = f'nivel {nivel} iteracion {iteracion} mejor valor encontrado {self.contenedorParametros["mejorEvalGlobal"]} {strPromedio} num particulas {datosNivel["soluciones"].shape[0]}'
@@ -312,10 +313,17 @@ class GSO():
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
             datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
             datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
+            
             if not self.geometric: datosNivel['velocidades']    = resultadoMovimiento['velocidades']
             self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
             if self.mostrarGraficoParticulas:
                 self.graficarParticulas(datosNivel, nivel)
+            fin = datetime.now()
+            datosConvergencia.append([self.idInstancia, nivel, np.max(datosNivel['evalSoluciones']), np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
+        with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}.csv", "a") as myfile:
+            for linea in datosConvergencia:
+                mejorSolStr = ','.join([str(item) for item in linea])
+                myfile.write(f'{mejorSolStr}\n')
         self.fin = datetime.now()
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
         self.indicadores['mejorObjetivo'] = self.contenedorParametros['mejorEvalGlobal']

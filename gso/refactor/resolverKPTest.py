@@ -26,6 +26,8 @@ if __name__ == '__main__':
                 continue
             kp = KP(f'{carpeta}/{archivo}')
             gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
+            gso.carpetaResultados = carpetaResultados
+            gso.instancia = archivo
             gso.procesoParalelo = True
             gso.setProblema(kp)
         
