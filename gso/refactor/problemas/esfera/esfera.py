@@ -14,7 +14,7 @@ import multiprocessing as mp
 class Esfera():
     def __init__(self):
 #        self.centro = [0,0]
-        self.centro = np.zeros((10))
+        self.centro = np.zeros((2))
         self.centro1 = [50,50]
         self.centro2 = [-50,50]
         self.radio = 100
@@ -27,7 +27,7 @@ class Esfera():
     
     
     def getNumDim(self):
-        return 10
+        return 2
         
     def getRangoSolucion(self):
         return {'max': 100, 'min':-100}

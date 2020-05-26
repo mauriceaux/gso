@@ -10,8 +10,11 @@ from solver.MHSolver import Solver
 from algoritmos.gso import GSO
 from problemas.esfera.esfera import Esfera
 if __name__ == '__main__':
+    carpetaResultados = 'resultados/esfera'
     problema = Esfera()
     gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:10,2:10})
+    gso.carpetaResultados = carpetaResultados
+    gso.instancia = 'esfera'
     gso.procesoParalelo = True
     gso.mostrarGraficoParticulas = True
     gso.setProblema(problema)

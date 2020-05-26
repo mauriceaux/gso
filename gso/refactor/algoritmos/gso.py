@@ -61,6 +61,9 @@ class GSO():
     
     def getParametros(self):
         nivel = self.contenedorParametros['nivel']
+        estEvol = None
+        if nivel in self.contenedorParametros['datosNivel']:
+            estEvol = self.contenedorParametros['datosNivel'][nivel]['estEvol']
         return {
                 'nivel':nivel
                 ,'solPorGrupo':self.contenedorParametros['solPorGrupo']
@@ -68,6 +71,7 @@ class GSO():
                 ,'inercia':self.contenedorParametros['inercia']
                 ,'accelPer':self.contenedorParametros['accelPer']
                 ,'accelBest':self.contenedorParametros['accelBest']
+                ,'estEvol':estEvol
                 }
     
     def setParametros(self, parametros):
@@ -107,8 +111,10 @@ class GSO():
         minVel = self.contenedorParametros['minVel']
         maxVal = self.problema.getRangoSolucion()['max']
         minVal = self.problema.getRangoSolucion()['min']
-        randPer = np.random.uniform(low=0, high=1)
-        randBest = np.random.uniform(low=0, high=1)
+        #randPer = np.random.uniform(low=0, high=1)
+        #randBest = np.random.uniform(low=0, high=1)
+        randPer = 1
+        randBest = 1
         personalDif = personalBest - swarm
         personalAccel = accelPer * randPer * personalDif
         bestDif = bestFound - swarm
@@ -316,6 +322,8 @@ class GSO():
             
             if not self.geometric: datosNivel['velocidades']    = resultadoMovimiento['velocidades']
             self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
+            self.calcularEstadoEvolutivo(datosNivel)
+            #print(datosNivel['estEvol'])
             if self.mostrarGraficoParticulas:
                 self.graficarParticulas(datosNivel, nivel)
             fin = datetime.now()
@@ -555,6 +563,46 @@ class GSO():
             denominator = np.sqrt((y2 - y1)**2 + (x2 - x1)**2)
             distances.append(numerator/denominator)
         return distances.index(max(distances)) + 2
+
+    def calcularEstadoEvolutivo(self, datosNivel):
+        if not 'estEvol' in datosNivel: datosNivel['estEvol'] = {}
+        grupos = np.unique(datosNivel['grupos'])
+        for grupo in grupos:
+            if not grupo in datosNivel['estEvol']: datosNivel['estEvol'][grupo] = []
+            posGrupo = np.argwhere(datosNivel['grupos'] == grupo)
+            solsGrupo = datosNivel['soluciones'][posGrupo]
+            if len(solsGrupo) <= 2:
+                #print(f"grupo {grupo} tiene {len(solsGrupo)} elementos!!!!!")
+                datosNivel['estEvol'][grupo].append(0)
+                continue
+
+            evalsGrupo = datosNivel['evalSoluciones'][posGrupo]
+            mejorPos = np.argmax(evalsGrupo)
+            mejorSol = solsGrupo[mejorPos]
+            distMejor = self.calcDistProm(mejorPos, solsGrupo)
+            distMin = distMejor
+            distMax = distMejor
+            
+            for idxSol in range(len(solsGrupo)):
+                if idxSol == mejorPos: continue
+                #print(f'idxSol {idxSol}')
+                distSol = self.calcDistProm(idxSol, solsGrupo)
+                if distMin is None or distSol < distMin:
+                    distMin = distSol
+                if distMax is None or distSol > distMax:
+                    distMax = distSol
+            #print(f'grupo {grupo} elementos grupo {len(solsGrupo)} distMejor {distMejor} distMin {distMin} distMax {distMax} ')
+            estEvol = (distMejor-distMin)/(distMax-distMin)
+            #if np.isnan(estEvol): estEvol = 0
+            datosNivel['estEvol'][grupo].append(estEvol)
+
+    def calcDistProm(self, idxSol, solsGrupo):
+        res = 0
+        for idx in range(len(solsGrupo)):
+            if idx == idxSol: continue
+            res += np.sum(np.abs(solsGrupo[idx]-solsGrupo[idxSol]))
+        return res/len(solsGrupo)-1
+
             
     def evaluarGrupos(self, datosNivel):
         start = datetime.now()
