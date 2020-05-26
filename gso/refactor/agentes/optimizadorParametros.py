@@ -79,8 +79,9 @@ class OptimizadorParametros:
                         self.parametros['solPorGrupo'][idGrupo] -= 10
                     else:
                         self.parametros['solPorGrupo'][idGrupo] += 1
-            if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 15
-            if self.parametros['solPorGrupo'][idGrupo] < 3: self.parametros['solPorGrupo'][idGrupo] = 3
+            if self.parametros['nivel'] == 1:
+                if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 15
+                if self.parametros['solPorGrupo'][idGrupo] < 3: self.parametros['solPorGrupo'][idGrupo] = 3
 #            print(f"sols en grupo {idGrupo} {self.parametros['solPorGrupo'][idGrupo]}")
 #        print("FIN MEJORA PARAMETROS")
 #        print(f"optimizador parametros fin {self.parametros['solPorGrupo']}")

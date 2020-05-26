@@ -34,7 +34,7 @@ class KP():
         return self.instance.numItems
 
     def getRangoSolucion(self):
-        return {'max': 3.0, 'min':-1.0}
+        return {'max': 5.0, 'min':-.9}
     
     def evalEnc(self, encodedInstance):
         decoded = self.decodeInstance(encodedInstance)

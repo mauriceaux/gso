@@ -11,7 +11,7 @@ class GSO():
         self.idInstancia = datetime.timestamp(datetime.now())
         self.contenedorParametros = {}
         self.contenedorParametros['niveles'] = niveles
-        self.contenedorParametros['nivel'] = 2
+        self.contenedorParametros['nivel'] = 1
         self.contenedorParametros['numParticulas'] = numParticulas
         self.contenedorParametros['iterPorNivel'] = iterPorNivel
         self.contenedorParametros['gruposPorNivel'] = gruposPorNivel
@@ -37,7 +37,7 @@ class GSO():
         self.ultimoNivelEvaluado = None        
         self.mejorEval = None
         self.calcularParamDim()
-        self.nivelAnterior = 1
+        self.nivelAnterior = 2
         self.fig = plt.figure()
         self.mostrarGraficoParticulas = False
         self.nivel1=None
@@ -262,8 +262,9 @@ class GSO():
             if not nivel in self.contenedorParametros['datosNivel']: 
                 self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
             datosNivel = self.contenedorParametros['datosNivel'][nivel]
-            
+            datosConvergencia = []
             for iteracion in range(self.contenedorParametros['iterPorNivel'][nivel]):
+                inicio = datetime.now()
                 string = 'nivel '+str(nivel)+' iteracion '+str(iteracion)+' mejor valor encontrado '+str(self.contenedorParametros["mejorEvalGlobal"])
                 print(string)
                 resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['iterPorNivel'][nivel])
@@ -272,10 +273,16 @@ class GSO():
                 datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
                 datosNivel['velocidades']    = resultadoMovimiento['velocidades']
                 self.contenedorParametros['datosNivel'][nivel] = self.agruparNivel(datosNivel, nivel)
+                fin= datetime.now()
+                datosConvergencia.append([self.idInstancia, nivel, len(datosNivel['evalSoluciones']), self.contenedorParametros['mejorEvalGlobal'], np.max(datosNivel['evalSoluciones']), np.mean(datosNivel['evalSoluciones']), np.std(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
                 if self.mostrarGraficoParticulas:
                     self.graficarParticulas(datosNivel, nivel)#
                     self.fig.canvas.draw()
                     self.fig.canvas.flush_events()
+            with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}.csv", "a") as myfile:
+                for linea in datosConvergencia:
+                    mejorSolStr = ','.join([str(item) for item in linea])
+                    myfile.write(f'{mejorSolStr}\n')
         self.fin = datetime.now()
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
         self.indicadores['mejorObjetivo'] = self.contenedorParametros['mejorEvalGlobal']
@@ -319,7 +326,7 @@ class GSO():
             if self.mostrarGraficoParticulas:
                 self.graficarParticulas(datosNivel, nivel)
             fin = datetime.now()
-            datosConvergencia.append([self.idInstancia, nivel, np.max(datosNivel['evalSoluciones']), np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
+            datosConvergencia.append([self.idInstancia, nivel, len(datosNivel['evalSoluciones']), self.contenedorParametros['mejorEvalGlobal'], np.max(datosNivel['evalSoluciones']), np.mean(datosNivel['evalSoluciones']), np.std(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
         with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}.csv", "a") as myfile:
             for linea in datosConvergencia:
                 mejorSolStr = ','.join([str(item) for item in linea])
@@ -489,11 +496,11 @@ class GSO():
             if not nivel in self.contenedorParametros['accelPer']:
                 self.contenedorParametros['accelPer'][nivel] = {}
             if not idGrupo in self.contenedorParametros['accelPer'][nivel]:
-                self.contenedorParametros['accelPer'][nivel][idGrupo] = 2
+                self.contenedorParametros['accelPer'][nivel][idGrupo] = 2.05 * np.random.uniform()
             if not nivel in self.contenedorParametros['accelBest']:
                 self.contenedorParametros['accelBest'][nivel] = {}
             if not idGrupo in self.contenedorParametros['accelBest'][nivel]:
-                self.contenedorParametros['accelBest'][nivel][idGrupo] = 2
+                self.contenedorParametros['accelBest'][nivel][idGrupo] = 2.05 * np.random.uniform()
 
         return datosNivel
     
