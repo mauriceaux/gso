@@ -593,7 +593,7 @@ class GSO():
                     distMax = distSol
             #print(f'grupo {grupo} elementos grupo {len(solsGrupo)} distMejor {distMejor} distMin {distMin} distMax {distMax} ')
             estEvol = (distMejor-distMin)/(distMax-distMin)
-            #if np.isnan(estEvol): estEvol = 0
+            if np.isnan(estEvol) or (distMax-distMin) == 0: estEvol = 0
             datosNivel['estEvol'][grupo].append(estEvol)
 
     def calcDistProm(self, idxSol, solsGrupo):
