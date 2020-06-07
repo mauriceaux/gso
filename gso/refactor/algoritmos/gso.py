@@ -28,6 +28,7 @@ class GSO():
         self.contenedorParametros['autonomo'] = True
         self.contenedorParametros['solPorGrupo'] = {}
         self.contenedorParametros['inercia'] = {}
+        self.contenedorParametros['numIteraciones'] = 1
         self.procesoParalelo = False
         self.indicadores = {}
         self.indicadores['tiempos'] = {}
@@ -111,8 +112,8 @@ class GSO():
         minVel = self.contenedorParametros['minVel']
         maxVal = self.problema.getRangoSolucion()['max']
         minVal = self.problema.getRangoSolucion()['min']
-        #randPer = np.random.uniform(low=0, high=1)
-        #randBest = np.random.uniform(low=0, high=1)
+#        randPer = np.random.uniform(low=0, high=1)
+#        randBest = np.random.uniform(low=0, high=1)
         randPer = 1
         randBest = 1
         personalDif = personalBest - swarm
@@ -308,6 +309,7 @@ class GSO():
             plt.ion()
             plt.show()
             self.plotShowing = True
+            
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
         datosConvergencia = []
         for iteracion in range(self.contenedorParametros['numIteraciones']):
@@ -327,15 +329,17 @@ class GSO():
             if self.mostrarGraficoParticulas:
                 self.graficarParticulas(datosNivel, nivel)
             fin = datetime.now()
-            datosConvergencia.append([self.idInstancia, nivel, np.max(datosNivel['evalSoluciones']), np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
-        with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}.csv", "a") as myfile:
+            datosConvergencia.append([self.idInstancia, nivel, self.contenedorParametros['mejorEvalGlobal'], np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
+        with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}inercia.csv", "a") as myfile:
             for linea in datosConvergencia:
                 mejorSolStr = ','.join([str(item) for item in linea])
                 myfile.write(f'{mejorSolStr}\n')
         self.fin = datetime.now()
+        
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
         self.indicadores['mejorObjetivo'] = self.contenedorParametros['mejorEvalGlobal']
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
+#        input("Press Enter to continue...")
 
 
     def agregarEliminarParticulas(self, dif, idGrupo):
@@ -493,15 +497,15 @@ class GSO():
             if not nivel in self.contenedorParametros['inercia']:
                 self.contenedorParametros['inercia'][nivel] = {}
             if not idGrupo in self.contenedorParametros['inercia'][nivel]:
-                self.contenedorParametros['inercia'][nivel][idGrupo] = 0.8
+                self.contenedorParametros['inercia'][nivel][idGrupo] = 0.1
             if not nivel in self.contenedorParametros['accelPer']:
                 self.contenedorParametros['accelPer'][nivel] = {}
             if not idGrupo in self.contenedorParametros['accelPer'][nivel]:
-                self.contenedorParametros['accelPer'][nivel][idGrupo] = 2
+                self.contenedorParametros['accelPer'][nivel][idGrupo] = 1.06
             if not nivel in self.contenedorParametros['accelBest']:
                 self.contenedorParametros['accelBest'][nivel] = {}
             if not idGrupo in self.contenedorParametros['accelBest'][nivel]:
-                self.contenedorParametros['accelBest'][nivel][idGrupo] = 2
+                self.contenedorParametros['accelBest'][nivel][idGrupo] = 1.06
 
         return datosNivel
     
@@ -576,10 +580,14 @@ class GSO():
                 datosNivel['estEvol'][grupo].append(0)
                 continue
 
-            evalsGrupo = datosNivel['evalSoluciones'][posGrupo]
+            evalsGrupo = datosNivel['mejoresEvaluaciones'][posGrupo]
+#            print(f"evalsGrupo {evalsGrupo}")
+            
             mejorPos = np.argmax(evalsGrupo)
-            mejorSol = solsGrupo[mejorPos]
+#            print(f"mejorPos {mejorPos}")
+#            mejorSol = solsGrupo[mejorPos]
             distMejor = self.calcDistProm(mejorPos, solsGrupo)
+#            print(f"distMejor {distMejor}")
             distMin = distMejor
             distMax = distMejor
             
@@ -587,19 +595,27 @@ class GSO():
                 if idxSol == mejorPos: continue
                 #print(f'idxSol {idxSol}')
                 distSol = self.calcDistProm(idxSol, solsGrupo)
+#                print(f"distSol {idxSol} = {distSol}")
                 if distMin is None or distSol < distMin:
                     distMin = distSol
                 if distMax is None or distSol > distMax:
                     distMax = distSol
             #print(f'grupo {grupo} elementos grupo {len(solsGrupo)} distMejor {distMejor} distMin {distMin} distMax {distMax} ')
             estEvol = (distMejor-distMin)/(distMax-distMin)
-            if np.isnan(estEvol) or (distMax-distMin) == 0: estEvol = 0
+#            print(f"distMejor {distMejor}")
+#            print(f"distMin {distMin}")
+#            print(f"distMax {distMax}")
+            if np.isnan(estEvol) or (distMax-distMin) == 0: 
+                
+                estEvol = 0
+#            print(f"estEvol {estEvol}")
             datosNivel['estEvol'][grupo].append(estEvol)
 
     def calcDistProm(self, idxSol, solsGrupo):
         res = 0
         for idx in range(len(solsGrupo)):
             if idx == idxSol: continue
+#            res += np.linalg.norm(solsGrupo[idx]-solsGrupo[idxSol])
             res += np.sum(np.abs(solsGrupo[idx]-solsGrupo[idxSol]))
         return res/len(solsGrupo)-1
 

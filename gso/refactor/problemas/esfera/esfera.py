@@ -17,7 +17,7 @@ class Esfera():
         self.centro = np.zeros((2))
         self.centro1 = [50,50]
         self.centro2 = [-50,50]
-        self.radio = 100
+        self.radio = 300
         self.instancia = f'esfera centro {self.centro} radio {self.radio}'
         self.paralelo = False
 

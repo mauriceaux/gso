@@ -10,11 +10,14 @@ from solver.MHSolver import Solver
 from algoritmos.gso import GSO
 from problemas.rosenbrock.rosenbrock import Rosenbrock
 if __name__ == '__main__':
+    carpetaResultados = 'resultados/esfera'
     problema = Rosenbrock()
     gso = GSO(niveles=2, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:10,2:10})
+    gso.carpetaResultados = carpetaResultados
     gso.procesoParalelo = True
     gso.mostrarGraficoParticulas = False
     gso.setProblema(problema)
+    gso.instancia = 'rosenbrock'
 
     solver = Solver()
     solver.autonomo = True

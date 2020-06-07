@@ -34,9 +34,10 @@ class Solver():
             for i in range(100):
     #            indicadores = self.algoritmo.getIndicadores()
 #                print(f"solver inicio {self.algoritmo.getParametros()}")
+                self.algoritmo.generarSolucionReducida()
                 self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
 #                print(f"solver fin {self.algoritmo.getParametros()}")
-                self.algoritmo.generarSolucionReducida()
+                
                 
                 
         end = datetime.now()

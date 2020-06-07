@@ -157,7 +157,7 @@ class BinarizationStrategy:
         if random.random() < tb[idx]:
             return self.mejorSol[idx] if self.mejorSol is not None else self.standard(idx,tb)
         else: 
-            return 0
+            return self.standard(idx,tb)
     
     #-----------------------------------------------------------------------------------------------------------------------------   
     def sShape1(self,x):

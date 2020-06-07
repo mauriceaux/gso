@@ -40,7 +40,7 @@ if __name__ == '__main__':
             inicio = datetime.now()
             solver.resolverProblema()
             fin = datetime.now()
-            with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}.csv", "a") as myfile:
+            with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}inercia.csv", "a") as myfile:
                 mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
                 myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{inicio}, {fin}, {fin-inicio}, {mejorSolStr}\n')
             with open(f"{carpetaResultados}/algoritmos/gso/{archivo}GSO.csv", "a") as myfile:

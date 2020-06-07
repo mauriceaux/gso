@@ -24,7 +24,11 @@ class OptimizadorParametros:
         self.numObs = 0
         self.dataEvol = {}
         self.wmax = 0.9
-        self.wmin = 0.4
+        self.wmin = 0
+        self.disminucionRango = [0.94, 0.96]
+        self.disminucionLeveRango = [0.97, 0.99]
+        self.aumentoRango = [1.04, 1.06]
+        self.aumentoLeveRango = [1.01, 1.03]
 
         self.states = ['Exploration', 'Exploitation', 'Convergence', 'Jump out']
         if os.path.exists('hmm-model.pkl'):
@@ -92,7 +96,10 @@ class OptimizadorParametros:
                 self.grupos.append(idGrupo)
                 if not idGrupo in self.dataEvol[self.parametros['nivel']]:
                     self.dataEvol[self.parametros['nivel']][idGrupo] = []
-                self.dataEvol[self.parametros['nivel']][idGrupo].extend([self.disEstEvol(estado) for estado in self.parametros['estEvol'][idGrupo]])
+#                self.dataEvol[self.parametros['nivel']][idGrupo].extend([self.disEstEvol(estado) for estado in self.parametros['estEvol'][idGrupo]])
+                self.dataEvol[self.parametros['nivel']][idGrupo].append(self.disEstEvol(self.parametros['estEvol'][idGrupo][-1]))
+#                print(self.dataEvol[self.parametros['nivel']])
+#                exit()
                 #data = np.array([[self.disEstEvol(estado) for estado in self.parametros['estEvol'][idGrupo]]]).T
                 #print(data)
                 #print(self.dhmm.generate( 1 ))
@@ -127,12 +134,15 @@ class OptimizadorParametros:
                 obs.extend(self.dataEvol[self.parametros['nivel']][idGrupo])
                 lenghts.append(len(self.dataEvol[self.parametros['nivel']][idGrupo]))
             obs = np.array([obs]).T
+#            print(f"obs {obs}")
+#            print(f"lenghts {lenghts}")
+            
             lenghts = np.array(lenghts)
             if np.prod(obs.shape) >= numParams:
                 print('entrenando hmm')
                 self.dhmm.fit( obs, lenghts )
-                with open("hmm-model.pkl", "wb") as file: pickle.dump(self.dhmm, file)
-            else: print('muy pocos datos para entrenar')
+#                with open("hmm-model.pkl", "wb") as file: pickle.dump(self.dhmm, file)
+#            else: print('muy pocos datos para entrenar')
             #print(obs)
             #exit()
 
@@ -153,43 +163,59 @@ class OptimizadorParametros:
         for idGrupo in self.grupos:
     #        return self.parametros
             #print(np.array([self.dataEvol[self.parametros['nivel']][idGrupo]]).T)
-            last = self.dataEvol[self.parametros['nivel']][idGrupo][-10:]
+            last = self.dataEvol[self.parametros['nivel']][idGrupo] #[-10:]
             #print(self.dataEvol[self.parametros['nivel']][idGrupo])
             #print(np.array(last).reshape((-1,1)))
             #exit()
             data = np.array(last).reshape((-1,1))
             #print(data)
             ( log_prob, estadoGrupo ) = self.dhmm.decode(data, algorithm="viterbi")
-            #print(estadoGrupo)
+#            print(self.parametros['estEvol'][idGrupo])
+#            print(data)
+#            print(log_prob)
+#            print(f"estado grupo {[self.states[e] for e in estadoGrupo]}")
+            
             estado = estadoGrupo[-1]
-            print(f"el estado del grupo {idGrupo} es {self.states[estado]}")
+#            print(f"el estado del grupo {idGrupo} es {self.states[estado]}")
+#            input("Press Enter to continue...")
             if self.states[estado] == 'Exploration':
-                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=1.2,high=1.3)
-                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=.7,high=.8)
+#                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoRango[0],high=self.aumentoRango[1])
+#                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.disminucionRango[0],high=self.disminucionRango[1])
                 
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmin + (self.wmax - self.wmin) * np.random.uniform()
-                if self.parametros['nivel'] == 1:
-                    self.parametros['solPorGrupo'][idGrupo] -= 1
+#                if self.parametros['nivel'] == 1:
+#                    self.parametros['solPorGrupo'][idGrupo] -= 1
             if self.states[estado] == 'Exploitation':
-                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=1.05,high=1.1)
-                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=.9,high=.95)
+#                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoLeveRango[0],high=self.aumentoLeveRango[1])
+#                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.disminucionLeveRango[0],high=self.disminucionLeveRango[1])
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = 1/1+(1.5*math.exp(-2.6*self.parametros['estEvol'][idGrupo][-1]))
-                if self.parametros['nivel'] == 1:
-                    self.parametros['solPorGrupo'][idGrupo] += 1
+#                if self.parametros['nivel'] == 1:
+#                    self.parametros['solPorGrupo'][idGrupo] += 1
             if self.states[estado] == 'Convergence':
-                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=1.05,high=1.1)
-                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=1.05,high=1.1)
+#                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoLeveRango[0],high=self.aumentoLeveRango[1])
+#                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoLeveRango[0],high=self.aumentoLeveRango[1])
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmin
-                if self.parametros['nivel'] == 1:
-                    self.parametros['solPorGrupo'][idGrupo] += 1
+#                if self.parametros['nivel'] == 1:
+#                    self.parametros['solPorGrupo'][idGrupo] += 1
             if self.states[estado] == 'Jump out':
-                if self.parametros['nivel'] == 1:
-                    self.parametros['solPorGrupo'][idGrupo] -= 1
-                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=.7,high=.8)
-                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=1.2,high=1.3)
+#                if self.parametros['nivel'] == 1:
+#                    self.parametros['solPorGrupo'][idGrupo] -= 1
+#                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.disminucionRango[0],high=self.disminucionRango[1])
+#                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoRango[0],high=self.aumentoRango[1])
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmax
             #exit()
-
+            suma = self.parametros['accelBest'][self.parametros['nivel']][idGrupo] + self.parametros['accelPer'][self.parametros['nivel']][idGrupo]
+            if suma < 0 or suma > 4:
+                if self.parametros['accelPer'][self.parametros['nivel']][idGrupo] > 2:
+                    self.parametros['accelPer'][self.parametros['nivel']][idGrupo] = 2
+                if self.parametros['accelBest'][self.parametros['nivel']][idGrupo] > 2:
+                    self.parametros['accelBest'][self.parametros['nivel']][idGrupo] = 2
+                print(f"coeficientes aceleracion grupo {idGrupo} suman {suma}")
+            if 0 >= self.parametros['inercia'][self.parametros['nivel']][idGrupo]:
+                print(f"inercia grupo {idGrupo} es {self.parametros['inercia'][self.parametros['nivel']][idGrupo]}")
+                self.parametros['inercia'][self.parametros['nivel']][idGrupo] = ((suma/2)-1) 
+            if self.parametros['inercia'][self.parametros['nivel']][idGrupo] > 1:
+                self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmax
 
             #if self.mejoraResultados[idGrupo] > 0.0:
             #    print(f"LAS SOLUCIONES MEJORAN GRUPO {idGrupo} NIVEL {self.parametros['nivel']}")
@@ -212,8 +238,8 @@ class OptimizadorParametros:
                 #        self.parametros['solPorGrupo'][idGrupo] -= 10
                 #    else:
                 #        self.parametros['solPorGrupo'][idGrupo] += 1
-            if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 15
-            if self.parametros['solPorGrupo'][idGrupo] < 3: self.parametros['solPorGrupo'][idGrupo] = 3
+#            if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 15
+#            if self.parametros['solPorGrupo'][idGrupo] < 3: self.parametros['solPorGrupo'][idGrupo] = 3
 #            print(f"sols en grupo {idGrupo} {self.parametros['solPorGrupo'][idGrupo]}")
 #        print("FIN MEJORA PARAMETROS")
 #        print(f"optimizador parametros fin {self.parametros['solPorGrupo']}")

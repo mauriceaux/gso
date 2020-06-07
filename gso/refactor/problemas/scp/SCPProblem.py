@@ -38,6 +38,7 @@ class SCPProblem():
 #        self.tTransferencia = "sShape1"
         self.tTransferencia = "sShape2"
         self.tBinary = "Standar"
+#        self.tBinary = "Elitist"
 #        self.tBinary = "invStandar"
         self.binarizationStrategy = _binarization.BinarizationStrategy(self.tTransferencia, self.tBinary)        
         self.repair = _repara.ReparaStrategy(self.instance.get_r()
@@ -47,6 +48,7 @@ class SCPProblem():
         self.paralelo = False
         self.penalizar = False
         self.mejorSolHist = np.ones((self.instance.get_columns())) * 0.5
+        self.mejorFitness = None
 #        self.graficador = None
 #        self.gParam = Graficador()
 #        self.gVels = Graficador()
@@ -106,6 +108,9 @@ class SCPProblem():
 #        start = datetime.now()
 #        print('evaluando')
         fitness = self.evalInstance(decoded)
+        if self.mejorFitness is None or fitness > self.mejorFitness:
+            self.mejorFitness = fitness
+            self.binarizationStrategy.mejorSol = decoded
 #        print('fin evaluando')
 #        if self.repair.cumple(decoded) != 1:
 #            fitness *= fitness
