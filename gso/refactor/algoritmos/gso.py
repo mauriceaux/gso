@@ -5,10 +5,15 @@ import multiprocessing.dummy as mp
 from datetime import datetime
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+import sqlalchemy as db
+import json
+import pickle
+import zlib
+
 
 class GSO():
-    def __init__(self, niveles=2, numParticulas=50, iterPorNivel={1:50,2:250}, gruposPorNivel={1:12,2:12}):
-        self.idInstancia = datetime.timestamp(datetime.now())
+    def __init__(self, niveles=2, idInstancia=datetime.timestamp(datetime.now()) ,numParticulas=50, iterPorNivel={1:50,2:250}, gruposPorNivel={1:12,2:12}):
+        self.idInstancia = idInstancia
         self.contenedorParametros = {}
         self.contenedorParametros['niveles'] = niveles
         self.contenedorParametros['nivel'] = 2
@@ -289,6 +294,11 @@ class GSO():
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
         
     def generarSolucionReducida(self):
+        engine = db.create_engine('postgresql://mh:mh@localhost:5432/resultados_mh')
+        metadata = db.MetaData()
+        connection = engine.connect()
+        datosIteracion = db.Table('datos_iteracion', metadata, autoload=True, autoload_with=engine)
+        insertDatosIteracion = datosIteracion.insert()
         if 1 in self.contenedorParametros['datosNivel']:
             totalesGrupo = {}
             nivel1 = self.contenedorParametros['datosNivel'][1]
@@ -311,7 +321,7 @@ class GSO():
             self.plotShowing = True
             
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
-        datosConvergencia = []
+        data = []
         for iteracion in range(self.contenedorParametros['numIteraciones']):
             inicio = datetime.now()
             resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['numIteraciones'])
@@ -321,6 +331,11 @@ class GSO():
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
             datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
             datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
+            datosInternos = {
+                'datosNivel' : datosNivel,
+                'parametros' : self.contenedorParametros
+            }
+            datosInternos = zlib.compress(pickle.dumps(datosInternos))
             
             if not self.geometric: datosNivel['velocidades']    = resultadoMovimiento['velocidades']
             self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
@@ -329,11 +344,23 @@ class GSO():
             if self.mostrarGraficoParticulas:
                 self.graficarParticulas(datosNivel, nivel)
             fin = datetime.now()
-            datosConvergencia.append([self.idInstancia, nivel, self.contenedorParametros['mejorEvalGlobal'], np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
-        with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}inercia.csv", "a") as myfile:
-            for linea in datosConvergencia:
-                mejorSolStr = ','.join([str(item) for item in linea])
-                myfile.write(f'{mejorSolStr}\n')
+            data.append({
+                'id_ejecucion' : self.idInstancia
+                ,'fitness_mejor' : -self.contenedorParametros['mejorEvalGlobal']
+                ,'fitness_promedio' : -np.mean(datosNivel['evalSoluciones'])
+                ,'fitness_mejor_iteracion' : -np.max(datosNivel['evalSoluciones'])
+                ,'inicio' : inicio
+                ,'fin' : fin
+                ,'parametros_iteracion' : json.dumps({'nivel': nivel})
+                ,'datos_internos' : datosInternos})
+            #datosConvergencia.append([self.idInstancia, nivel, self.contenedorParametros['mejorEvalGlobal'], np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
+        #with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}inercia.csv", "a") as myfile:
+        #    for linea in datosConvergencia:
+        #        mejorSolStr = ','.join([str(item) for item in linea])
+        #        myfile.write(f'{mejorSolStr}\n')
+        connection.execute(insertDatosIteracion, data)
+        
+
         self.fin = datetime.now()
         
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio

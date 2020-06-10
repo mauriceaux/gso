@@ -178,6 +178,17 @@ class OptimizadorParametros:
             estado = estadoGrupo[-1]
 #            print(f"el estado del grupo {idGrupo} es {self.states[estado]}")
 #            input("Press Enter to continue...")
+            if not 'estadoOculto' in self.parametros:
+                self.parametros['estadoOculto'] = {}
+            if not self.parametros['nivel'] in self.parametros['estadoOculto']:
+                self.parametros['estadoOculto'][self.parametros['nivel']] = {}
+            if not 'estadoObservado' in self.parametros:
+                self.parametros['estadoObservado'] = {}
+            if not self.parametros['nivel'] in self.parametros['estadoObservado']:
+                self.parametros['estadoObservado'][self.parametros['nivel']] = {}
+            
+            self.parametros['estadoObservado'][self.parametros['nivel']][idGrupo] = last[-1]
+            self.parametros['estadoOculto'][self.parametros['nivel']][idGrupo] = self.states[estado]
             if self.states[estado] == 'Exploration':
 #                self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoRango[0],high=self.aumentoRango[1])
 #                self.parametros['accelBest'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.disminucionRango[0],high=self.disminucionRango[1])
