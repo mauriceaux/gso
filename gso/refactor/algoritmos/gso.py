@@ -12,7 +12,7 @@ import zlib
 
 
 class GSO():
-    def __init__(self, niveles=2, idInstancia=datetime.timestamp(datetime.now()) ,numParticulas=50, iterPorNivel={1:50,2:250}, gruposPorNivel={1:12,2:12}):
+    def __init__(self, niveles=2, idInstancia=datetime.timestamp(datetime.now()) ,numParticulas=50, iterPorNivel={1:50,2:250}, gruposPorNivel={1:12,2:12}, dbEngine=None):
         self.idInstancia = idInstancia
         self.contenedorParametros = {}
         self.contenedorParametros['niveles'] = niveles
@@ -59,7 +59,9 @@ class GSO():
         self.geometric = False
         self.guardarDatosEjec = True
         self.nomArchivoDatosEjec = f"ejecucion{datetime.now()}.csv"
-        
+        self.dbEngine = dbEngine
+        self.dbMetadata = db.MetaData()
+        self.dbConnection = self.dbEngine.connect()
         pass
     
     def getIndicadores(self):
@@ -294,10 +296,8 @@ class GSO():
         self.indicadores['mejorSolucion'] = self.contenedorParametros['mejorSolucionBin']
         
     def generarSolucionReducida(self):
-        engine = db.create_engine('postgresql://mh:mh@localhost:5432/resultados_mh')
-        metadata = db.MetaData()
-        connection = engine.connect()
-        datosIteracion = db.Table('datos_iteracion', metadata, autoload=True, autoload_with=engine)
+        
+        datosIteracion = db.Table('datos_iteracion', self.dbMetadata, autoload=True, autoload_with=self.dbEngine)
         insertDatosIteracion = datosIteracion.insert()
         if 1 in self.contenedorParametros['datosNivel']:
             totalesGrupo = {}
@@ -331,19 +331,32 @@ class GSO():
             datosNivel['soluciones']     = resultadoMovimiento['soluciones']
             datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
             datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
-            datosInternos = {
-                'datosNivel' : datosNivel,
-                'parametros' : self.contenedorParametros
-            }
-            datosInternos = zlib.compress(pickle.dumps(datosInternos))
             
-            if not self.geometric: datosNivel['velocidades']    = resultadoMovimiento['velocidades']
+            
+            datosNivel['velocidades']    = resultadoMovimiento['velocidades']
             self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
             self.calcularEstadoEvolutivo(datosNivel)
             #print(datosNivel['estEvol'])
             if self.mostrarGraficoParticulas:
                 self.graficarParticulas(datosNivel, nivel)
             fin = datetime.now()
+            estadoOculto = '-'
+            estadoObservado = '-'
+            if 'estadoOculto' in self.contenedorParametros:
+                estadoOculto = self.contenedorParametros['estadoOculto']
+            if 'estadoObservado' in self.contenedorParametros:
+                estadoObservado = self.contenedorParametros['estadoObservado']
+            datosInternos = {
+                #'soluciones' : datosNivel['soluciones'].astype('f4'),
+                'solucionesBin' : datosNivel['solucionesBin'].astype('B'),
+                'evalSoluciones' : datosNivel['evalSoluciones'],
+                'grupos' : datosNivel['grupos'],
+                'estEvol' : datosNivel['estEvol'],
+                'estadoOculto' : estadoOculto,
+                'estadoObservado' : estadoObservado
+                #'parametros' : self.contenedorParametros
+            }
+            datosInternos = zlib.compress(pickle.dumps(datosInternos))
             data.append({
                 'id_ejecucion' : self.idInstancia
                 ,'fitness_mejor' : -self.contenedorParametros['mejorEvalGlobal']
@@ -358,7 +371,7 @@ class GSO():
         #    for linea in datosConvergencia:
         #        mejorSolStr = ','.join([str(item) for item in linea])
         #        myfile.write(f'{mejorSolStr}\n')
-        connection.execute(insertDatosIteracion, data)
+        self.dbConnection.execute(insertDatosIteracion, data)
         
 
         self.fin = datetime.now()
@@ -683,19 +696,19 @@ class GSO():
         datosNivel['mejorSolGrupoBin']  = mejorSolucionGrupoBin
         datosNivel['mejorGlobal']  = mejorGlobal
         end = datetime.now()
-        self.guardarIndicadorTiempo('evaluarGrupos', total, end-start)
-        if self.guardarDatosEjec:
-            with open(self.nomArchivoDatosEjec, "a") as myfile:
-                
-                linea = f"{self.contenedorParametros['nivel']}"
-                linea += f",{len(datosNivel['soluciones'])}"                
-                linea += f",{self.contenedorParametros['accelPer']}"
-                linea += f",{self.contenedorParametros['accelBest']}"
-                linea += f",{self.contenedorParametros['inercia']}"
-                linea += f",{self.contenedorParametros['mejorEvalGlobal']}"
-                linea += f",{np.mean(datosNivel['evalSoluciones'])}"
-                linea += f",{np.std(datosNivel['evalSoluciones'])}\n"
-                myfile.write(linea)
+        #self.guardarIndicadorTiempo('evaluarGrupos', total, end-start)
+        #if self.guardarDatosEjec:
+        #    with open(self.nomArchivoDatosEjec, "a") as myfile:
+        #        
+        #        linea = f"{self.contenedorParametros['nivel']}"
+        #        linea += f",{len(datosNivel['soluciones'])}"                
+        #        linea += f",{self.contenedorParametros['accelPer']}"
+        #        linea += f",{self.contenedorParametros['accelBest']}"
+        #        linea += f",{self.contenedorParametros['inercia']}"
+        #        linea += f",{self.contenedorParametros['mejorEvalGlobal']}"
+        #        linea += f",{np.mean(datosNivel['evalSoluciones'])}"
+        #        linea += f",{np.std(datosNivel['evalSoluciones'])}\n"
+        #        myfile.write(linea)
         return datosNivel
     
     def guardarIndicadorTiempo(self, nombre, numEjec, timedelta):

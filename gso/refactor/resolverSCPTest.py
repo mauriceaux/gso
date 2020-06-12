@@ -16,73 +16,71 @@ np.set_printoptions(threshold=sys.maxsize)
 import json
 from datetime import datetime
 import sqlalchemy as db
-import json
+import configparser
+from sqlalchemy.sql import text
 
 if __name__ == '__main__':
     carpeta = 'problemas/scp/instances'
     carpetaResultados = 'resultados/scp'
-    engine = db.create_engine('postgresql://mh:mh@localhost:5432/resultados_mh')
+    config = configparser.ConfigParser()
+    config.read('db_config.ini')
+    host = config['postgres']['host']
+    db_name = config['postgres']['db_name']
+    port = config['postgres']['port']
+    user = config['postgres']['user']
+    pwd = config['postgres']['pass']
+
+    engine = db.create_engine(f'postgresql://{user}:{pwd}@{host}:{port}/{db_name}')
     metadata = db.MetaData()
     connection = engine.connect()
     datosEjecucion = db.Table('datos_ejecucion', metadata, autoload=True, autoload_with=engine)
     resultadoEjecucion = db.Table('resultado_ejecucion', metadata, autoload=True, autoload_with=engine)
     insertDatosEjecucion = datosEjecucion.insert().returning(datosEjecucion.c.id)
     insertResultadoEjecucion =resultadoEjecucion.insert()
-    for _ in range(31):
-        for archivo in os.listdir(carpeta):
-            path = os.path.join(carpeta, archivo)
-            if os.path.isdir(path):
-                # skip directories
-                continue
-            data = {
-                'nombre_algoritmo' : 'GSO',
-                'parametros': json.dumps({
-                    'instancia' : archivo
-                    #,'niveles'=2, 
-                    #'numParticulas'=50, 
-                    #'iterPorNivel'={1:50, 2:250}, 
-                    #'gruposPorNivel'={1:12,2:12}
-                }),
-                'inicio' : datetime.now(),
-                'estado' : 'ejecucion'
-            }
-            ResultProxy = connection.execute(insertDatosEjecucion,data)
-            idEjecucion = ResultProxy.fetchone()[0]
-            problema = SCPProblem(f'{carpeta}/{archivo}')
-            gso = GSO(niveles=2, idInstancia=idEjecucion, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12})
-            gso.carpetaResultados = carpetaResultados
-            gso.instancia = archivo
-            gso.mostrarGraficoParticulas = False
-            gso.procesoParalelo = False
-            gso.setProblema(problema)
+    sql = text("""update datos_ejecucion set estado = 'ejecucion', inicio = :inicio
+                    where id = 
+                    (select id from datos_ejecucion
+                        where estado = 'pendiente'
+                        order by id asc
+                        limit 1) returning id, parametros;""")
+    
+    while True:
+        inicio = datetime.now()
+        arrResult = connection.execute(sql,**{"inicio":inicio}).fetchone()
+        if arrResult is None: 
+            break
+        idEjecucion = arrResult[0]
+        param = json.loads(arrResult[1])
+        archivo = param['instancia']
+        paramOptimizar = param['paramOptimizar']
+        path = os.path.join(carpeta, param['instancia'])
+        problema = SCPProblem(path)
+        gso = GSO(niveles=2, idInstancia=idEjecucion, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12}, dbEngine=engine)
+        gso.carpetaResultados = carpetaResultados
+        gso.instancia = archivo
+        gso.mostrarGraficoParticulas = False
+        gso.procesoParalelo = False
+        gso.setProblema(problema)
+    
+        solver = Solver()
+        solver.autonomo = True
+        solver.setAlgoritmo(gso)
+        solver.setParamOptimizar(paramOptimizar)
         
-            solver = Solver()
-            solver.autonomo = True
-            solver.setAlgoritmo(gso)
-            
-            inicio = datetime.now()
-            solver.resolverProblema()
-            fin = datetime.now()
-            updateDatosEjecucion = datosEjecucion.update().where(datosEjecucion.c.id == idEjecucion)
-            connection.execute(updateDatosEjecucion, {'fin':fin, 'estado' : 'terminado'})
-            connection.execute(insertResultadoEjecucion, {
-                'id_ejecucion':idEjecucion
-                ,'fitness' : -solver.algoritmo.indicadores["mejorObjetivo"]
-                ,'inicio': inicio 
-                ,'fin': fin
-                ,'mejor_solucion' : json.dumps(solver.algoritmo.indicadores["mejorSolucion"].tolist())
-                })
-             
-            #with open(f"{carpetaResultados}{'/autonomo' if solver.autonomo else ''}/{archivo}inercia.csv", "a") as myfile:
-            #    mejorSolStr = np.array2string(solver.algoritmo.indicadores["mejorSolucion"], max_line_width=10000000000000000000000, precision=1, separator=",", suppress_small=False)
-            #    myfile.write(f'{solver.algoritmo.indicadores["mejorObjetivo"]},{inicio}, {fin}, {fin-inicio}, {mejorSolStr}\n')
-            #with open(f"{carpetaResultados}/algoritmos/gso/{archivo}GSO.csv", "a") as myfile:
-            #    myfile.write(json.dumps(solver.algoritmo.indicadores["tiempos"]))
-            #with open(f"{carpetaResultados}/algoritmos/gso/{archivo}-evalsTodas.csv", "a") as myfile:
-            #    myfile.write(json.dumps(solver.algoritmo.dataEvals))
-    print(f'mejor resultado  {solver.getMejorResultado()}')
-    print(f'mejor solucion   {solver.getMejorSolucion()}')
-    print(f'tiempo ejecución {solver.getTiempoEjecucion()}')
-    print(f'solucion promedio {solver.algoritmo.solPromedio}')
-#    solver.graficarConvergencia()
+        inicio = datetime.now()
+        solver.resolverProblema()
+        fin = datetime.now()
+        updateDatosEjecucion = datosEjecucion.update().where(datosEjecucion.c.id == idEjecucion)
+        connection.execute(updateDatosEjecucion, {'fin':fin, 'estado' : 'terminado'})
+        connection.execute(insertResultadoEjecucion, {
+            'id_ejecucion':idEjecucion
+            ,'fitness' : -solver.algoritmo.indicadores["mejorObjetivo"]
+            ,'inicio': inicio 
+            ,'fin': fin
+            ,'mejor_solucion' : json.dumps(solver.algoritmo.indicadores["mejorSolucion"].astype('B').tolist())
+            })
+    print("fin")    
+    exit()
+    
+    
 
