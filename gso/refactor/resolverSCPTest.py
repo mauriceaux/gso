@@ -51,34 +51,38 @@ if __name__ == '__main__':
             break
         idEjecucion = arrResult[0]
         param = json.loads(arrResult[1])
-        archivo = param['instancia']
-        paramOptimizar = param['paramOptimizar']
-        path = os.path.join(carpeta, param['instancia'])
-        problema = SCPProblem(path)
-        gso = GSO(niveles=2, idInstancia=idEjecucion, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12}, dbEngine=engine)
-        gso.carpetaResultados = carpetaResultados
-        gso.instancia = archivo
-        gso.mostrarGraficoParticulas = False
-        gso.procesoParalelo = False
-        gso.setProblema(problema)
-    
-        solver = Solver()
-        solver.autonomo = True
-        solver.setAlgoritmo(gso)
-        solver.setParamOptimizar(paramOptimizar)
+        try :
+            archivo = param['instancia']
+            paramOptimizar = param['paramOptimizar']
+            path = os.path.join(carpeta, param['instancia'])
+            problema = SCPProblem(path)
+            gso = GSO(niveles=2, idInstancia=idEjecucion, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12}, dbEngine=engine)
+            gso.carpetaResultados = carpetaResultados
+            gso.instancia = archivo
+            gso.mostrarGraficoParticulas = False
+            gso.procesoParalelo = False
+            gso.setProblema(problema)
         
-        inicio = datetime.now()
-        solver.resolverProblema()
-        fin = datetime.now()
-        updateDatosEjecucion = datosEjecucion.update().where(datosEjecucion.c.id == idEjecucion)
-        connection.execute(updateDatosEjecucion, {'fin':fin, 'estado' : 'terminado'})
-        connection.execute(insertResultadoEjecucion, {
-            'id_ejecucion':idEjecucion
-            ,'fitness' : -solver.algoritmo.indicadores["mejorObjetivo"]
-            ,'inicio': inicio 
-            ,'fin': fin
-            ,'mejor_solucion' : json.dumps(solver.algoritmo.indicadores["mejorSolucion"].astype('B').tolist())
-            })
+            solver = Solver()
+            solver.autonomo = True
+            solver.setAlgoritmo(gso)
+            solver.setParamOptimizar(paramOptimizar)
+            
+            inicio = datetime.now()
+            solver.resolverProblema()
+            fin = datetime.now()
+            updateDatosEjecucion = datosEjecucion.update().where(datosEjecucion.c.id == idEjecucion)
+            connection.execute(updateDatosEjecucion, {'fin':fin, 'estado' : 'terminado'})
+            connection.execute(insertResultadoEjecucion, {
+                'id_ejecucion':idEjecucion
+                ,'fitness' : -solver.algoritmo.indicadores["mejorObjetivo"]
+                ,'inicio': inicio 
+                ,'fin': fin
+                ,'mejor_solucion' : json.dumps(solver.algoritmo.indicadores["mejorSolucion"].astype('B').tolist())
+                })
+        except Exception as error:
+            updateDatosEjecucion = datosEjecucion.update().where(datosEjecucion.c.id == idEjecucion)
+            connection.execute(updateDatosEjecucion, {'inicio':None,'fin':None, 'estado' : 'pendiente'})
     print("fin")    
     exit()
     

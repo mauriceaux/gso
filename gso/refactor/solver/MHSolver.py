@@ -34,7 +34,7 @@ class Solver():
         else:
             #30 ejecuciones porque si
 
-            for i in range(10):
+            for i in range(100):
     #            indicadores = self.algoritmo.getIndicadores()
 #                print(f"solver inicio {self.algoritmo.getParametros()}")
                 self.algoritmo.generarSolucionReducida()
