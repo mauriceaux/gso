@@ -47,5 +47,5 @@ with open("insert.sql", "a") as file_object:
 
 
 
-
+cambio insignificante para el git
 
