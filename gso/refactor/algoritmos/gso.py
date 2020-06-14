@@ -44,13 +44,13 @@ class GSO():
         self.mejorEval = None
         self.calcularParamDim()
         self.nivelAnterior = 1
-        self.fig = plt.figure()
+        #self.fig = plt.figure()
         self.mostrarGraficoParticulas = False
         self.nivel1=None
         self.nivel2=None
         self.mejores = None
         self.mejorGlobal = None
-        self.ax = self.fig.add_subplot(111)
+        #self.ax = self.fig.add_subplot(111)
         self.niveles = {}
         self.scaler = None
         self.plotShowing = False
@@ -315,10 +315,10 @@ class GSO():
         self.nivelAnterior = nivel
         self.inicio = datetime.now()
         
-        if self.mostrarGraficoParticulas and not self.plotShowing:
-            plt.ion()
-            plt.show()
-            self.plotShowing = True
+        #if self.mostrarGraficoParticulas and not self.plotShowing:
+        #    plt.ion()
+        #    plt.show()
+        #    self.plotShowing = True
             
         print(f'ACTUALIZANDO NIVEL '+ str(nivel))
         data = []
@@ -337,8 +337,8 @@ class GSO():
             self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
             self.calcularEstadoEvolutivo(datosNivel)
             #print(datosNivel['estEvol'])
-            if self.mostrarGraficoParticulas:
-                self.graficarParticulas(datosNivel, nivel)
+            #if self.mostrarGraficoParticulas:
+            #    self.graficarParticulas(datosNivel, nivel)
             fin = datetime.now()
             estadoOculto = '-'
             estadoObservado = '-'
@@ -754,7 +754,7 @@ class GSO():
                 }
     
     
-    
+    """ 
     def graficarParticulas(self, datosNivel, nivel):
         if self.problema.getNombre() == "SCP":
             parametrosGso = np.array([self.contenedorParametros['accelPer'],self.contenedorParametros['accelBest'],self.contenedorParametros['inercia']])
@@ -799,3 +799,4 @@ class GSO():
             self.mejorGlobal.set_ydata(self.contenedorParametros['mejorSolGlobal'][1])
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
+    """
