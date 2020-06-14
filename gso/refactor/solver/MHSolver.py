@@ -38,6 +38,8 @@ class Solver():
     #            indicadores = self.algoritmo.getIndicadores()
 #                print(f"solver inicio {self.algoritmo.getParametros()}")
                 self.algoritmo.generarSolucionReducida()
+                if self.algoritmo.problema.optimo is not None and self.algoritmo.problema.optimo >= (-self.algoritmo.indicadores["mejorObjetivo"]):
+                    break
                 self.algoritmo.setParametros(self.calcularParametrosAlgoritmo())
 #                print(f"solver fin {self.algoritmo.getParametros()}")
                 

@@ -23,6 +23,7 @@ class SCPProblem():
 #        print(f'LEYENDO INSTANCIA')
         self.instancia = instancePath
         self.instance = r_instance.Read(instancePath)
+        self.optimo = self.instance.optimo
 #        print(f'FIN LEYENDO INSTANCIA')
         if(self.instance.columns != np.array(self.instance.get_c()).shape[0]):
             raise Exception(f'self.instance.columns {self.instance.columns} != np.array(self.instance.get_c()).shape[1] {np.array(self.instance.get_c()).shape[1]})')
