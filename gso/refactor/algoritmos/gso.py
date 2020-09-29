@@ -16,7 +16,7 @@ class GSO():
         self.idInstancia = idInstancia
         self.contenedorParametros = {}
         self.contenedorParametros['niveles'] = niveles
-        self.contenedorParametros['nivel'] = 2
+        self.contenedorParametros['nivel'] = 1
         self.contenedorParametros['numParticulas'] = numParticulas
         self.contenedorParametros['iterPorNivel'] = iterPorNivel
         self.contenedorParametros['gruposPorNivel'] = gruposPorNivel
@@ -119,10 +119,10 @@ class GSO():
         minVel = self.contenedorParametros['minVel']
         maxVal = self.problema.getRangoSolucion()['max']
         minVal = self.problema.getRangoSolucion()['min']
-#        randPer = np.random.uniform(low=0, high=1)
-#        randBest = np.random.uniform(low=0, high=1)
-        randPer = 1
-        randBest = 1
+        randPer = np.random.uniform(low=0, high=1)
+        randBest = np.random.uniform(low=0, high=1)
+        #randPer = 1
+        #randBest = 1
         personalDif = personalBest - swarm
         personalAccel = accelPer * randPer * personalDif
         bestDif = bestFound - swarm
@@ -136,7 +136,7 @@ class GSO():
         nextVel = vInercia + acceleration
         nextVel[nextVel > maxVel]  = maxVel
         nextVel[nextVel < minVel]  = minVel
-        ret = swarm+nextVel
+        ret = swarm+(nextVel)
         ret[ret > maxVal]  = maxVal
         ret[ret < minVal] = minVal
         return ret, nextVel
@@ -145,12 +145,13 @@ class GSO():
         start = datetime.now()
         args = []
         start = datetime.now()
-        if self.contenedorParametros['autonomo']:
-            inercia = self.contenedorParametros['inercia'][self.contenedorParametros['nivel']][datosNivel['grupos'][0]]
-        else:
-            inercia = 1 - (iteracion/(totIteraciones + 1)) 
+        
         
         for idx in range(datosNivel['soluciones'].shape[0]):
+            if self.contenedorParametros['autonomo']:
+                inercia = self.contenedorParametros['inercia'][self.contenedorParametros['nivel']][datosNivel['grupos'][idx]]
+            else:
+                inercia = 1 - (iteracion/(totIteraciones + 1)) 
             mejorGrupo = datosNivel['mejorSolGrupo'][datosNivel['grupos'][idx]]
             if idx < len(datosNivel['grupos']) and datosNivel['solPorGrupo'][datosNivel['grupos'][idx]] == 1:
                 mejorGrupo = datosNivel['mejorGlobal']
@@ -209,6 +210,15 @@ class GSO():
         binarizationStrategy = getattr(self.problema, "binarizationStrategy", None)
         if binarizationStrategy is not None:
             self.problema.binarizationStrategy.mejorSol = self.contenedorParametros['mejorSolGlobal']
+
+
+
+
+
+        #evaluaciones, solucionesBin,_ = self.problema.evalEncBatch(soluciones)
+
+        
+
         if self.procesoParalelo:
             
             pool = mp.Pool(4)
@@ -228,6 +238,13 @@ class GSO():
             solucionesBin = np.array(solucionesBin)
             evaluaciones = np.array(evaluaciones)
         
+        
+
+
+
+
+
+
         if self.mostrarPromedio:
             tmp = np.mean(soluciones, axis=0)
             if self.solPromedio is None:
@@ -238,7 +255,7 @@ class GSO():
                 self.solPromedio = np.mean(self.solPromedio, axis=0)
         end = datetime.now()
         self.guardarIndicadorTiempo('evaluarSoluciones', len(soluciones), end-start)
-        return solucionesBin, evaluaciones.reshape((evaluaciones.shape[0]))
+        return solucionesBin, evaluaciones
     
     def agregarDataEjec(self, evaluaciones, idGrupos):
         self.agregarMejorResultado()
@@ -359,9 +376,9 @@ class GSO():
             datosInternos = zlib.compress(pickle.dumps(datosInternos))
             data.append({
                 'id_ejecucion' : self.idInstancia
-                ,'fitness_mejor' : -self.contenedorParametros['mejorEvalGlobal']
-                ,'fitness_promedio' : -np.mean(datosNivel['evalSoluciones'])
-                ,'fitness_mejor_iteracion' : -np.max(datosNivel['evalSoluciones'])
+                ,'fitness_mejor' : int(-self.contenedorParametros['mejorEvalGlobal'])
+                ,'fitness_promedio' : float(-np.mean(datosNivel['evalSoluciones']))
+                ,'fitness_mejor_iteracion' : int(-np.max(datosNivel['evalSoluciones']))
                 ,'inicio' : inicio
                 ,'fin' : fin
                 ,'parametros_iteracion' : json.dumps({'nivel': nivel})

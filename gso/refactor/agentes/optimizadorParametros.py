@@ -24,11 +24,12 @@ class OptimizadorParametros:
         self.numObs = 0
         self.dataEvol = {}
         self.wmax = 0.9
-        self.wmin = 0
+        self.wmin = 0.01
         self.disminucionRango = [0.94, 0.96]
         self.disminucionLeveRango = [0.97, 0.99]
         self.aumentoRango = [1.04, 1.06]
         self.aumentoLeveRango = [1.01, 1.03]
+        self.iter = 0
 
         self.states = ['Exploration', 'Exploitation', 'Convergence', 'Jump out']
         if os.path.exists('hmm-model.pkl'):
@@ -49,7 +50,7 @@ class OptimizadorParametros:
                 [0   ,0   ,0   ,0  ,0   ,1/3 ,2/3]
             ])
             n_states = len(self.states)
-            self.dhmm = hmm.MultinomialHMM(n_components=n_states)
+            self.dhmm = hmm.MultinomialHMM(n_components=n_states, n_iter=100, verbose=False, init_params="s", params='es')
             self.dhmm.n_features = 7
             self.dhmm.startprob_=Pi
             self.dhmm.transmat_=A
@@ -141,10 +142,10 @@ class OptimizadorParametros:
 #            print(f"lenghts {lenghts}")
             
             lenghts = np.array(lenghts)
-            if np.prod(obs.shape) >= numParams:
+            if np.prod(obs.shape) >= numParams and np.unique(obs).shape[0] == self.dhmm.n_features:
                 print('entrenando hmm')
                 self.dhmm.fit( obs, lenghts )
-#                with open("hmm-model.pkl", "wb") as file: pickle.dump(self.dhmm, file)
+                with open("hmm-model.pkl", "wb") as file: pickle.dump(self.dhmm, file)
 #            else: print('muy pocos datos para entrenar')
             #print(obs)
             #exit()
@@ -155,6 +156,7 @@ class OptimizadorParametros:
             
     
     def mejorarParametros(self):
+
 #        print(f"optimizador parametros inicio {self.parametros['solPorGrupo']}")
         self.parametros['numIteraciones'] = self.iteraciones
 #        self.parametros['nivel'] = 2
@@ -242,12 +244,14 @@ class OptimizadorParametros:
                 print(f"coeficientes aceleracion grupo {idGrupo} suman {suma}")
             if 0 >= self.parametros['inercia'][self.parametros['nivel']][idGrupo]:
                 print(f"inercia grupo {idGrupo} es {self.parametros['inercia'][self.parametros['nivel']][idGrupo]}")
-                self.parametros['inercia'][self.parametros['nivel']][idGrupo] = ((suma/2)-1) 
-            if self.parametros['inercia'][self.parametros['nivel']][idGrupo] > 1:
+                #self.parametros['inercia'][self.parametros['nivel']][idGrupo] = ((suma/2)-1) 
+                self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmin
+            if self.parametros['inercia'][self.parametros['nivel']][idGrupo] > self.wmax:
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmax
 
-            if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 15
+            if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 70
             if self.parametros['solPorGrupo'][idGrupo] < 3: self.parametros['solPorGrupo'][idGrupo] = 3
+        
         self.parametros['nivel'] = 1 if self.parametros['nivel'] == 2 else 2
         #if self.parametros['nivel'] == 1: self.parametros['numIteraciones'] = 20
         #if self.parametros['nivel'] == 2: self.parametros['numIteraciones'] = 40

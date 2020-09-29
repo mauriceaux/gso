@@ -15,6 +15,9 @@ from .repair import ReparaStrategy as _repara
 from datetime import datetime
 import multiprocessing as mp
 from numpy.random import default_rng
+
+from .reparacionGpu.reparacionGpu import cumpleRestricciones as reparaGpu
+
 #import matplotlib.pyplot as plt
 #import line_profiler
 
@@ -121,25 +124,24 @@ class SCPProblem():
         #encoded = self.encodeInstance(decoded)
         return fitness, decoded, numReparaciones
 
-    def evalEncBatch(self, encodedInstances, mejorSol):
-#        print(f'encodedInstance.shape {np.array(encodedInstance)}')
-#        exit()
-#        start = datetime.now()
-#        fitness = []
-#        decoded = []
-#        numReparaciones = []
-#        for encodedInstance in encodedInstances:
-#                a,b,c = self.evalEnc(encodedInstance)
-#                fitness.append(a)
-#                decoded.append(b)
-#                numReparaciones.append(c)
+    def binariceBatch(self, encodedInstances):
+            decoded = [self.binarizationStrategy.binarize(encodedInstances[i]) for i in range(encodedInstances.shape[0])]
+            decoded = np.array(decoded)
+            #print(decoded.shape)
+            #print(encodedInstances.shape)
+            #exit()
+            return decoded
+    
+    def evalEncBatch(self, encodedInstances):
+        decoded = self.binariceBatch(encodedInstances)
+        #print(decoded.shape)
+        reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
+        #print(reparadas.shape)
+        #exit()
+        fitness = self.evalInstanceBatch(reparadas)
         
         
-        decoded, numReparaciones = self.decodeInstancesBatch(encodedInstances, mejorSol)
-        fitness = self.evalInstanceBatch(decoded)
-        
-        
-        return fitness, decoded, numReparaciones
+        return fitness, reparadas, 0
     
     def evalDecBatch(self, encodedInstances, mejorSol):
 #        print(f'encodedInstance.shape {np.array(encodedInstance)}')
@@ -225,6 +227,7 @@ class SCPProblem():
 #        print(np.sum(decoded*np.array(self.instance.get_c()),axis=1))
 #        exit()
         ret = np.sum(np.array(self.instance.get_c())*decoded, axis=1)
+        #ret = [self.evalInstance(decoded[i] for i in range(decoded.shape[0]))]
 #        print(-ret)
 #        exit()
         #print(ret)
@@ -339,6 +342,13 @@ class SCPProblem():
         fitness = []
         ant = self.penalizar
         self.penalizar = False
+
+
+        fitness, sol,_ = self.evalEncBatch(args)
+
+
+        """
+
         if self.paralelo:
             pool = mp.Pool(4)
             ret = pool.map(self.evalEnc, args.tolist())
@@ -363,6 +373,11 @@ class SCPProblem():
                 fitness.append(fitness_)
             sol = np.array(sol)
             fitness = np.array(fitness)
+
+        """
+
+
+
         self.penalizar = ant
 #        print(sol)
 #        exit()

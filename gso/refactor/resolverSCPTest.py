@@ -50,6 +50,7 @@ if __name__ == '__main__':
         if arrResult is None: 
             break
         idEjecucion = arrResult[0]
+        
         param = json.loads(arrResult[1])
         try :
             archivo = param['instancia']
@@ -75,7 +76,7 @@ if __name__ == '__main__':
             connection.execute(updateDatosEjecucion, {'fin':fin, 'estado' : 'terminado'})
             connection.execute(insertResultadoEjecucion, {
                 'id_ejecucion':idEjecucion
-                ,'fitness' : -solver.algoritmo.indicadores["mejorObjetivo"]
+                ,'fitness' : int(-solver.algoritmo.indicadores["mejorObjetivo"])
                 ,'inicio': inicio 
                 ,'fin': fin
                 ,'mejor_solucion' : json.dumps(solver.algoritmo.indicadores["mejorSolucion"].astype('B').tolist())
@@ -83,6 +84,8 @@ if __name__ == '__main__':
         except Exception as error:
             updateDatosEjecucion = datosEjecucion.update().where(datosEjecucion.c.id == idEjecucion)
             connection.execute(updateDatosEjecucion, {'inicio':None,'fin':None, 'estado' : 'pendiente'})
+            raise error
+
     print("fin")    
     exit()
     

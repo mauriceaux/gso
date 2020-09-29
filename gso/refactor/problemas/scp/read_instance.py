@@ -90,7 +90,10 @@ class Read():
 #        print(f'fin ciclo qlo 3 {datetime.now()}')
         Archivo.close()
         self.set_c(Costos)
-        self.set_r(Restricciones)        
+        self.set_r(Restricciones)      
+        self.pondReparaciones = 1/np.sum(Restricciones, axis=1)  
+        #print(self.pondReparaciones)
+        #exit()
 
 
     def obtenerOptimo(self, archivoInstancia):
