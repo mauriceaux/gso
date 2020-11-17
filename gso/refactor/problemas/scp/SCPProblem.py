@@ -16,7 +16,7 @@ from datetime import datetime
 import multiprocessing as mp
 from numpy.random import default_rng
 
-from .reparacionGpu.reparacionGpu import cumpleRestricciones as reparaGpu
+from .reparacionGpu import cumpleRestricciones as reparaGpu
 
 #import matplotlib.pyplot as plt
 #import line_profiler
@@ -136,6 +136,17 @@ class SCPProblem():
         decoded = self.binariceBatch(encodedInstances)
         #print(decoded.shape)
         reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
+
+        # reparadas = np.array([self.mejoraSolucion(sol) for sol in reparadas])
+        reparadas = self.mejoraSoluciones(reparadas)
+        # reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
+        # nCol = 10
+        # costos = reparadas * self.instance.get_c()
+        # costosMasAltos = np.argsort(-costos, axis=1)[:,:nCol]
+        # indices = np.random.randint(low=0,high=costosMasAltos.shape[1],size=(costosMasAltos.shape[0],3))
+        # indiceColRandom = costosMasAltos[np.arange(costosMasAltos.shape[0]).reshape((-1,1)), indices]
+        # reparadas[np.arange(costos.shape[0]).reshape(-1,1), indiceColRandom] = 0
+        # reparadas = reparaGpu.reparaSoluciones(reparadas, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
         #print(reparadas.shape)
         #exit()
         fitness = self.evalInstanceBatch(reparadas)
@@ -274,6 +285,19 @@ class SCPProblem():
 #        print(f'repara two {end-start}')
         return x, numReparaciones
     
+    def mejoraSoluciones(self, soluciones):
+        soluciones = np.array(soluciones)
+        costos = soluciones * self.instance.get_c()
+        nCols = costos.shape[1]
+        cosOrd = np.argsort(-costos, axis=1)[:,:nCols]
+        modificado = soluciones.copy()
+        for pos in range(cosOrd.shape[1]):
+            if (costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0).all(): break
+            modificado[np.arange(modificado.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
+            fact = reparaGpu._procesarFactibilidadGPU(modificado, np.array(self.instance.get_r()))
+            modificado[(fact==0).any(axis=1)] = soluciones[(fact==0).any(axis=1)]
+        return modificado
+
     def mejoraSolucion(self, solucion):
         solucion = np.array(solucion)
         costos = solucion * self.instance.get_c()
