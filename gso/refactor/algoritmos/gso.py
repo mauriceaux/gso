@@ -140,6 +140,16 @@ class GSO():
         ret[ret > maxVal]  = maxVal
         ret[ret < minVal] = minVal
         return ret, nextVel
+
+    def obtenerMejorGrupo(self, datosNivel, idGrupo):
+        mejorId = None
+        mejorFit = -np.inf
+        for idx in range(datosNivel['soluciones'].shape[0]):
+            if datosNivel['grupos'][idx] != idGrupo and self.contenedorParametros['nivel'] == 1: continue
+            if mejorId is None or datosNivel['evalSoluciones'][idx] > mejorFit:
+                mejorFit = datosNivel['evalSoluciones'][idx]
+                mejorId = idx
+        return mejorId
     
     def aplicarMovimiento(self, datosNivel, iteracion, totIteraciones):
         start = datetime.now()
@@ -152,9 +162,15 @@ class GSO():
                 inercia = self.contenedorParametros['inercia'][self.contenedorParametros['nivel']][datosNivel['grupos'][idx]]
             else:
                 inercia = 1 - (iteracion/(totIteraciones + 1)) 
-            mejorGrupo = datosNivel['mejorSolGrupo'][datosNivel['grupos'][idx]]
-            if idx < len(datosNivel['grupos']) and datosNivel['solPorGrupo'][datosNivel['grupos'][idx]] == 1:
-                mejorGrupo = datosNivel['mejorGlobal']
+
+            # calculo mejor por grupo
+            mejorIdx = self.obtenerMejorGrupo(datosNivel, datosNivel['grupos'][idx])
+            mejorGrupo = datosNivel['soluciones'][mejorIdx]
+
+
+            # mejorGrupo = datosNivel['mejorSolGrupo'][datosNivel['grupos'][idx]]
+            # if idx < len(datosNivel['grupos']) and datosNivel['solPorGrupo'][datosNivel['grupos'][idx]] == 1:
+            #     mejorGrupo = datosNivel['mejorGlobal']
             args.append([datosNivel['soluciones'][idx]
                 ,datosNivel['velocidades'][idx]
                 ,datosNivel['mejoresSoluciones'][idx]
@@ -215,28 +231,28 @@ class GSO():
 
 
 
-        #evaluaciones, solucionesBin,_ = self.problema.evalEncBatch(soluciones)
+        evaluaciones, solucionesBin,_ = self.problema.evalEncBatch(soluciones)
 
         
 
-        if self.procesoParalelo:
+        # if self.procesoParalelo:
             
-            pool = mp.Pool(4)
-            if not self.geometric: ret = pool.map(self.problema.evalEnc, soluciones)
-            else: ret = pool.map(self.problema.eval, soluciones)
-            pool.close()
-            solucionesBin = np.vstack(np.array(ret)[:,1])
-            evaluaciones = np.vstack(np.array(ret)[:,0])
-        else:
-            solucionesBin = []
-            evaluaciones = []
-            for sol in soluciones:
-                if not self.geometric: eval, bin, _ = self.problema.evalEnc(sol)
-                else: eval, bin, _ = self.problema.eval(sol)
-                solucionesBin.append(bin)
-                evaluaciones.append(eval)
-            solucionesBin = np.array(solucionesBin)
-            evaluaciones = np.array(evaluaciones)
+        #     pool = mp.Pool(4)
+        #     if not self.geometric: ret = pool.map(self.problema.evalEnc, soluciones)
+        #     else: ret = pool.map(self.problema.eval, soluciones)
+        #     pool.close()
+        #     solucionesBin = np.vstack(np.array(ret)[:,1])
+        #     evaluaciones = np.vstack(np.array(ret)[:,0])
+        # else:
+        #     solucionesBin = []
+        #     evaluaciones = []
+        #     for sol in soluciones:
+        #         if not self.geometric: eval, bin, _ = self.problema.evalEnc(sol)
+        #         else: eval, bin, _ = self.problema.eval(sol)
+        #         solucionesBin.append(bin)
+        #         evaluaciones.append(eval)
+        #     solucionesBin = np.array(solucionesBin)
+        #     evaluaciones = np.array(evaluaciones)
         
         
 

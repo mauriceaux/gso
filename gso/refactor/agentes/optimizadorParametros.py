@@ -32,7 +32,7 @@ class OptimizadorParametros:
         self.iter = 0
 
         self.states = ['Exploration', 'Exploitation', 'Convergence', 'Jump out']
-        if os.path.exists('hmm-model.pkl'):
+        if os.path.exists('hmm-model.pkl') and False:
             with open("hmm-model.pkl", "rb") as file: 
                 self.dhmm = pickle.load(file)
         else:
@@ -50,7 +50,7 @@ class OptimizadorParametros:
                 [0   ,0   ,0   ,0  ,0   ,1/3 ,2/3]
             ])
             n_states = len(self.states)
-            self.dhmm = hmm.MultinomialHMM(n_components=n_states, n_iter=100, verbose=False, init_params="s", params='es')
+            self.dhmm = hmm.MultinomialHMM(n_components=n_states, n_iter=100, verbose=False, init_params="", params='es')
             self.dhmm.n_features = 7
             self.dhmm.startprob_=Pi
             self.dhmm.transmat_=A
@@ -223,11 +223,11 @@ class OptimizadorParametros:
                     self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmin
                 if 'numParticulas' in self.paramOptimizar:
                     if self.parametros['nivel'] == 1:
-                        self.parametros['solPorGrupo'][idGrupo] += 1
+                        self.parametros['solPorGrupo'][idGrupo] += 3
             if self.states[estado] == 'Jump out':
                 if 'numParticulas' in self.paramOptimizar:
                     if self.parametros['nivel'] == 1:
-                        self.parametros['solPorGrupo'][idGrupo] -= 1
+                        self.parametros['solPorGrupo'][idGrupo] -= 3
                 if 'accelPer' in self.paramOptimizar:
                     self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.disminucionRango[0],high=self.disminucionRango[1])
                 if 'accelBest' in self.paramOptimizar:
@@ -249,8 +249,8 @@ class OptimizadorParametros:
             if self.parametros['inercia'][self.parametros['nivel']][idGrupo] > self.wmax:
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmax
 
-            if self.parametros['solPorGrupo'][idGrupo] > 15: self.parametros['solPorGrupo'][idGrupo] = 70
-            if self.parametros['solPorGrupo'][idGrupo] < 3: self.parametros['solPorGrupo'][idGrupo] = 3
+            if self.parametros['solPorGrupo'][idGrupo] > 70: self.parametros['solPorGrupo'][idGrupo] = 70
+            if self.parametros['solPorGrupo'][idGrupo] < 15: self.parametros['solPorGrupo'][idGrupo] = 15
         
         self.parametros['nivel'] = 1 if self.parametros['nivel'] == 2 else 2
         #if self.parametros['nivel'] == 1: self.parametros['numIteraciones'] = 20

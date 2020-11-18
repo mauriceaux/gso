@@ -41,6 +41,7 @@ if __name__ == '__main__':
                     where id = 
                     (select id from datos_ejecucion
                         where estado = 'pendiente'
+                        and nombre_algoritmo = 'GSO-PAPER-6'
                         order by id asc
                         limit 1) returning id, parametros;""")
     

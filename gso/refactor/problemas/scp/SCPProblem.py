@@ -16,7 +16,7 @@ from datetime import datetime
 import multiprocessing as mp
 from numpy.random import default_rng
 
-from .reparacionGpu import cumpleRestricciones as reparaGpu
+from .reparacionGpu.reparacionGpu import cumpleRestricciones as reparaGpu
 
 #import matplotlib.pyplot as plt
 #import line_profiler
@@ -138,7 +138,8 @@ class SCPProblem():
         reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
 
         # reparadas = np.array([self.mejoraSolucion(sol) for sol in reparadas])
-        reparadas = self.mejoraSoluciones(reparadas)
+        if np.random.uniform() < 0.4:
+            reparadas = self.mejoraSoluciones(reparadas)
         # reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
         # nCol = 10
         # costos = reparadas * self.instance.get_c()
@@ -287,16 +288,88 @@ class SCPProblem():
     
     def mejoraSoluciones(self, soluciones):
         soluciones = np.array(soluciones)
-        costos = soluciones * self.instance.get_c()
-        nCols = costos.shape[1]
-        cosOrd = np.argsort(-costos, axis=1)[:,:nCols]
-        for pos in range(cosOrd.shape[1]):
-            if (costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0).all(): break
-            modificado = soluciones.copy()
-            modificado[np.arange(modificado.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
-            fact = reparaGpu._procesarFactibilidadGPU(modificado, np.array(self.instance.get_r()))
+        solucionesOriginal = soluciones.copy()
+        for _ in range(200):
+            costos = soluciones * self.instance.get_c()
+            # print(f"soluciones cambia? {(soluciones!=solucionesOriginal).any()}")
+            nCols = int(costos.shape[1])
+            # nCols = 40
+            cosOrd = np.argsort(-costos, axis=1)[:,:nCols]
+            # modificado = soluciones.copy()
+            modificados = []
+            for pos in range(cosOrd.shape[1]):
+                # if np.count_nonzero(costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0) > (costos.shape[1]*0.3): break
+                if (costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0).all(): break
+                modificado = soluciones.copy()
+                modificado[np.arange(modificado.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
+                modificados.append(modificado)
+                # fact = [self.repair.cumple(modificado[id]) for id in range(modificado.shape[0])]
+                # fact = np.array(fact)
 
-            soluciones[(fact!=0).all(axis=1)] = modificado[(fact!=0).all(axis=1)]
+            pendientes = np.ones(soluciones.shape[0]) == 1
+            
+            modificados = np.array(modificados)
+            originalShape = modificados.shape
+            modificados = modificados.reshape((modificados.shape[0]*modificados.shape[1], modificados.shape[2]))
+            # print(modificados.shape)
+            fact = reparaGpu._procesarFactibilidadGPU(modificados, np.array(self.instance.get_r()))
+            fact = (fact!=0).all(axis=1)
+            modificados = modificados.reshape(originalShape)
+            fact = fact.reshape((originalShape[0],originalShape[1]))
+            
+            # print(fact.shape)
+            # print((fact==True).any(axis=1).shape)
+            # print(np.argwhere((fact==True).any(axis=1)))
+            # exit()
+            factEncontradas = np.argwhere((fact==True).any(axis=1))
+            # idxFact = 0
+            for idxFact in factEncontradas:
+                if np.count_nonzero(pendientes == True) == 0: break
+                
+                # solucionesPendientes = soluciones[pendientes]
+                factPendientes = fact[idxFact[0]]
+
+                if ((pendientes & factPendientes) == True).any():
+                    modificado = modificados[idxFact[0]]
+                    # print(modificado)
+                    # modificadoPendiente = modificado[pendientes]
+                    # print(f"Existe un factible en posición {np.argwhere(factPendientes)}")
+                    # print(f"pendientes {pendientes.shape}")
+                    # print(f"factPendientes {factPendientes}")
+                    # print(f"factPendientes {factPendientes.shape}")
+                    # print(f"soluciones[pendientes][factPendientes] {soluciones[pendientes][factPendientes].shape}")
+                    # print(f"modificadoPendiente[factPendientes] {modificadoPendiente[factPendientes].shape}")
+                    # A = np.array([False,False,True,False])
+                    # B = np.array([True,False,True,True])
+                    # print(np.argwhere(A & B))
+                    # exit()
+
+
+
+                    # print(f"antes del cambio, iguales? {(soluciones[pendientes][factPendientes]==modificadoPendiente[factPendientes]).all()}")
+                    # exit()                
+                
+                    
+
+                    # print(f"factibles {np.count_nonzero(factPendientes == True)} sols modificadas {modificadoPendiente[factPendientes].shape[0]}")
+                    # print(soluciones[pendientes][factPendientes])
+                    # print(factPendientes)
+                    soluciones[np.argwhere(pendientes & factPendientes),:] = modificado[np.argwhere(pendientes & factPendientes),:]
+                    # print(soluciones[pendientes][factPendientes])
+                    # soluciones[pendientes][factPendientes] = 8
+                    # print(f"despues del cambio, iguales? {(soluciones[pendientes][factPendientes]==modificadoPendiente[factPendientes]).all()}")
+                    # exit()
+
+                # soluciones[0,0] = 8
+                
+                    pendientes[pendientes] = factPendientes[pendientes]==False
+                # print(f"iter {idxFact} pendientes {np.count_nonzero(pendientes == True)} soluciones cambia? {(soluciones!=solucionesOriginal).any()}")
+                
+                # exit()
+                # idxFact += 1
+            if (soluciones==solucionesOriginal).all(): break
+                
+        # exit()
         return soluciones
 
     def mejoraSolucion(self, solucion):
