@@ -290,13 +290,14 @@ class SCPProblem():
         costos = soluciones * self.instance.get_c()
         nCols = costos.shape[1]
         cosOrd = np.argsort(-costos, axis=1)[:,:nCols]
-        modificado = soluciones.copy()
         for pos in range(cosOrd.shape[1]):
             if (costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0).all(): break
+            modificado = soluciones.copy()
             modificado[np.arange(modificado.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
             fact = reparaGpu._procesarFactibilidadGPU(modificado, np.array(self.instance.get_r()))
-            modificado[(fact==0).any(axis=1)] = soluciones[(fact==0).any(axis=1)]
-        return modificado
+
+            soluciones[(fact!=0).all(axis=1)] = modificado[(fact!=0).all(axis=1)]
+        return soluciones
 
     def mejoraSolucion(self, solucion):
         solucion = np.array(solucion)
