@@ -62,6 +62,7 @@ class GSO():
         self.dbEngine = dbEngine
         self.dbMetadata = db.MetaData()
         self.dbConnection = self.dbEngine.connect()
+        self.episodes = 3
         pass
     
     def getIndicadores(self):
@@ -257,7 +258,7 @@ class GSO():
         
 
 
-
+        
 
 
 
@@ -298,31 +299,69 @@ class GSO():
             self.indicadores['mediaResultadosReales'][self.contenedorParametros['nivel']][idGrupo].append(np.mean(evalsGrupo))        
     
     def generarSolucion(self):
-        if self.mostrarGraficoParticulas:
-            plt.ion()
-            plt.show()
+        # if self.mostrarGraficoParticulas:
+        #     plt.ion()
+        #     plt.show()
+        datosIteracion = db.Table('datos_iteracion', self.dbMetadata, autoload=True, autoload_with=self.dbEngine)
+        insertDatosIteracion = datosIteracion.insert()
         self.inicio = datetime.now()
         niveles = self.contenedorParametros['niveles']
-        for nivel in range(niveles):
-            nivel += 1
-            print(f'ACTUALIZANDO NIVEL '+ str(nivel))
-            if not nivel in self.contenedorParametros['datosNivel']: 
-                self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
-            datosNivel = self.contenedorParametros['datosNivel'][nivel]
-            
-            for iteracion in range(self.contenedorParametros['iterPorNivel'][nivel]):
-                string = 'nivel '+str(nivel)+' iteracion '+str(iteracion)+' mejor valor encontrado '+str(self.contenedorParametros["mejorEvalGlobal"])
-                print(string)
-                resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['iterPorNivel'][nivel])
-                datosNivel['soluciones']     = resultadoMovimiento['soluciones']
-                datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
-                datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
-                datosNivel['velocidades']    = resultadoMovimiento['velocidades']
-                self.contenedorParametros['datosNivel'][nivel] = self.agruparNivel(datosNivel, nivel)
-                if self.mostrarGraficoParticulas:
-                    self.graficarParticulas(datosNivel, nivel)#
-                    self.fig.canvas.draw()
-                    self.fig.canvas.flush_events()
+        for ep in range(self.episodes):
+            for nivel in range(niveles):
+                nivel += 1
+                print(f'ACTUALIZANDO NIVEL '+ str(nivel))
+                if not nivel in self.contenedorParametros['datosNivel']: 
+                    self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
+                datosNivel = self.contenedorParametros['datosNivel'][nivel]
+                data = []        
+                for iteracion in range(self.contenedorParametros['iterPorNivel'][nivel]):
+                    inicio = datetime.now()
+                    string = 'nivel '+str(nivel)+' iteracion '+str(iteracion)+' mejor valor encontrado '+str(self.contenedorParametros["mejorEvalGlobal"]) + f"num particulas {datosNivel['soluciones'].shape[0]}"
+                    print(string)
+                    resultadoMovimiento = self.aplicarMovimiento(datosNivel, iteracion, self.contenedorParametros['iterPorNivel'][nivel])
+                    datosNivel['soluciones']     = resultadoMovimiento['soluciones']
+                    datosNivel['solucionesBin']  = resultadoMovimiento['solucionesBin']
+                    datosNivel['evalSoluciones'] = resultadoMovimiento['evalSoluciones']
+                    datosNivel['velocidades']    = resultadoMovimiento['velocidades']
+                    self.contenedorParametros['datosNivel'][nivel] = self.evaluarGrupos(datosNivel)
+                    self.calcularEstadoEvolutivo(datosNivel)
+                    #print(datosNivel['estEvol'])
+                    #if self.mostrarGraficoParticulas:
+                    #    self.graficarParticulas(datosNivel, nivel)
+                    fin = datetime.now()
+                    estadoOculto = '-'
+                    estadoObservado = '-'
+                    if 'estadoOculto' in self.contenedorParametros:
+                        estadoOculto = self.contenedorParametros['estadoOculto']
+                    if 'estadoObservado' in self.contenedorParametros:
+                        estadoObservado = self.contenedorParametros['estadoObservado']
+                    datosInternos = {
+                        #'soluciones' : datosNivel['soluciones'].astype('f4'),
+                        'solucionesBin' : datosNivel['solucionesBin'].astype('B'),
+                        'evalSoluciones' : datosNivel['evalSoluciones'],
+                        'grupos' : datosNivel['grupos'],
+                        'estEvol' : datosNivel['estEvol'],
+                        'estadoOculto' : estadoOculto,
+                        'estadoObservado' : estadoObservado
+                        #'parametros' : self.contenedorParametros
+                    }
+                    datosInternos = zlib.compress(pickle.dumps(datosInternos))
+                    data.append({
+                        'id_ejecucion' : self.idInstancia
+                        ,'fitness_mejor' : int(-self.contenedorParametros['mejorEvalGlobal'])
+                        ,'fitness_promedio' : float(-np.mean(datosNivel['evalSoluciones']))
+                        ,'fitness_mejor_iteracion' : int(-np.max(datosNivel['evalSoluciones']))
+                        ,'inicio' : inicio
+                        ,'fin' : fin
+                        ,'parametros_iteracion' : json.dumps({'nivel': nivel, 'inercia': float((1 - (iteracion/(self.contenedorParametros['iterPorNivel'][nivel] + 1)))) , 'c1': str(self.contenedorParametros['accelPer'][self.contenedorParametros['nivel']]), 'c2': str(self.contenedorParametros['accelBest'][self.contenedorParametros['nivel']])})
+                        ,'datos_internos' : datosInternos})
+                    #datosConvergencia.append([self.idInstancia, nivel, self.contenedorParametros['mejorEvalGlobal'], np.mean(datosNivel['evalSoluciones']), (fin-inicio).total_seconds()])
+                #with open(f"{self.carpetaResultados}{'/autonomo' if self.contenedorParametros['autonomo'] else ''}/convergencia{self.instancia}inercia.csv", "a") as myfile:
+                #    for linea in datosConvergencia:
+                #        mejorSolStr = ','.join([str(item) for item in linea])
+                #        myfile.write(f'{mejorSolStr}\n')
+                self.dbConnection.execute(insertDatosIteracion, data)    
+        # self.fig.canvas.flush_events()
         self.fin = datetime.now()
         self.indicadores['tiempoEjecucion'] = self.fin-self.inicio
         self.indicadores['mejorObjetivo'] = self.contenedorParametros['mejorEvalGlobal']
@@ -574,11 +613,11 @@ class GSO():
             if not nivel in self.contenedorParametros['accelPer']:
                 self.contenedorParametros['accelPer'][nivel] = {}
             if not idGrupo in self.contenedorParametros['accelPer'][nivel]:
-                self.contenedorParametros['accelPer'][nivel][idGrupo] = 1.06
+                self.contenedorParametros['accelPer'][nivel][idGrupo] = 2.05
             if not nivel in self.contenedorParametros['accelBest']:
                 self.contenedorParametros['accelBest'][nivel] = {}
             if not idGrupo in self.contenedorParametros['accelBest'][nivel]:
-                self.contenedorParametros['accelBest'][nivel][idGrupo] = 1.06
+                self.contenedorParametros['accelBest'][nivel][idGrupo] = 2.05
 
         return datosNivel
     

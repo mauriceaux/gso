@@ -41,7 +41,7 @@ if __name__ == '__main__':
                     where id = 
                     (select id from datos_ejecucion
                         where estado = 'pendiente'
-                        and nombre_algoritmo = 'GSO-PAPER-6'
+                        and nombre_algoritmo = 'GSO-ORIGINAL'
                         order by id asc
                         limit 1) returning id, parametros;""")
     
@@ -53,12 +53,13 @@ if __name__ == '__main__':
         idEjecucion = arrResult[0]
         
         param = json.loads(arrResult[1])
+        print(param)
         try :
             archivo = param['instancia']
             paramOptimizar = param['paramOptimizar']
             path = os.path.join(carpeta, param['instancia'])
             problema = SCPProblem(path)
-            gso = GSO(niveles=2, idInstancia=idEjecucion, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:12,2:12}, dbEngine=engine)
+            gso = GSO(niveles=2, idInstancia=idEjecucion, numParticulas=50, iterPorNivel={1:50, 2:250}, gruposPorNivel={1:10,2:10}, dbEngine=engine)
             gso.carpetaResultados = carpetaResultados
             gso.instancia = archivo
             gso.mostrarGraficoParticulas = False
@@ -66,7 +67,7 @@ if __name__ == '__main__':
             gso.setProblema(problema)
         
             solver = Solver()
-            solver.autonomo = True
+            solver.autonomo = False
             solver.setAlgoritmo(gso)
             solver.setParamOptimizar(paramOptimizar)
             

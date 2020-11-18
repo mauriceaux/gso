@@ -16,7 +16,7 @@ from datetime import datetime
 import multiprocessing as mp
 from numpy.random import default_rng
 
-from .reparacionGpu.reparacionGpu import cumpleRestricciones as reparaGpu
+from .reparacionGpu import cumpleRestricciones as reparaGpu
 
 #import matplotlib.pyplot as plt
 #import line_profiler
@@ -288,8 +288,9 @@ class SCPProblem():
     
     def mejoraSoluciones(self, soluciones):
         soluciones = np.array(soluciones)
-        solucionesOriginal = soluciones.copy()
+        
         for _ in range(200):
+            solucionesOriginal = soluciones.copy()
             costos = soluciones * self.instance.get_c()
             # print(f"soluciones cambia? {(soluciones!=solucionesOriginal).any()}")
             nCols = int(costos.shape[1])

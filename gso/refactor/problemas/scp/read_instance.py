@@ -91,7 +91,7 @@ class Read():
         Archivo.close()
         self.set_c(Costos)
         self.set_r(Restricciones)      
-        self.pondReparaciones = 1/np.sum(Restricciones, axis=1)  
+        self.pondReparaciones = np.sum(Restricciones, axis=1)  
         #print(self.pondReparaciones)
         #exit()
 

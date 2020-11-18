@@ -32,30 +32,30 @@ class OptimizadorParametros:
         self.iter = 0
 
         self.states = ['Exploration', 'Exploitation', 'Convergence', 'Jump out']
-        if os.path.exists('hmm-model.pkl') and False:
-            with open("hmm-model.pkl", "rb") as file: 
-                self.dhmm = pickle.load(file)
-        else:
-            Pi = np.array([1,0,0,0])
-            A = np.array([
-                [0.5,0.5,0  ,0 ],
-                [0  ,0.5,0.5,0 ],
-                [0  ,0  ,0.5,0.5],
-                [0.5,0  ,0  ,0.5]
-            ])
-            B = np.array([
-                [0   ,0   ,0   ,0.5,0.25,0.25,0  ],
-                [0   ,0.25,0.25,0.5,0   ,0   ,0  ],
-                [2/3 ,1/3 ,0   ,0  ,0   ,0   ,0  ],
-                [0   ,0   ,0   ,0  ,0   ,1/3 ,2/3]
-            ])
-            n_states = len(self.states)
-            self.dhmm = hmm.MultinomialHMM(n_components=n_states, n_iter=100, verbose=False, init_params="", params='es')
-            self.dhmm.n_features = 7
-            self.dhmm.startprob_=Pi
-            self.dhmm.transmat_=A
-            self.dhmm.emissionprob_=B
-            with open("hmm-model.pkl", "wb") as file: pickle.dump(self.dhmm, file)
+        # if os.path.exists('hmm-model.pkl'):
+        #     with open("hmm-model.pkl", "rb") as file: 
+        #         self.dhmm = pickle.load(file)
+        # else:
+        Pi = np.array([1,0,0,0])
+        A = np.array([
+            [0.5,0.5,0  ,0 ],
+            [0  ,0.5,0.5,0 ],
+            [0  ,0  ,0.5,0.5],
+            [0.5,0  ,0  ,0.5]
+        ])
+        B = np.array([
+            [0   ,0   ,0   ,0.5,0.25,0.25,0  ],
+            [0   ,0.25,0.25,0.5,0   ,0   ,0  ],
+            [2/3 ,1/3 ,0   ,0  ,0   ,0   ,0  ],
+            [0   ,0   ,0   ,0  ,0   ,1/3 ,2/3]
+        ])
+        n_states = len(self.states)
+        self.dhmm = hmm.MultinomialHMM(n_components=n_states, n_iter=100, verbose=False, init_params="", params='es')
+        self.dhmm.n_features = 7
+        self.dhmm.startprob_=Pi
+        self.dhmm.transmat_=A
+        self.dhmm.emissionprob_=B
+        with open("hmm-model.pkl", "wb") as file: pickle.dump(self.dhmm, file)
     
     def setParamDim(self, paramDim):
         self.paramDim = paramDim
@@ -249,7 +249,7 @@ class OptimizadorParametros:
             if self.parametros['inercia'][self.parametros['nivel']][idGrupo] > self.wmax:
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmax
 
-            if self.parametros['solPorGrupo'][idGrupo] > 70: self.parametros['solPorGrupo'][idGrupo] = 70
+            if self.parametros['solPorGrupo'][idGrupo] > 30: self.parametros['solPorGrupo'][idGrupo] = 30
             if self.parametros['solPorGrupo'][idGrupo] < 15: self.parametros['solPorGrupo'][idGrupo] = 15
         
         self.parametros['nivel'] = 1 if self.parametros['nivel'] == 2 else 2
