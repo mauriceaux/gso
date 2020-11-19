@@ -138,7 +138,7 @@ class SCPProblem():
         reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
 
         # reparadas = np.array([self.mejoraSolucion(sol) for sol in reparadas])
-        if np.random.uniform() < 0.15:
+        if np.random.uniform() < 0.05:
             reparadas = self.mejoraSoluciones(reparadas)
         # reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
         # nCol = 10
