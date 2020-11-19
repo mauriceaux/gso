@@ -138,7 +138,7 @@ class SCPProblem():
         reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
 
         # reparadas = np.array([self.mejoraSolucion(sol) for sol in reparadas])
-        if np.random.uniform() < 0.4:
+        if np.random.uniform() < 0.15:
             reparadas = self.mejoraSoluciones(reparadas)
         # reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
         # nCol = 10
@@ -287,9 +287,11 @@ class SCPProblem():
         return x, numReparaciones
     
     def mejoraSoluciones(self, soluciones):
+        # print(f"inicio mejor soluciones")
         soluciones = np.array(soluciones)
         
-        for _ in range(200):
+        for iter in range(200):
+            inicio = datetime.now()
             solucionesOriginal = soluciones.copy()
             costos = soluciones * self.instance.get_c()
             # print(f"soluciones cambia? {(soluciones!=solucionesOriginal).any()}")
@@ -297,19 +299,22 @@ class SCPProblem():
             # nCols = 40
             cosOrd = np.argsort(-costos, axis=1)[:,:nCols]
             # modificado = soluciones.copy()
-            modificados = []
+            # modificados = []
+            modificados = np.repeat(soluciones[None,...],cosOrd.shape[1],axis=0)
             for pos in range(cosOrd.shape[1]):
                 # if np.count_nonzero(costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0) > (costos.shape[1]*0.3): break
                 if (costos[np.arange(costos.shape[0]).reshape((-1,1)),cosOrd[:,pos].reshape(-1,1)] == 0).all(): break
-                modificado = soluciones.copy()
-                modificado[np.arange(modificado.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
-                modificados.append(modificado)
+                # modificado = soluciones.copy()
+                # modificado[np.arange(modificado.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
+                # modificados.append(modificado)
+                modificados[pos,np.arange(soluciones.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
                 # fact = [self.repair.cumple(modificado[id]) for id in range(modificado.shape[0])]
                 # fact = np.array(fact)
-
+            fin = datetime.now()
+            # print(f"tiempo creacion de modificados {fin-inicio}")
             pendientes = np.ones(soluciones.shape[0]) == 1
-            
-            modificados = np.array(modificados)
+            inicio = datetime.now()
+            # modificados = np.array(modificados)
             originalShape = modificados.shape
             modificados = modificados.reshape((modificados.shape[0]*modificados.shape[1], modificados.shape[2]))
             # print(modificados.shape)
@@ -324,6 +329,10 @@ class SCPProblem():
             # exit()
             factEncontradas = np.argwhere((fact==True).any(axis=1))
             # idxFact = 0
+            fin = datetime.now()
+            # print(f"tiempo verificacion infactibles {fin-inicio}")
+            pendientes = np.ones(soluciones.shape[0]) == 1
+            inicio = datetime.now()
             for idxFact in factEncontradas:
                 if np.count_nonzero(pendientes == True) == 0: break
                 
@@ -368,9 +377,14 @@ class SCPProblem():
                 
                 # exit()
                 # idxFact += 1
+            fin = datetime.now()
+            # print(f"tiempo asignacion {fin-inicio}")
+            # print(f"fin iteracion {iter}")
+            pendientes = np.ones(soluciones.shape[0]) == 1
             if (soluciones==solucionesOriginal).all(): break
                 
         # exit()
+        # print(f"fin mejor soluciones")
         return soluciones
 
     def mejoraSolucion(self, solucion):
