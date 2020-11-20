@@ -11,6 +11,10 @@ class Read():
         self.rows = 0
         self.columns  = 0
         self.LeerInstancia(file)
+        self.restricciones = np.array(self.get_r())
+        self.numRestricciones = self.restricciones.shape[0]
+        self.restricciones = np.argwhere(self.restricciones==1)
+        
     
     def get_c(self):
         return self.__c
@@ -20,6 +24,12 @@ class Read():
         
     def get_r(self):
         return self.__r
+
+    def getRestricciones(self):
+        return self.restricciones
+
+    def getNumRestricciones(self):
+        return self.numRestricciones
 
     def set_r(self, r):
         self.__r = r    
