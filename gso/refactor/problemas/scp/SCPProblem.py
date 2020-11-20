@@ -291,7 +291,8 @@ class SCPProblem():
         soluciones = np.array(soluciones)
         
         for iter in range(200):
-            inicio = datetime.now()
+            # inicioIter = datetime.now()
+            # inicio = datetime.now()
             solucionesOriginal = soluciones.copy()
             costos = soluciones * self.instance.get_c()
             # print(f"soluciones cambia? {(soluciones!=solucionesOriginal).any()}")
@@ -310,10 +311,10 @@ class SCPProblem():
                 modificados[pos,np.arange(soluciones.shape[0]).reshape(-1,1), cosOrd[:,pos].reshape(-1,1)] = 0
                 # fact = [self.repair.cumple(modificado[id]) for id in range(modificado.shape[0])]
                 # fact = np.array(fact)
-            fin = datetime.now()
+            # fin = datetime.now()
             # print(f"tiempo creacion de modificados {fin-inicio}")
             pendientes = np.ones(soluciones.shape[0]) == 1
-            inicio = datetime.now()
+            # inicio = datetime.now()
             # modificados = np.array(modificados)
             originalShape = modificados.shape
             modificados = modificados.reshape((modificados.shape[0]*modificados.shape[1], modificados.shape[2]))
@@ -330,7 +331,7 @@ class SCPProblem():
                 # print(modificados.shape)
                 # print(part.shape)
                 # exit()
-                fact.extend(reparaGpu._procesarFactibilidadGPU(part, np.array(self.instance.get_r())))
+                fact.extend(reparaGpu._procesarFactibilidadGPU2(part, self.instance.getRestricciones(), self.instance.getNumRestricciones()))
 
             # fact = reparaGpu._procesarFactibilidadGPU(modificados, np.array(self.instance.get_r()))
             fact = np.array(fact)
@@ -345,11 +346,13 @@ class SCPProblem():
             # print(np.argwhere((fact==True).any(axis=1)))
             # exit()
             factEncontradas = np.argwhere((fact==True).any(axis=1))
+
             # idxFact = 0
-            fin = datetime.now()
+            # fin = datetime.now()
             # print(f"tiempo verificacion infactibles {fin-inicio}")
             pendientes = np.ones(soluciones.shape[0]) == 1
             inicio = datetime.now()
+            totalmodificadas = 0
             for idxFact in factEncontradas:
                 if np.count_nonzero(pendientes == True) == 0: break
                 
@@ -358,45 +361,18 @@ class SCPProblem():
 
                 if ((pendientes & factPendientes) == True).any():
                     modificado = modificados[idxFact[0]]
-                    # print(modificado)
-                    # modificadoPendiente = modificado[pendientes]
-                    # print(f"Existe un factible en posición {np.argwhere(factPendientes)}")
-                    # print(f"pendientes {pendientes.shape}")
-                    # print(f"factPendientes {factPendientes}")
-                    # print(f"factPendientes {factPendientes.shape}")
-                    # print(f"soluciones[pendientes][factPendientes] {soluciones[pendientes][factPendientes].shape}")
-                    # print(f"modificadoPendiente[factPendientes] {modificadoPendiente[factPendientes].shape}")
-                    # A = np.array([False,False,True,False])
-                    # B = np.array([True,False,True,True])
-                    # print(np.argwhere(A & B))
-                    # exit()
-
-
-
-                    # print(f"antes del cambio, iguales? {(soluciones[pendientes][factPendientes]==modificadoPendiente[factPendientes]).all()}")
-                    # exit()                
-                
-                    
-
-                    # print(f"factibles {np.count_nonzero(factPendientes == True)} sols modificadas {modificadoPendiente[factPendientes].shape[0]}")
-                    # print(soluciones[pendientes][factPendientes])
-                    # print(factPendientes)
+                    # print(f"total soluciones a modificar {np.count_nonzero(np.where(pendientes & factPendientes))}")
                     soluciones[np.argwhere(pendientes & factPendientes),:] = modificado[np.argwhere(pendientes & factPendientes),:]
-                    # print(soluciones[pendientes][factPendientes])
-                    # soluciones[pendientes][factPendientes] = 8
-                    # print(f"despues del cambio, iguales? {(soluciones[pendientes][factPendientes]==modificadoPendiente[factPendientes]).all()}")
-                    # exit()
-
-                # soluciones[0,0] = 8
-                
                     pendientes[pendientes] = factPendientes[pendientes]==False
-                # print(f"iter {idxFact} pendientes {np.count_nonzero(pendientes == True)} soluciones cambia? {(soluciones!=solucionesOriginal).any()}")
-                
-                # exit()
-                # idxFact += 1
-            fin = datetime.now()
+
+            # fin = datetime.now()
             # print(f"tiempo asignacion {fin-inicio}")
-            # print(f"fin iteracion {iter}")
+            # print(f"fin iteracion {iter} tiempo {fin-inicioIter}")
+            # print(f"total soluciones modificadas {np.count_nonzero(np.count_nonzero((soluciones!=solucionesOriginal), axis=1))}")
+            # colDiferente = np.argwhere(soluciones[0]!=solucionesOriginal[0])
+            # print(f"columnas diferentes en solucion 0 {colDiferente}")
+            # print(f"valores en solucion original 0 en columna diferente {solucionesOriginal[0,colDiferente]} valores en solucion modificada 0 en columna diferente {soluciones[0,colDiferente]}")
+
             pendientes = np.ones(soluciones.shape[0]) == 1
             if (soluciones==solucionesOriginal).all(): break
                 
