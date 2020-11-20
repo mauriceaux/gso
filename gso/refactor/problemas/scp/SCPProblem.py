@@ -138,7 +138,7 @@ class SCPProblem():
         reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
 
         # reparadas = np.array([self.mejoraSolucion(sol) for sol in reparadas])
-        if np.random.uniform() < 0.15:
+        if np.random.uniform() < 0.05:
             reparadas = self.mejoraSoluciones(reparadas)
         # reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
         # nCol = 10
@@ -318,7 +318,24 @@ class SCPProblem():
             originalShape = modificados.shape
             modificados = modificados.reshape((modificados.shape[0]*modificados.shape[1], modificados.shape[2]))
             # print(modificados.shape)
-            fact = reparaGpu._procesarFactibilidadGPU(modificados, np.array(self.instance.get_r()))
+            fact = []
+            partNum = 6
+            size = modificados.shape[0]//partNum
+            if modificados.shape[0]%partNum > 0: partnum += 1
+            for i in range(partNum):
+                low = (i * size)
+                high = (i * size) + size
+                if high > modificados.shape[0] : high = modificados.shape[0]
+                part = modificados[low:high,:]
+                # print(modificados.shape)
+                # print(part.shape)
+                # exit()
+                fact.extend(reparaGpu._procesarFactibilidadGPU(part, np.array(self.instance.get_r())))
+
+            # fact = reparaGpu._procesarFactibilidadGPU(modificados, np.array(self.instance.get_r()))
+            fact = np.array(fact)
+            # print(fact.shape)
+            # raise Exception
             fact = (fact!=0).all(axis=1)
             modificados = modificados.reshape(originalShape)
             fact = fact.reshape((originalShape[0],originalShape[1]))
