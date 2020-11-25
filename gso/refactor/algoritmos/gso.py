@@ -131,9 +131,11 @@ class GSO():
         acceleration =  personalAccel + bestAccel
         acceleration[acceleration > maxVel]  = maxVel
         acceleration[acceleration < minVel]  = minVel
+        if inertia > 0.9: inertia = 0.9
+        if inertia < 0.4: inertia = 0.4
         vInercia = inertia*velocity
-        vInercia[vInercia > maxVel]  = maxVel
-        vInercia[vInercia < minVel]  = minVel
+        # vInercia[vInercia > maxVel]  = maxVel
+        # vInercia[vInercia < minVel]  = minVel
         nextVel = vInercia + acceleration
         nextVel[nextVel > maxVel]  = maxVel
         nextVel[nextVel < minVel]  = minVel
@@ -211,8 +213,9 @@ class GSO():
         self.agregarDataEjec(evaluaciones, datosNivel['grupos'])
         end=datetime.now()
         resultadoMovimiento['soluciones'] = np.vstack(np.array(ret)[:,0])
-        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['max']
-        resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 0] = self.problema.getRangoSolucion()['min']
+        # resultadoMovimiento['soluciones'] = solucionesBin.copy()
+        # resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 1] = self.problema.getRangoSolucion()['max']
+        # resultadoMovimiento['soluciones'][resultadoMovimiento['soluciones'] == 0] = self.problema.getRangoSolucion()['min']
         resultadoMovimiento['solucionesBin'] = solucionesBin
         resultadoMovimiento['evalSoluciones'] = evaluaciones
         if not self.geometric: resultadoMovimiento['velocidades'] = np.vstack(np.array(ret)[:,1])
@@ -371,18 +374,22 @@ class GSO():
         
         datosIteracion = db.Table('datos_iteracion', self.dbMetadata, autoload=True, autoload_with=self.dbEngine)
         insertDatosIteracion = datosIteracion.insert()
-        if 1 in self.contenedorParametros['datosNivel']:
-            totalesGrupo = {}
-            nivel1 = self.contenedorParametros['datosNivel'][1]
-            for idGrupo in nivel1['solPorGrupo']:
-                total = np.count_nonzero(nivel1['grupos'] == idGrupo)
-                dif = self.contenedorParametros['solPorGrupo'][idGrupo] - total
-                if dif != 0:
-                    self.agregarEliminarParticulas(dif, idGrupo)
-                totalesGrupo[idGrupo] = np.count_nonzero(self.contenedorParametros['datosNivel'][1]['grupos'] == idGrupo)
         nivel = self.contenedorParametros['nivel']
         if not nivel in self.contenedorParametros['datosNivel'] or (self.nivelAnterior == 1 and nivel == 2): 
             self.contenedorParametros['datosNivel'][nivel] = self.generarNivel(nivel)
+        # if 1 in self.contenedorParametros['datosNivel']:
+            # totalesGrupo = {}
+            #nivel1 = self.contenedorParametros['datosNivel'][1]
+        nivelActual = self.contenedorParametros['datosNivel'][nivel]
+        # for idGrupo in nivelActual['solPorGrupo'][self.contenedorParametros['nivel']]:
+        for idGrupo in self.contenedorParametros['solPorGrupo'][self.contenedorParametros['nivel']]:
+            total = np.count_nonzero(nivelActual['grupos'] == idGrupo)
+            dif = self.contenedorParametros['solPorGrupo'][self.contenedorParametros['nivel']][idGrupo] - total
+            if dif != 0:
+                self.agregarEliminarParticulas(dif, idGrupo)
+            # totalesGrupo[idGrupo] = np.count_nonzero(self.contenedorParametros['datosNivel'][1]['grupos'] == idGrupo)
+        
+        
         datosNivel = self.contenedorParametros['datosNivel'][nivel]
         self.nivelAnterior = nivel
         self.inicio = datetime.now()
@@ -425,8 +432,8 @@ class GSO():
                 'grupos' : datosNivel['grupos'],
                 'estEvol' : datosNivel['estEvol'],
                 'estadoOculto' : estadoOculto,
-                'estadoObservado' : estadoObservado
-                #'parametros' : self.contenedorParametros
+                'estadoObservado' : estadoObservado,
+                'parametros' : self.contenedorParametros
             }
             datosInternos = zlib.compress(pickle.dumps(datosInternos))
             data.append({
@@ -455,7 +462,7 @@ class GSO():
 
 
     def agregarEliminarParticulas(self, dif, idGrupo):
-        nivel1 = self.contenedorParametros['datosNivel'][1]
+        nivel1 = self.contenedorParametros['datosNivel'][self.contenedorParametros['nivel']]
         if dif > 0:            
             solucionesBin, evaluaciones = self.generarSolucionAlAzar(dif)            
             mejoresSoluciones = np.array([self.contenedorParametros['mejorSolGlobal'] for _ in range(dif)])
@@ -506,7 +513,7 @@ class GSO():
             nivel1['grupos']         = np.array(ngrupos)
             
         else:
-            while np.count_nonzero(nivel1['grupos'] == idGrupo) > self.contenedorParametros['solPorGrupo'][idGrupo]:
+            while np.count_nonzero(nivel1['grupos'] == idGrupo) > self.contenedorParametros['solPorGrupo'][self.contenedorParametros['nivel']][idGrupo]:
                 idxPeor = np.argwhere(nivel1['grupos']==idGrupo)[np.argmin(nivel1['evalSoluciones'][np.argwhere(nivel1['grupos']==idGrupo)])][0]
                 if(idGrupo != nivel1['grupos'][idxPeor]): exit()
                 mejoresEvaluaciones = nivel1['mejoresEvaluaciones'].tolist()
@@ -600,7 +607,7 @@ class GSO():
             solPorGrupo = {}
             for grupo in grupos:
                 solPorGrupo[grupo] = np.count_nonzero(grupos == grupo)
-            datosNivel['solPorGrupo'] = solPorGrupo
+            self.contenedorParametros['solPorGrupo'][nivel] = solPorGrupo
             datosNivel = self.evaluarGrupos(datosNivel)
         end = datetime.now()
         self.guardarIndicadorTiempo('generarNivel', totalNivel, end-start)
@@ -650,7 +657,7 @@ class GSO():
                 datosNivel['solPorGrupo'][idGrupo] += 1
         
         
-        self.contenedorParametros['solPorGrupo'] = datosNivel['solPorGrupo']
+        self.contenedorParametros['solPorGrupo'][self.contenedorParametros['nivel']] = datosNivel['solPorGrupo']
         
         datosNivel = self.evaluarGrupos(datosNivel)
         end = datetime.now()

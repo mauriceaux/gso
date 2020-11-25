@@ -41,7 +41,7 @@ if __name__ == '__main__':
                     where id = 
                     (select id from datos_ejecucion
                         where estado = 'pendiente'
-                        and nombre_algoritmo = 'GSO-ORIGINAL'
+                        and nombre_algoritmo = 'GSO-AUTO-TESIS'
                         order by id asc
                         limit 1) returning id, parametros;""")
     
@@ -67,7 +67,7 @@ if __name__ == '__main__':
             gso.setProblema(problema)
         
             solver = Solver()
-            solver.autonomo = False
+            solver.autonomo = True
             solver.setAlgoritmo(gso)
             solver.setParamOptimizar(paramOptimizar)
             

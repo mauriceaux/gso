@@ -156,8 +156,9 @@ class OptimizadorParametros:
             
     
     def mejorarParametros(self):
+        self.iter += 1
 
-#        print(f"optimizador parametros inicio {self.parametros['solPorGrupo']}")
+#        print(f"optimizador parametros inicio {self.parametros['solPorGrupo'][self.parametros['nivel']]}")
         self.parametros['numIteraciones'] = self.iteraciones
 #        self.parametros['nivel'] = 2
 #        return self.parametros
@@ -202,8 +203,8 @@ class OptimizadorParametros:
                 if 'inercia' in self.paramOptimizar:
                     self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmin + (self.wmax - self.wmin) * np.random.uniform()
                 if 'numParticulas' in self.paramOptimizar:
-                    if self.parametros['nivel'] == 1:
-                        self.parametros['solPorGrupo'][idGrupo] -= 1
+                    # if self.parametros['nivel'] == 1:
+                    self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] -= 1
             if self.states[estado] == 'Exploitation':
                 if 'accelPer' in self.paramOptimizar:
                     self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoLeveRango[0],high=self.aumentoLeveRango[1])
@@ -212,8 +213,8 @@ class OptimizadorParametros:
                 if 'inercia' in self.paramOptimizar:
                     self.parametros['inercia'][self.parametros['nivel']][idGrupo] = 1/1+(1.5*math.exp(-2.6*self.parametros['estEvol'][idGrupo][-1]))
                 if 'numParticulas' in self.paramOptimizar:
-                    if self.parametros['nivel'] == 1:
-                        self.parametros['solPorGrupo'][idGrupo] += 1
+                    # if self.parametros['nivel'] == 1:
+                    self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] += 1
             if self.states[estado] == 'Convergence':
                 if 'accelPer' in self.paramOptimizar:
                     self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.aumentoLeveRango[0],high=self.aumentoLeveRango[1])
@@ -222,12 +223,12 @@ class OptimizadorParametros:
                 if 'inercia' in self.paramOptimizar:
                     self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmin
                 if 'numParticulas' in self.paramOptimizar:
-                    if self.parametros['nivel'] == 1:
-                        self.parametros['solPorGrupo'][idGrupo] += 3
+                    # if self.parametros['nivel'] == 1:
+                    self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] += 1
             if self.states[estado] == 'Jump out':
                 if 'numParticulas' in self.paramOptimizar:
-                    if self.parametros['nivel'] == 1:
-                        self.parametros['solPorGrupo'][idGrupo] -= 3
+                    # if self.parametros['nivel'] == 1:
+                    self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] -= 1
                 if 'accelPer' in self.paramOptimizar:
                     self.parametros['accelPer'][self.parametros['nivel']][idGrupo] *= np.random.uniform(low=self.disminucionRango[0],high=self.disminucionRango[1])
                 if 'accelBest' in self.paramOptimizar:
@@ -249,10 +250,16 @@ class OptimizadorParametros:
             if self.parametros['inercia'][self.parametros['nivel']][idGrupo] > self.wmax:
                 self.parametros['inercia'][self.parametros['nivel']][idGrupo] = self.wmax
 
-            if self.parametros['solPorGrupo'][idGrupo] > 30: self.parametros['solPorGrupo'][idGrupo] = 30
-            if self.parametros['solPorGrupo'][idGrupo] < 15: self.parametros['solPorGrupo'][idGrupo] = 15
+            if self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] > 30: self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] = 30
+            if self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] < 5: self.parametros['solPorGrupo'][self.parametros['nivel']][idGrupo] = 5
         
-        self.parametros['nivel'] = 1 if self.parametros['nivel'] == 2 else 2
+        
+        numIter = self.iter%300
+        if numIter <= 50:
+            self.parametros['nivel'] = 1
+        else:
+            self.parametros['nivel'] = 2
+        # self.parametros['nivel'] = 1 if self.parametros['nivel'] == 2 else 2
         #if self.parametros['nivel'] == 1: self.parametros['numIteraciones'] = 20
         #if self.parametros['nivel'] == 2: self.parametros['numIteraciones'] = 40
         return self.parametros

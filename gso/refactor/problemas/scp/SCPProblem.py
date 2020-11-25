@@ -138,7 +138,7 @@ class SCPProblem():
         reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
 
         # reparadas = np.array([self.mejoraSolucion(sol) for sol in reparadas])
-        if np.random.uniform() < 0.05:
+        if np.random.uniform() < 1:
             reparadas = self.mejoraSoluciones(reparadas)
         # reparadas = reparaGpu.reparaSoluciones(decoded, self.instance.get_r(), self.instance.get_c(), self.instance.pondReparaciones)
         # nCol = 10
@@ -288,9 +288,10 @@ class SCPProblem():
     
     def mejoraSoluciones(self, soluciones):
         # print(f"inicio mejor soluciones")
+        inicio = datetime.now()
         soluciones = np.array(soluciones)
         
-        for iter in range(200):
+        for iter in range(2000):
             # inicioIter = datetime.now()
             # inicio = datetime.now()
             solucionesOriginal = soluciones.copy()
@@ -320,9 +321,9 @@ class SCPProblem():
             modificados = modificados.reshape((modificados.shape[0]*modificados.shape[1], modificados.shape[2]))
             # print(modificados.shape)
             fact = []
-            partNum = 6
+            partNum = 1
             size = modificados.shape[0]//partNum
-            if modificados.shape[0]%partNum > 0: partnum += 1
+            if modificados.shape[0]%partNum > 0: partNum += 1
             for i in range(partNum):
                 low = (i * size)
                 high = (i * size) + size
@@ -351,7 +352,7 @@ class SCPProblem():
             # fin = datetime.now()
             # print(f"tiempo verificacion infactibles {fin-inicio}")
             pendientes = np.ones(soluciones.shape[0]) == 1
-            inicio = datetime.now()
+            # inicio = datetime.now()
             totalmodificadas = 0
             for idxFact in factEncontradas:
                 if np.count_nonzero(pendientes == True) == 0: break
@@ -378,6 +379,8 @@ class SCPProblem():
                 
         # exit()
         # print(f"fin mejor soluciones")
+        fin = datetime.now()
+        print(f"mejora soluciones demoro {fin-inicio}")
         return soluciones
 
     def mejoraSolucion(self, solucion):
@@ -451,6 +454,7 @@ class SCPProblem():
 
 
         fitness, sol,_ = self.evalEncBatch(args)
+        # sol = self.mejoraSoluciones(sol)
 
 
         """
